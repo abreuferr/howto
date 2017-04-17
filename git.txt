@@ -124,20 +124,20 @@ $ git commit -am "Comentario"
 REMOVER ARQUIVO
 # existe a possibilidade de remover um arquivo previamente gerenciado pelo Git.
 #
-$ rm <ARQUIVO>			; remover o arquivo do computador
+$ rm <ARQUIVO>		; remover o arquivo do computador
 $ git rm <ARQUIVO>	; remover o arquivo do Git
 
 MOVER ARQUIVO
 # existe a possibilidade de mover ou renomear um arquivo previamente gerenciado
 # pelo Git.
 #
-$ mv <ARQUIVO1>	<ARQUIVO2>		; remover o arquivo do computador
-$ git mv <ARQUIVO1>	<ARQUIVO2>; remover o arquivo do Git
+$ mv <ARQUIVO1>	<ARQUIVO2>	; remover o arquivo do computador
+$ git mv <ARQUIVO1> <ARQUIVO2>	; remover o arquivo do Git
 
 UNDO
 # Refazer o ultimo comentario do commit
 #
-$ git commit --amend											,	altera o comentário do último commit
+$ git commit --amend	, altera o comentário do último commit
 
 # Remover um arquivo que foi adicionado erroneamente.
 #
@@ -253,9 +253,9 @@ MERGE
 $ git checkout master
 	Switched to branch 'master'
 $ git merge <NOME_BRANCH>
-$ git merge -X ours <branch>	,	Faz merge da <branch> especificada com a master,
-																força modificações da master para o caso de ter
-																erros na branch
+$ git merge -X ours <branch>	,Faz merge da <branch> especificada com a master,
+				força modificações da master para o caso de ter
+				erros na branch
 
 # depois de executar o MERGE, eh possivel remover as branch existentes
 # para isso basta executar o comando
