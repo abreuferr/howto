@@ -1,0 +1,642 @@
+#: Title : Comandos MySQL
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Comandos SQL do MySQL
+#: Options : None
+#: Reference :	http://www.linux.org/article/view/databases-with-linux
+		http://pichiliani.com.br/2016/02/o-que-todo-dba-junior-deve-saber-fazer/
+		http://www.thegeekstuff.com/2013/09/mysql-select-command/
+		http://www.howtoforge.com/how-to-set-up-database-replication-in-mysql-on-ubuntu-9.10
+		https://www.howtoforge.com/tutorial/mysql-master_master-replication-on-debian-jessie/
+		https://www.howtoforge.com/tutorial/how-to-install-and-configure-mysql-cluster-on-centos-7/
+		https://www.digitalocean.com/community/tutorials/how-to-create-a-multi-node-mysql-cluster-on-ubuntu-16-04
+
+GERAL
+# logon no mysql
+#
+$ mysql -u root -p
+
+# criacao de usuario
+#
+mysql> create user cosmo;
+
+# criacao da base de dados
+#
+mysql> create database comics;
+
+# loggin na base de dados
+#
+mysql> use comics;
+
+# criacao de tabela
+#
+mysql> create table empregado (id int AUTO_INCREMENT PRIMARY key, nome varchar(20), dept varchar(10), salario int(10));
+
+# exibir as tabelas que existentes na base de dados
+#
+mysql> show tables;
++------------------+
+| Tables_in_comics |
++------------------+
+| empregado        |
++------------------+
+
+# exibir informacoes detalhadas de uma determinada tabela
+#
+mysql> describe empregado;
++---------+-------------+------+-----+---------+----------------+
+| Field   | Type        | Null | Key | Default | Extra          |
++---------+-------------+------+-----+---------+----------------+
+| id      | int(11)     | NO   | PRI | NULL    | auto_increment |
+| nome    | varchar(20) | YES  |     | NULL    |                |
+| dept    | varchar(10) | YES  |     | NULL    |                |
+| salario | int(10)     | YES  |     | NULL    |                |
++---------+-------------+------+-----+---------+----------------+
+
+# sair do MySQL
+#
+mysql> quit;
+
+INSERT
+# inserir dados em uma tabela
+#
+mysql> insert into empregado values(100,'caio','engenharia',5000);
+mysql> insert into empregado values(200,'marcos','vendas',7500);
+mysql> insert into empregado values(300,'clovis','gerencia',7500);
+mysql> insert into empregado values(400,'pedro','marketing,7800);
+mysql> insert into empregado values(500,'camila','diretoria',7300);
+mysql> insert into empregado values(600,'flavia','presidencia',6300);
+mysql> insert into empregado values(601,'jessica','desenvolvimento',6500);
+
+# inserir dados em uma tabela cujo campo id seja igual a 300
+#
+# se por acaso o id já estiver sendo utilizado, eh necessario utilizar outro id
+#
+mysql> insert into empregado set id=300, name='Mayla';
+
+# inserir dados de uma tabela em outra table, contratado -> empregado
+#
+mysqe> insert into empregado select * from contratado;
+
+# inserir dados da tabela contratado na tablea empregado mas o salario deve ser
+# maior ou igual a 7000
+#
+mysql> insert into empregado select * from contratado where salario >= 7000;
+
+# o conteudo dos campos id e nome da tabela contratado serao inseridos nos campos
+# id e nome da tabela empregado
+#
+mysql> insert into empregado(id,nome) select id,nome from contratado;
+
+# o conteudo dos campos id e nome da tabela contratado serao inseridos nos campos
+# id e nome da tabela empregado cujo salario seja maior ou igual a 7000
+#
+mysql> insert into empregado(id,nome) select id,nome from contratado where salario >= 7000;
+
+# inserir dados ignorando mensagem de erro
+#
+mysql> insert IGNORE into empregado values(100,'Thomas','vendas',5000);
+
+# inserir dado na tabela utilizando sinais de operacao
+#
+# id = 50*2 e salario=5000+100
+#
+mysql> insert into empregado values(50*2,'Thomas','vendas',5000+id);
+
+# inserir dados na tabela com baixa prioridade
+#
+mysql> insert LOW_PRIORITY into empregado values(100,'Thomas','vendas',5000);
+
+# inserir dados na tabela com alta prioridade
+#
+mysql> insert HIGH_PRIORITY into empregado values(100,'Thomas','vendas',5000);
+
+# inserir dados na tabela, mesmo que já exista esse registro
+#
+mysql> insert into empregado values(100,'Thomas','vendas',5000) on DUPLICATE key update salario=salario+500;
+
+QUERY
+# exibir todos os dados da tabela employee
+#
+mysql> select * from empregado;
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 100 | caio    | engenharia |    5000 |
+| 200 | marcos  | vendas     |    7500 |
+| 300 | clovis  | gerencia   |    7500 |
+| 400 | pedro   | marketing  |    7800 |
+| 500 | camila  | diretoria  |    7300 |
+| 600 | flavia  | presidenci |    6300 |
+| 601 | jessica | desenvolvi |    6500 |
++-----+---------+------------+---------+
+
+# exibir somente nome e departamento da tabela employee
+#
+mysql> select nome, dept from empregado;
++---------+------------+
+| nome    | dept       |
++---------+------------+
+| caio    | engenharia |
+| marcos  | vendas     |
+| clovis  | gerencia   |
+| pedro   | marketing  |
+| camila  | diretoria  |
+| flavia  | presidenci |
+| jessica | desenvolvi |
++---------+------------+
+
+# exibir os dados cujo departamento eh technology e salario maior que 6000
+#
+mysql> select * from empregado where dept = 'vendas' and salario >= 5000;
++-----+--------+--------+---------+
+| id  | nome   | dept   | salario |
++-----+--------+--------+---------+
+| 200 | marcos | vendas |    7500 |
++-----+--------+--------+---------+
+
+# exibe os dados da tabela empregado cujo dados do campo dept seja igual a gerencia
+#
+mysql> select * from empregado where dept = 'gerencia';
++-----+--------+----------+--------+
+| id  | name   | dept     | salary |
++-----+--------+----------+--------+
+| 200 | flavio | gerencia |   5000 |
++-----+--------+----------+--------+
+
+# exibe os dados da tabela empregado cujo dados do campo nome seja igual a *camila*
+#
+mysql> select * from empregado where nome LIKE '%camila%%';
++-----+--------+------------+--------+
+| id  | name   | dept       | salary |
++-----+--------+------------+--------+
+| 300 | camila | engenharia |   5000 |
++-----+--------+------------+--------+
+
+# opcao de e/ou
+#
+mysql> select * from empregado where dept = 'vendas' OR salario >= 7000;
++-----+--------+-----------+---------+
+| id  | nome   | dept      | salario |
++-----+--------+-----------+---------+
+| 200 | marcos | vendas    |    7500 |
+| 300 | clovis | gerencia  |    7500 |
+| 400 | pedro  | marketing |    7800 |
+| 500 | camila | diretoria |    7300 |
++-----+--------+-----------+---------+
+
+mysql> select * from employee where dept = 'marketing' AND salario >= 6000;
++-----+-------+-----------+---------+
+| id  | nome  | dept      | salario |
++-----+-------+-----------+---------+
+| 400 | pedro | marketing |    7800 |
++-----+-------+-----------+---------+
+
+# concatenacao
+#
+mysql> select id, CONCAT(nome, ' from ', dept) AS nome, SALARIO from empregado;
++-----+-------------------------+---------+
+| id  | nome                    | salario |
++-----+-------------------------+---------+
+| 100 | caio from engenharia    |    5000 |
+| 200 | marcos from vendas      |    7500 |
+| 300 | clovis from gerencia    |    7500 |
+| 400 | pedro from marketing    |    7800 |
+| 500 | camila from diretoria   |    7300 |
+| 600 | flavia from presidenci  |    6300 |
+| 601 | jessica from desenvolvi |    6500 |
++-----+-------------------------+---------+
+
+# concatenacao - exibe a quantidade de departamentos existe na tabela
+#
+mysql> select dept, count(*) from empregado group by dept;
++------------+----------+
+| dept       | count(*) |
++------------+----------+
+| desenvolvi |        1 |
+| diretoria  |        1 |
+| engenharia |        1 |
+| gerencia   |        1 |
+| marketing  |        1 |
+| presidenci |        1 |
+| vendas     |        1 |
++------------+----------+
+
+# concatenacao
+#
+mysql> select count(*) AS CNT, dept from empregado group by dept HAVING CNT >= 1;
++------------+-----+------------+
+| dept       | cnt | dept       |
++------------+-----+------------+
+| desenvolvi |   1 | desenvolvi |
+| diretoria  |   1 | diretoria  |
+| engenharia |   1 | engenharia |
+| gerencia   |   1 | gerencia   |
+| marketing  |   1 | marketing  |
+| presidenci |   1 | presidenci |
+| vendas     |   1 | vendas     |
++------------+-----+------------+
+
+# select na tabela empregado e ordena os dados exibidos atraves do campo dept
+#
+mysql> select * from empregado order by dept;
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 601 | jessica | desenvolvi |    6500 |
+| 500 | camila  | diretoria  |    7300 |
+| 100 | caio    | engenharia |    5000 |
+| 300 | clovis  | gerencia   |    7500 |
+| 400 | pedro   | marketing  |    7800 |
+| 600 | flavia  | presidenci |    6300 |
+| 200 | marcos  | vendas     |    7500 |
++-----+---------+------------+---------+
+
+# select na tabela employee e ordena os dados exibidos atraves do campo dept so que de forma descendente
+#
+mysql> select * from empregado order by dept desc;
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 200 | marcos  | vendas     |    7500 |
+| 600 | flavia  | presidenci |    6300 |
+| 400 | pedro   | marketing  |    7800 |
+| 300 | clovis  | gerencia   |    7500 |
+| 100 | caio    | engenharia |    5000 |
+| 500 | camila  | diretoria  |    7300 |
+| 601 | jessica | desenvolvi |    6500 |
++-----+---------+------------+---------+
+
+# select na tabela empregado e ordena os dados exibidos atraves do campo dept, salario so que de forma descendente
+#
+mysql> select * from empregado order by dept,salario desc;
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 601 | jessica | desenvolvi |    6500 |
+| 500 | camila  | diretoria  |    7300 |
+| 100 | caio    | engenharia |    5000 |
+| 300 | clovis  | gerencia   |    7500 |
+| 400 | pedro   | marketing  |    7800 |
+| 600 | flavia  | presidenci |    6300 |
+| 200 | marcos  | vendas     |    7500 |
++-----+---------+------------+---------+
+
+# select na tabela empregado, so que exibe somente os tres primeiros registros mas comeca no registro de numero 2
+#
+mysql> select * from empregado limit 2,3;
++-----+--------+-----------+---------+
+| id  | nome   | dept      | salario |
++-----+--------+-----------+---------+
+| 300 | clovis | gerencia  |    7500 |
+| 400 | pedro  | marketing |    7800 |
+| 500 | camila | diretoria |    7300 |
++-----+--------+-----------+---------+
+
+# select na tabela empregado, so que exibe somente os tres primeiros registros
+#
+mysql> select * from empregado limit 3;
++-----+--------+------------+---------+
+| id  | nome   | dept       | salario |
++-----+--------+------------+---------+
+| 100 | caio   | engenharia |    5000 |
+| 200 | marcos | vendas     |    7500 |
+| 300 | clovis | gerencia   |    7500 |
++-----+--------+------------+---------+
+
+# select na tabela employee, so que exibe somente os tres primeiros registros mas pula o primeiro registro
+#
+mysql> select * from employee limit 3 offset 1
++-----+--------+-----------+---------+
+| id  | nome   | dept      | salario |
++-----+--------+-----------+---------+
+| 200 | marcos | vendas    |    7500 |
+| 300 | clovis | gerencia  |    7500 |
+| 400 | pedro  | marketing |    7800 |
++-----+--------+-----------+---------+
+
+# ira exibir somente o conteudo do campo dept da tabela empregado
+#
+mysql> select DISTINCT dept from empregado;
++------------+
+| dept       |
++------------+
+| engenharia |
+| vendas     |
+| gerencia   |
+| marketing  |
+| diretoria  |
+| presidenci |
+| desenvolvi |
++------------+
+
+# ira somar os valores do campo salario dos registros cujo departamento(dept) seja vendas
+#
+mysql> select SUM(salario) from empregado where dept = 'vendas';
++--------------+
+| sum(salario) |
++--------------+
+|        15300 |
++--------------+
+
+# ira somar os valores do campo salario da tabela empregado e ira agrupados por dept
+#
+mysql> select dept,AVG(salario) from empregado group by dept;
++------------+--------------+
+| dept       | avg(salario) |
++------------+--------------+
+| desenvolvi |    6500.0000 |
+| diretoria  |    7300.0000 |
+| engenharia |    5000.0000 |
+| gerencia   |    7650.0000 |
+| marketing  |    7800.0000 |
+| presidenci |    6300.0000 |
+| vendas     |    7650.0000 |
++------------+--------------+
+
+# o resultado do comando select sera redirecionado para um arquivo
+#
+mysql> select * into OUTFILE '/tmp/empregado.txt' from empregado;
+
+# o resultado do comando select sera redirecionado para um arquivo e os valores serao separados por virgula CSV
+#
+mysql> select * into OUTFILE '/tmp/empregado_csv.txt'   FIELDS TERMINATED by ',' from empregado;
+
+# o comando select ira exibir os dados da tabela empregado, de forma randomica e ira exibir somente um registro
+#
+mysql> select * from empregado order by RAND() limit 1;
++-----+------+--------+---------+
+| id  | nome | dept   | salario |
++-----+------+--------+---------+
+| 700 | jose | vendas |    7800 |
++-----+------+--------+---------+
+
+# o comando select ira exibir os dados da tabela empregado, cujo id seja igual a 100 e ira executar com alta prioridade
+#
+mysql> select HIGH_PRIORITY * from empregado where id = 100;
++-----+------+------------+---------+
+| id  | nome | dept       | salario |
++-----+------+------------+---------+
+| 100 | caio | engenharia |    5000 |
++-----+------+------------+---------+
+
+# o comando select ira exibir os dados da tabela empregado, cujo id seja igual a 100 e impedir que o conteudo do registro seja alterado
+#
+mysql> select * from employee where id = 100 LOCK IN SHARE MODE;
+
+UPDATE
+# substituir o conteudo do campo dept pelo valor tecnologia
+#
+mysql> update empregado set dept='tecnologia';
+
+# substituir o conteudo do campo dept pelo valor Marketing mas o salario deve ser maior e igual que 7000
+#
+mysql> update empregado set dept='Marketing' where salary >=7000;
+
+# substituir o conteudo do campo salario cujo dept seja vendas
+#
+mysql> update empregado set salario=salario+500 where dept='vendas';
+
+# substitui os valores do campo salario e dept cujo id seja maior que 300
+#
+mysql> update empregado set salario=7900, dept='vendas' where id>601;
+(antes)
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 601 | jessica | desenvolvi |    6500 |
+| 700 | jose    | vendas     |    7800 |
+| 800 | ricardo | gerencia   |    7800 |
++-----+---------+------------+---------+
+
+(depois)
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 601 | jessica | desenvolvi |    6500 |
+| 700 | jose    | vendas     |    7900 |
+| 800 | ricardo | vendas     |    7900 |
++-----+---------+------------+---------+
+
+# substitui os valores do campo salario nos 03 primeiros registros
+#
+mysql> update empregado set salario=6500 limit 3;
+
+# substituicao utilizando condicionamento case)
+#
+mysql> update empregado set salario = case dept when 'vendas' THEN salario+1000 when 'engenharia' THEN salario+500 when 'Marketing' THEN salario+500 ELSE salario END;
+
+SELECT
+# show data from table
+#
+mysql> select * from empregado;
++-----+---------+------------+---------+
+| id  | nome    | dept       | salario |
++-----+---------+------------+---------+
+| 100 | caio    | engenharia |    7000 |
+| 200 | marcos  | vendas     |    7500 |
+| 300 | clovis  | gerencia   |    6500 |
+| 400 | pedro   | marketing  |    8300 |
+| 500 | camila  | diretoria  |    7300 |
+| 600 | flavia  | presidenci |    6300 |
+| 601 | jessica | desenvolvi |    6500 |
+| 700 | jose    | vendas     |    8900 |
+| 800 | ricardo | vendas     |    8900 |
++-----+---------+------------+---------+
+
+mysql> select nome, dept from empregado;
++---------+------------+
+| nome    | dept       |
++---------+------------+
+| caio    | engenharia |
+| marcos  | vendas     |
+| clovis  | gerencia   |
+| pedro   | marketing  |
+| camila  | diretoria  |
+| flavia  | presidenci |
+| jessica | desenvolvi |
+| jose    | vendas     |
+| ricardo | vendas     |
++---------+------------+
+
+mysql> select nome from empregado where dept='vendas';
++---------+
+| nome    |
++---------+
+| marcos  |
+| jose    |
+| ricardo |
++---------+
+
+mysql> select nome from empregado where dept!='vendas';
++---------+
+| nome    |
++---------+
+| caio    |
+| clovis  |
+| pedro   |
+| camila  |
+| flavia  |
+| jessica |
++---------+
+
+mysql> select nome from empregado order by nome;
++---------+
+| nome    |
++---------+
+| caio    |
+| camila  |
+| clovis  |
+| flavia  |
+| jessica |
+| jose    |
+| marcos  |
+| pedro   |
+| ricardo |
++---------+
+
+mysql> select * from empregado where dept='vendas' and salario >= 7000;
++-----+---------+--------+---------+
+| id  | nome    | dept   | salario |
++-----+---------+--------+---------+
+| 200 | marcos  | vendas |    7500 |
+| 700 | jose    | vendas |    8900 |
+| 800 | ricardo | vendas |    8900 |
++-----+---------+--------+---------+
+
+mysql> select * from empregado where dept='vendas' or salario >= 8000;
++-----+---------+-----------+---------+
+| id  | nome    | dept      | salario |
++-----+---------+-----------+---------+
+| 200 | marcos  | vendas    |    7500 |
+| 400 | pedro   | marketing |    8300 |
+| 700 | jose    | vendas    |    8900 |
+| 800 | ricardo | vendas    |    8900 |
++-----+---------+-----------+---------+
+
+mysql> select id, concat(nome, ' from ', dept) as nome, salario from empregado;
++-----+-------------------------+---------+
+| id  | nome                    | salario |
++-----+-------------------------+---------+
+| 100 | caio from engenharia    |    7000 |
+| 200 | marcos from vendas      |    7500 |
+| 300 | clovis from gerencia    |    6500 |
+| 400 | pedro from marketing    |    8300 |
+| 500 | camila from diretoria   |    7300 |
+| 600 | flavia from presidenci  |    6300 |
+| 601 | jessica from desenvolvi |    6500 |
+| 700 | jose from vendas        |    8900 |
+| 800 | ricardo from vendas     |    8900 |
++-----+-------------------------+---------+
+
+mysql> select count(*) from empregado;
++----------+
+| count(*) |
++----------+
+|        9 |
++----------+
+
+mysql> select dept, count(*) from empregado group by dept;
++------------+----------+
+| dept       | count(*) |
++------------+----------+
+| desenvolvi |        1 |
+| diretoria  |        1 |
+| engenharia |        1 |
+| gerencia   |        1 |
+| marketing  |        1 |
+| presidenci |        1 |
+| vendas     |        3 |
++------------+----------+
+
+MODIFY
+# modificar campo
+#
+mysql> alter table empregado modify nome varchar(255);
+
+# modificar tabela
+#
+mysql> alter table empregado add column localidade varchar(255);
++-----+---------+------------+---------+------------+
+| id  | nome    | dept       | salario | localidade |
++-----+---------+------------+---------+------------+
+| 100 | caio    | engenharia |    7000 | NULL       |
+| 200 | marcos  | vendas     |    7500 | NULL       |
+| 300 | clovis  | gerencia   |    6500 | NULL       |
+| 400 | pedro   | marketing  |    8300 | NULL       |
+| 500 | camila  | diretoria  |    7300 | NULL       |
+| 600 | flavia  | presidenci |    6300 | NULL       |
+| 601 | jessica | desenvolvi |    6500 | NULL       |
+| 700 | jose    | vendas     |    8900 | NULL       |
+| 800 | ricardo | vendas     |    8900 | NULL       |
++-----+---------+------------+---------+------------+
+
+DELETE
+# delete data - nome igual a caio ou o id seja igual a 100)
+#
+mysql> delete from empregado where nome='caio';
++-----+---------+------------+---------+------------+
+| id  | nome    | dept       | salario | localidade |
++-----+---------+------------+---------+------------+
+| 200 | marcos  | vendas     |    7500 | NULL       |
+| 300 | clovis  | gerencia   |    6500 | NULL       |
+| 400 | pedro   | marketing  |    8300 | NULL       |
+| 500 | camila  | diretoria  |    7300 | NULL       |
+| 600 | flavia  | presidenci |    6300 | NULL       |
+| 601 | jessica | desenvolvi |    6500 | NULL       |
+| 700 | jose    | vendas     |    8900 | NULL       |
+| 800 | ricardo | vendas     |    8900 | NULL       |
++-----+---------+------------+---------+------------+
+
+mysql> delete from empregado where id=700;
++-----+---------+------------+---------+------------+
+| id  | nome    | dept       | salario | localidade |
++-----+---------+------------+---------+------------+
+| 200 | marcos  | vendas     |    7500 | NULL       |
+| 300 | clovis  | gerencia   |    6500 | NULL       |
+| 400 | pedro   | marketing  |    8300 | NULL       |
+| 500 | camila  | diretoria  |    7300 | NULL       |
+| 600 | flavia  | presidenci |    6300 | NULL       |
+| 601 | jessica | desenvolvi |    6500 | NULL       |
+| 800 | ricardo | vendas     |    8900 | NULL       |
++-----+---------+------------+---------+------------+
+
+# apagar tabela
+#
+mysql> DROP table empregado;
+
+# Apagar multiplas linhas utilizando dados de um campo
+#
+mysql> delete from empregado where salario <= 7000;
++-----+---------+-----------+---------+------------+
+| id  | nome    | dept      | salario | localidade |
++-----+---------+-----------+---------+------------+
+| 200 | marcos  | vendas    |    7500 | NULL       |
+| 400 | pedro   | marketing |    8300 | NULL       |
+| 500 | camila  | diretoria |    7300 | NULL       |
+| 800 | ricardo | vendas    |    8900 | NULL       |
++-----+---------+-----------+---------+------------+
+
+mysql> delete quick from empregado where salario < 7500;
++-----+---------+-----------+---------+------------+
+| id  | nome    | dept      | salario | localidade |
++-----+---------+-----------+---------+------------+
+| 200 | marcos  | vendas    |    7500 | NULL       |
+| 400 | pedro   | marketing |    8300 | NULL       |
+| 800 | ricardo | vendas    |    8900 | NULL       |
++-----+---------+-----------+---------+------------+
+
+mysql> delete LOW_PRIORITY from exampletb where salary <=7000;
+
+# Delete Rows with limit option
+#
+mysql> delete low_priority from empregado where salario < 8000;
++-----+---------+-----------+---------+------------+
+| id  | nome    | dept      | salario | localidade |
++-----+---------+-----------+---------+------------+
+| 400 | pedro   | marketing |    8300 | NULL       |
+| 800 | ricardo | vendas    |    8900 | NULL       |
++-----+---------+-----------+---------+------------+
+
+# apagar a base de dados
+#
+mysql> DROP database empregado;

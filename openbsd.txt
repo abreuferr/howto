@@ -1,0 +1,582 @@
+#: Title : OpenBSD Howto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Uma serie de tutoriais sobre o OpenBSD
+#: Options : None
+#: Reference :  https://calomel.org/pf_carp.html
+                http://www.kernel-panic.it/openbsd/dns/
+                http://www.kernel-panic.it/openbsd/proxy/index.html
+
+1. CARP
+# DIAGRAMA
+#
+                                         |
+                   +--------------------/ \------------------+
+                   |         carp1(em0) = 192.168.80.12      |
+                   |                                         |
+    192.168.80.10 em0                                       em0 192.168.80.11
+                   |                                         |
+               +-------+                  192.168.70.11  +-------+
+               |  fw0  |- em2 ---- CARP Pfsync ---- em2 -|  fw1  |
+               +-------+  192.168.70.10                  +-------+
+                   |                                         |
+    192.168.60.10 em1                                       em1 192.168.60.20
+                   |                                         |
+                   |         carp2(em1) = 192.168.60.12      |
+                   +--------------------\ /------------------+
+                                         |
+                                   Internal LAN
+                                  (192.168.60/24)
+#
+# HOST FW0
+#
+
+## External interface nic (em0)
+#
+$ cat /etc/hostname.em0
+  inet 192.168.80.10 255.255.255.0 NONE
+
+
+## Internal interface nic (em1)
+#
+$ cat /etc/hostname.em1
+  inet 192.168.60.10 255.255.255.0 NONE
+
+## Pfsync interface nic (em2)
+#
+$ cat /etc/hostname.em2
+  inet 192.168.70.10 255.255.255.0 NONE
+
+## Pfsync sync-device bound to the pfsyn nic (em2)
+#
+$ cat /etc/hostname.pfsync0
+  up syncdev em2
+
+## Carp1 Virtual interface bound to the external nic (em0)
+#
+$ cat /etc/hostname.carp1
+  inet 192.168.80.12 255.255.255.0 192.168.80.255 vhid 1 advbase 20 advskew 0 carpdev em0 pass 6f650f0bb2471295614139fd9d212b45
+
+## Carp2 Virtual interface bound to the internal nic (em1)
+#
+$ cat /etc/hostname.carp2
+  inet 192.168.60.12 255.255.255.0 192.168.60.255 vhid 2 advbase 20 advskew 0 carpdev em1 pass d0ecb9f6ed1c899bdc484cb0d26542ba
+
+## Packet forwarding and CARP preempt (add the following)
+#
+$ cat /etc/sysctl.conf
+  net.inet.carp.allow=1    # Allow the firewall to accept CARP packets
+  net.inet.carp.preempt=1  # Allow firewalls to failover when one goes down
+  net.inet.ip.forwarding=1 # Allow packet forwarding through the firewalls
+
+## Enable Pf (add the following)
+#
+$  cat /etc/rc.conf.local
+  pf=YES
+  pf_rules=/etc/pf.conf
+
+# Regras da firewall
+#
+$ cat /etc/pf.conf
+  ################ Macros ###################################
+  ### Interfaces ###
+  ExtIf="em0"
+  IntIf="em1"
+  CarpIf="em2"
+
+  ################ Filtering #################################
+  # CARP firewall fail over
+  pass on $CarpIf inet proto pfsync keep state
+  pass on { $ExtIf, $IntIf } inet proto carp keep state
+
+#
+# HOST FW1
+#
+
+## External interface nic (em0)
+#
+$ cat /etc/hostname.em0
+  inet 192.168.80.11 255.255.255.0 NONE
+
+## Internal interface nic (em1)
+#
+$ cat /etc/hostname.em1
+  inet 192.168.60.11 255.255.255.0 NONE
+
+## Pfsync interface nic (em2)
+#
+$ cat /etc/hostname.em2
+  inet 192.168.70.11 255.255.255.0 NONE
+
+## Pfsync sync-device bound to the pfsyn nic (em2)
+#
+$ cat /etc/hostname.pfsync0
+  up syncdev em2
+
+## Carp1 Virtual interface bound to the external nic (em0)
+#
+$ cat /etc/hostname.carp1
+  inet 192.168.80.12 255.255.255.0 192.168.80.255 vhid 1 advbase 20 advskew 10 carpdev em0 pass 6f650f0bb2471295614139fd9d212b45
+
+## Carp2 Virtual interface bound to the internal nic (em1)
+#
+$ cat /etc/hostname.carp2
+  inet 192.168.60.12 255.255.255.0 192.168.60.255 vhid 2 advbase 20 advskew 10 carpdev em1 pass d0ecb9f6ed1c899bdc484cb0d26542ba
+
+## Packet forwarding and CARP preempt (add the following)
+#
+$ cat /etc/sysctl.conf
+  net.inet.carp.allow=1    # Allow the firewall to accept CARP packets
+  net.inet.carp.preempt=1  # Allow firewalls to failover when one goes down
+  net.inet.ip.forwarding=1 # Allow packet forwarding through the firewalls
+
+## Enable Pf (add the following)
+#
+$ cat /etc/rc.conf.local
+  pf=YES
+  pf_rules=/etc/pf.conf
+
+# Regras da firewall
+$ cat /etc/pf.conf
+  ################ Macros ###################################
+  ### Interfaces ###
+  ExtIf="em0"
+  IntIf="em1"
+  CarpIf="em2"
+
+  ################ Filtering #################################
+  # CARP firewall fail over
+  pass on $CarpIf inet proto pfsync keep state
+  pass on { $ExtIf, $IntIf } inet proto carp keep state
+
+2. DNS
+# MASTER/SLAVE
+#
+# /etc/rc.conf.local
+	named_flags=""
+	named_user=named
+	named_chroot=/var/named
+
+# MASTER
+#
+# /var/named/etc/named.conf
+	// Master zones
+	zone "particula.local" {
+	        type master;
+	        file "master/db.particula.local";
+	        allow-transfer { 192.168.74.6; };
+		notify yes;
+	};
+
+	zone "74.168.192.in-addr.arpa" {
+	        type master;
+	        file "master/db.74.168.192.in-addr.arpa";
+	};
+
+# MASTER
+#
+# /var/named/master/db.particula.local
+	; Start of Authority (SOA) record
+	$TTL   900
+	@ IN SOA srv1.particula.local. root.particula.local. (
+                                2010101301;     Serial
+                                3600;           Refresh [1h]
+                                600;            Retry   [10m]
+                                86400;          Expire  [1d]
+                                600 );          Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS srv1.particula.local.
+				IN NS srv2.particula.local.
+
+	; Mail Exchange (MX) records.
+				IN MX 10 srv8.particula.local.
+
+	; Address (A) records. (real-names of machines)
+                                IN A 192.168.74.5
+        srv1                    IN A 192.168.74.5
+        srv2                    IN A 192.168.74.6
+        srv3                    IN A 192.168.74.7
+        srv4                    IN A 192.168.74.8
+        srv5                    IN A 192.168.74.9
+        srv6                    IN A 192.168.74.10
+        srv7                    IN A 192.168.74.11
+        srv8                    IN A 192.168.74.12
+
+	; Aliases in Canonical Name (CNAME) records...
+	www                     IN CNAME srv7
+
+# MASTER
+#
+# /var/named/master/db.74.168.192.in-addr.arpa
+	; Start of Authority (SOA) record
+	$TTL   900
+	@ IN SOA srv1.particula.local. root.particula.local. (
+                                2010101301;     Serial
+                                3600;           Refresh [1h]
+                                600;            Retry   [10m]
+                                86400;          Expire  [1d]
+                                600 );          Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS srv1.particula.local.
+				IN NS srv2.particula.local.
+
+	; Addresses point to canonical names (PTR) for reverse lookups
+        5                       IN PTR    srv1.particula.local.
+        6                       IN PTR    srv2.particula.local.
+        7                       IN PTR    srv3.particula.local.
+        8                       IN PTR    srv4.particula.local.
+        9                       IN PTR    srv5.particula.local.
+        10                      IN PTR    srv6.particula.local.
+        11                      IN PTR    srv7.particula.local.
+        12                      IN PTR    srv8.particula.local.
+
+# SLAVE
+#
+# /var/named/etc/named.conf
+	// Slave zones
+	//
+	zone "particula.local" {
+        	type slave;
+        	file "slave/db.particula.local";
+	        masters { 192.168.74.5; };
+		allow-notify { 192.168.74.5; };
+	};
+
+# SLAVE
+#
+# /etc/syslog.conf
+	[ ... ]
+	local0.*                                                /var/log/named.log
+
+# touch /var/log/named.log
+# install -m 700 -o named -g named -d /var/named/log
+# pkill -HUP syslogd
+# rndc reload
+
+3. PROXY SQUID
+3.1. PROXY SQUID TRANSPARENT
+# Roteiro de instalacao e configuracao do Squid para que o mesmo possa trabalhar
+# em modo transparente.
+
+# FIREWALL
+#
+$ sudo vi /et/pf.conf
+	int_if="em1"
+	pass in quick on $int_if proto tcp from any to any port 80 rdr-to 127.0.0.1 port 3128
+
+# Instalacao do Squid
+#
+$ sudo pkg_add -i squid (STABLE)
+
+# Regras basicas do Squid para trabalhar com proxy transparente
+#
+$ sudo vi /etc/squid/squid.conf
+	# Port on which connections are redirected
+	http_port  3128 transparent
+
+	cache_mem 256 MB
+	cache_dir   ufs /var/squid/cache 1024 16 256
+	cache_mgr   root@particula.local
+	cache_effective_user    _squid
+	cache_effective_group   _squid
+
+	ftp_user    root@particula.local
+
+	# Define the access log format
+	logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt
+	# Log client request activities ('squid' is the name of the log format to use)
+	access_log       /var/squid/logs/access.log squid
+
+	# Log information about the cache's behavior
+	cache_log        /var/squid/logs/cache.log
+	# Log the activities of the storage manager
+	cache_store_log  /var/squid/logs/store.log
+
+	# Classes
+	acl  all           src    all               # Any IP address
+	acl  localhost     src    127.0.0.0/8       # Localhost
+	acl  lan           src    192.168.79.0/24   # LAN where authorized clients reside
+	acl  manager       proto  cache_object      # Cache object protocol
+	acl  to_localhost  dst    127.0.0.0/8       # Requests to localhost
+	acl  SSL_ports     port   443               # https port
+	acl  Safe_ports    port   80 21 443         # http, ftp, https ports
+	acl  CONNECT       method CONNECT           # SSL CONNECT method
+
+	# Only allow cachemgr access from localhost
+	http_access  allow  manager localhost
+	http_access  deny   manager
+
+	# Deny requests to unknown ports
+	http_access  deny   !Safe_ports
+
+	# Deny CONNECT to other than SSL ports
+	http_access  deny   CONNECT !SSL_ports
+
+	# Prevent access to local web applications from remote users
+	http_access  deny   to_localhost
+
+	# Allow access from the local network
+	http_access  allow  lan
+
+	# Default deny (this must be the last rule)
+	http_access  deny   all
+
+# Criacao dos disretorios e arquivos necessarios para que o Squid
+# possa trabalhar
+#
+$ /usr/local/sbin/squid -z
+$ /usr/local/sbin/squid -d 1 -N
+$ /usr/local/sbin/squid -k shutdown
+
+# Habilitar o squid no arquivo de inicializacao para que o mesmo
+# seja inicializado quando o computador for inicializado
+#
+$ /etc/rc.local
+
+    if [ -x /usr/local/sbin/squid ]; then
+        echo -n ' squid';       /usr/local/sbin/squid
+    fi
+
+# O arquivo de configuracao do Squid sera lido novamente
+#
+$ squid -k reconfigure (# Reload Squid configuration)
+
+3.2. PROXY SQUID E SQUIDGUARD
+# Roteiro de instalacao e configuracao do Squid para que o mesmo possa trabalhar
+# com o software Squidguard.
+
+# Configuracao da regra do firewall para faze o redirecionamento de porta.
+#
+$ /et/pf.conf
+	int_if="em1"
+	pass in quick on $int_if proto tcp from any to any port 80 rdr-to 127.0.0.1 port 3128
+
+# Instalacao do softwares Squid e SquidGuard
+#
+$ pkg_add -i squid-x.x.STABLExx-snmp
+$ pkg_add -i squidGuard-1.4p0
+
+# Criando o diretorio a onde sera armazenado os arquivos dos sites que serao
+# bloqueados pelo SquidGuard
+#
+$ mkdir -p /etc/squidguard/db
+
+# Exemplo de sites que podem ser bloqueados
+#
+$ cp /usr/local/share/examples/squidguard/dest/blacklists.tar.gz /etc/squidguard/db/
+$ cd /etc/squidguard/db/
+$ tar -xjzf blacklists.tar.gz
+
+# Criacao dos diretorios e arquivos de trabalho do Squid
+$ /usr/local/sbin/squid -z
+$ /usr/local/sbin/squid -d 1 -N
+$ /usr/local/sbin/squid -k shutdown
+
+# Arquivo de configuracao do OPenBSD para que quando o computador for reinicializado
+# o Squid seja inicializado
+#
+$ /etc/rc.local
+
+    if [ -x /usr/local/sbin/squid ]; then
+        echo -n ' squid';       /usr/local/sbin/squid
+    fi
+
+# Arquivo de configuracao do SquidGuard
+#
+$ /etc/squidguard/squidguard.conf
+	logdir  /var/log/squidguard
+	dbhome  /etc/squidguard/db
+
+	time workhours {
+		weekly  mtwhf  09:00-18:00
+	}
+
+	time night {
+		weekly  * 18:00-24:00
+		weekly  * 00:00-09:00
+	}
+
+	time holidays {
+		date    *.01.01                 # New Year's Day
+		date    *.05.01                 # Labour Day
+		date    *.12.24 12:00-24:00     # Christmas Eve (short day)
+		date    *.12.25                 # Christmas Day
+		date    *.12.26                 # Boxing Day
+	}
+
+	src admin {
+		ip      192.168.79.5		# The administrator's PC
+		domain  particula.local		# The LAN domain
+		user    root			# The administrator's login names
+	}
+
+	src lan {
+		ip      192.168.79.0/24		# The internal network
+		domain  server.particula.local	# The LAN domain
+	}
+
+	dest porn {
+		domainlist			blacklists/porn/domains
+		urllist				blacklists/porn/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			porn.log
+	}
+
+	dest drugs {
+		domainlist			blacklists/drugs/domains
+		urllist				blacklists/drugs/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			drugs.log
+	}
+
+	dest gambling {
+		domainlist			blacklists/gambling/domains
+		urllist				blacklists/gambling/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			gambling.log
+	}
+
+	acl {
+		admin within workhours {
+			# The following rule allows everything except porn, drugs and
+			# gambling sites during work hours. '!' is the NOT operator.
+			pass !porn !drugs !gambling all
+		} else {
+			# Outside of work hours drugs and gambling sites are still blocked.
+			pass !drugs !gambling all
+		}
+		lan {
+			# The built-in 'in-addr' destination group matches any IP address.
+			pass !in-addr !porn !drugs !gambling all
+		}
+		default {
+			# Default deny to reject unknown clients
+			pass none
+			redirect http://www.google.com.br
+		}
+	}
+
+# Teste do Squid Guard
+$ echo "http://www.blocked.site 1.2.3.4/- user GET -" | squidGuard -c /etc/squidguard/squidguard.conf -d
+$ echo "http://www.good.site 1.2.3.4/- user GET -" | squidGuard -c /etc/squidguard/squidguard.conf -d
+$ squidGuard -C all
+$ chown -R _squid /etc/squidguard/db
+
+# Arquivo de configuracao do Squid para que o mesmo possa trabalhar com o
+# SquidGuard
+#
+$ /etc/squid/squid.conf
+	# Port on which connections are redirected
+	http_port  3128 transparent
+
+	cache_mem 256
+	cache_dir   ufs /var/squid/cache 1024 16 256
+	cache_mgr   root@particula.local
+	cache_effective_user    _squid
+	cache_effective_group   _squid
+
+	ftp_user    root@particula.local
+
+	# Define the access log format
+	logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt
+	# Log client request activities ('squid' is the name of the log format to use)
+	access_log       /var/squid/logs/access.log squid
+
+	# Log information about the cache's behavior
+	cache_log        /var/squid/logs/cache.log
+	# Log the activities of the storage manager
+	cache_store_log  /var/squid/logs/store.log
+
+	# Classes
+	acl  all           src    all               # Any IP address
+	acl  localhost     src    127.0.0.0/8       # Localhost
+	acl  lan           src    192.168.79.0/24   # LAN where authorized clients reside
+	acl  manager       proto  cache_object      # Cache object protocol
+	acl  to_localhost  dst    127.0.0.0/8       # Requests to localhost
+	acl  SSL_ports     port   443               # https port
+	acl  Safe_ports    port   80 21 443         # http, ftp, https ports
+	acl  CONNECT       method CONNECT           # SSL CONNECT method
+
+	# Only allow cachemgr access from localhost
+	http_access  allow  manager localhost
+	http_access  deny   manager
+
+	# Deny requests to unknown ports
+	http_access  deny   !Safe_ports
+
+	# Deny CONNECT to other than SSL ports
+	http_access  deny   CONNECT !SSL_ports
+
+	# Prevent access to local web applications from remote users
+	http_access  deny   to_localhost
+
+	# Allow access from the local network
+	http_access  allow  lan
+
+	# Default deny (this must be the last rule)
+	http_access  deny   all
+
+	###### SQUID GUARD ######
+
+	# Path to the redirector program
+	url_rewrite_program   /usr/local/bin/squidGuard
+
+	# Number of redirector processes to spawn
+	url_rewrite_children  5
+
+	# To prevent loops, don't send requests from localhost to the redirector
+	url_rewrite_access    deny  localhost
+
+# Comando para reler o arquivo de configuracao do Squid
+#
+$ /usr/local/sbin/squid -k reconfigure
+
+4. FIREWALL
+# Um pequeno estudo sobre a firewall do OpenBSD
+
+# Arquivo de configuracao do OpenBSD (PF)
+# Permitir que o OpenBSD faca IP Forward
+#
+$ /etc/sysctl.conf:
+	net.inet.ip.forwarding=1
+
+# Arquivo de configuracao do OpenBSD (PF)
+#
+$ /etc/pf.conf
+    # macros
+    ext_if="em0"
+    int_if="em1"
+
+    tcp_services="{ 22, 113 }"
+    icmp_types="echoreq"
+
+    # options
+    set block-policy return
+    set loginterface em0
+    set skip on lo
+
+    # match rules
+    match out on egress inet from !(egress:network) to any nat-to (egress:0)
+
+    # filter rules
+    block in log
+    pass out quick
+
+    antispoof quick for { lo $int_if }
+
+    pass in on egress inet proto tcp from any to (egress) port $tcp_services
+
+    pass in inet proto icmp all icmp-type $icmp_types
+
+    pass in on $int_if
+
+# Alguns comandos interessantes para auxiliar na configuracao da firewall
+# do OpenBSD
+#
+$ pfctl -f /etc/pf.conf     Load the pf.conf file
+$ pfctl -nf /etc/pf.conf    Parse the file, but don't load it
+$ pfctl -sr                 Show the current ruleset
+$ pfctl -ss                 Show the current state table
+$ pfctl -si                 Show filter stats and counters
+$ pfctl -sa                 Show EVERYTHING it can show

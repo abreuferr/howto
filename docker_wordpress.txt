@@ -1,0 +1,47 @@
+#: Title : Docker e wordpress
+#: Date : 2016-10-06
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Version : 1.0
+#: Description : Docker e Owncloud em containers separados
+#: Options :
+#: Reference :
+
+1. MYSQL
+# criacao de  um container MySQL baseado na imagem oficial do MySQL,
+# Docker Hub. Esse container sera utilizado pelo aplicativo WordPress
+
+# download da ultima versao da imagem do mysql
+#
+$ docker image pull mysql
+
+# criacao e inicializacao do docker do mysql
+#
+$ docker container run --detach --name=mysql_server --env="MYSQL_ROOT_PASSWORD=mypassword" mysql
+
+# verificar qual eh o endereco IP do container
+#
+$ docker container inspect mysql_server
+	"IPAddress": "172.17.0.2"
+
+2. WordPress
+# sera criado um segundo container com o software WordPress e esse container ira
+# acessar a base de dados MySQL atraves de um link criado pelo Docker.
+
+# criacao do container com o Wordpress
+#
+$ docker container run --detach --name wordpress_server --link mysql_server:mysql wordpress
+
+# exibindo informacao sobre os containers que estao em execussao
+#
+$ docker container ps
+	CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+	88375f3703fe        wordpress           "/entrypoint.sh apach"   10 seconds ago      Up 6 seconds        80/tcp              wordpress_server
+	a589e7405232        mysql               "docker-entrypoint.sh"   10 minutes ago      Up 5 minutes        3306/tcp            mysql_server
+
+# verificando o link entre os containers
+#
+$ docker container exec -it wordpress_server bash
+	root@88375f3703fe:/var/www/html# cat /etc/hosts
+	127.0.0.1       localhost
+	172.17.0.2      mysql a589e7405232 mysql_server
+	172.17.0.3      88375f3703fe

@@ -1,0 +1,94 @@
+#: Title : GlusterFS Howto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalação e configuracao do GlusterFS 3.5 no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : https://www.howtoforge.com/high-availability-storage-with-glusterfs-3.2.x-on-debian-wheezy-automatic-file-replication-mirror-across-two-storage-servers
+
+TOPOLOGIA
+#
+# configuracao dos servidores a serem utilizados
+#
+srv1	192.168.74.1 (gluster server)
+srv2	192.168.74.2 (gluster server)
+srv3	192.168.74.3 (gluster server)
+srv4	192.168.74.4 (gluster client)
+
+INSTALACAO
+#
+# SRV1/SRV2/SRV3
+#
+# Instalacao do software glusterFS
+#
+$ sudo apt-get install glusterfs-server -y -d
+
+# Diretorio para formar o Gluster File Sistem
+#
+$ sudo mkdir /mnt/glusterfs
+
+ADICIONAR A REDE
+#
+# sera necessario adicionar os servidores ao glusterfs
+
+# SRV1
+#
+# adicionando os servidores srv2 e srv3 ao pool de servidores Gluster
+#
+$ sudo gluster peer probe srv2.particula.local
+$ sudo gluster peer probe srv3.particula.local
+
+# SRV2
+#
+# adicionando o servidor srv1 ao pool de servidores Gluster
+#
+$ sudo gluster peer probe srv1.particula.local
+
+CRIACAO DO VOLUME
+
+# SRV1
+#
+# (os arquivos serao replicados entre os varios servidores)
+#
+$ sudo gluster volume create glustervol replica 3 transport tcp srv1.particula.local:/mnt/glusterfs srv2.particula.local:/mnt/glusterfs srv3.particula.local:/mnt/glusterfs
+	Creation of volume replicate has been successful
+
+# (os arquivos serao distribuidos entre os varios servidores)
+#
+$ sudo gluster volume create glustervol transport tcp srv1.particula.local:/mnt/glusterfs srv2.particula.local:/mnt/glusterfs srv3.particula.local:/mnt/glusterfs
+	Creation of volume distributed has been successful
+
+# (os arquivos serao divididos e entao serao distribuidos entre os varios servidores)
+#
+$ sudo gluster volume create glustervol stripe 3 transport tcp srv1.particula.local:/mnt/glusterfs srv2.particula.local:/mnt/glusterfs srv3.particula.local:/mnt/glusterfs
+	Creation of volume stripe has been successful
+
+INICIALIZACAO DO VOLUME
+
+# SRV1
+#
+# inicializando o volume
+#
+$ sudo gluster volume start glustervol
+
+STATUS
+
+# SRV1/SRV2/SRV3
+#
+$ sudo gluster volume info
+
+CLIENT
+
+# instalacao do cliente
+#
+$ sudo apt-get install glusterfs-client
+
+# Diretorio para formar o Gluster File Sistem
+#
+$ sudo mkdir /mnt/glusterfs
+
+# montando o diretorio
+#
+$ sudo mount.glusterfs srv1.particula.local:/glustervol /mnt/glusterfs
+
+# /etc/fstab
+#
+$ srv1.particula.local:/glustervol /mnt/glusterfs glusterfs defaults,_netdev 0 0

@@ -1,0 +1,123 @@
+#: Title : compose
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : compose no mundo docker
+#: Options :
+#: Reference :
+
+DOCKER COMPOSE
+
+version: "3"
+services:
+
+  redis:
+    image: redis
+    ports:
+      - "6379"
+    networks:
+      - frontend
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  db:
+    image: postgres:9.4
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+  vote:
+    image: dockersamples/examplevotingapp_vote:before
+    ports:
+      - 5005:80
+    networks:
+      - frontend
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 2
+      restart_policy:
+        condition: on-failure
+  result:
+    image: dockersamples/examplevotingapp_result:before
+    ports:
+      - 5001:80
+    networks:
+      - backend
+    depends_on:
+      - db
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    networks:
+      - frontend
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels: [APP=VOTING]
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  db-data:
+
+
+$ docker stack deploy -c docker-compose.yml giropops
+
+$ docker stack ps giropops
+ID            NAME                   IMAGE                                         NODE   DESIRED STATE  CURRENT STATE                 ERROR  PORTS
+i9ge862mbs7z  giropops_db.1          postgres:9.4                                  node2  Running        Preparing 54 seconds ago
+i5t0xcby299r  giropops_redis.1       redis:latest                                  node4  Running        Running 14 seconds ago
+m01zqy46jhn7  giropops_visualizer.1  dockersamples/visualizer:stable               node1  Running        Preparing about a minute ago
+8gi1uns1c9qu  giropops_worker.1      dockersamples/examplevotingapp_worker:latest  node2  Running        Preparing about a minute ago
+7wrhh7mj4ted  giropops_result.1      dockersamples/examplevotingapp_result:before  node5  Running        Preparing about a minute ago
+tt3x7nlj33sf  giropops_vote.1        dockersamples/examplevotingapp_vote:before    node5  Running        Preparing about a minute ago
+rzop3swjgggr  giropops_redis.2       redis:latest                                  node3  Running        Preparing about a minute ago
+nn7m0kj2rcvl  giropops_vote.2        dockersamples/examplevotingapp_vote:before    node4  Running        Running 50 seconds ago
+
+
+$ docker stack services giropops
+ID            NAME                 MODE        REPLICAS  IMAGE
+8m79zf6jafvu  giropops_redis       replicated  2/2       redis:latest
+aduar2ciska1  giropops_db          replicated  0/1       postgres:9.4
+m1oufjezjz31  giropops_result      replicated  0/1       dockersamples/examplevotingapp_result:before
+u11oropud8qk  giropops_worker      replicated  0/1       dockersamples/examplevotingapp_worker:latest
+xkfd46tokhy6  giropops_visualizer  replicated  0/1       dockersamples/visualizer:stable
+zcv6gpwwh8o6  giropops_vote        replicated  1/2       dockersamples/examplevotingapp_vote:before
+
+
+$ docker stack rm giropops

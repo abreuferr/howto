@@ -1,0 +1,479 @@
+#: Title : mysql server
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : uma serie de exemplos de replicacao de dados entre servidores mysql
+#: Options : None
+#: Reference :	http://www.linux.org/article/view/databases-with-linux
+		http://pichiliani.com.br/2016/02/o-que-todo-dba-junior-deve-saber-fazer/
+		http://www.thegeekstuff.com/2013/09/mysql-select-command/
+		http://www.howtoforge.com/how-to-set-up-database-replication-in-mysql-on-ubuntu-9.10
+		https://www.howtoforge.com/tutorial/mysql-master_master-replication-on-debian-jessie/
+		https://www.howtoforge.com/tutorial/how-to-install-and-configure-mysql-cluster-on-centos-7/
+		https://www.digitalocean.com/community/tutorials/how-to-create-a-multi-node-mysql-cluster-on-ubuntu-16-04
+
+MASTER <> SLAVE
+#
+# Este tutorial tem por objetivo mostrar como replicar a base de dados "exampledb"
+# do servidor db1.db.local, com o IP 192.168.0.3, para o servidor db2.db.local,
+# com o IP 192.168.0.4. Outro ponto importante, a base de dados "exampledb" deve
+# ser criada no computador db1.db.local e dados devem ser inseridos.)
+
+# DB1/DB2
+#
+# Instalacao do MySQL 5.0
+#
+$ sudo aptitude install mysql-server mysql-client
+
+# Para ter certeza de que a replicacao funcione, o MySQL deve enxergar todos
+# computadores da rede e para isso eh recomendado que a linha "bind-address = 127.0.0.1",
+# presente no arquivo /etc/mysql/my.cnf, seja comentada.)
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	# Instead of skip-networking the default is now to listen only on
+	# localhost which is more compatible and is not less secure.
+	#bind-address           = 127.0.0.1
+	[...]
+
+# Reinicializar o servidor MySQL
+#
+$ sudo /etc/init.d/mysql restart
+
+# DB1
+#
+# Configuracao do usuario slave_user que sera usado pelo db2.db.local para acessar
+# o MySQL localizado db1.db.local.)
+#
+$ sudo mysql -u root -p
+	mysql> GRANT REPLICATION SLAVE ON *.* TO 'slave_user'@'%' identified by 'slave_password';
+	mysql> FLUSH PRIVILEGES;
+	mysql> quit;
+
+# DB2
+#
+# Configuracao do usuario slave_user que sera usado pelo db1.db.local para acessar
+# o MySQL localizado db2.db.local.
+#
+$ sudo mysql -u root -p
+	mysql> GRANT REPLICATION SLAVE ON *.* TO 'slave_user'@'%' identified by 'slave_password';
+	mysql> FLUSH PRIVILEGES;
+	mysql> quit;
+
+# DB1
+#
+# Configurando MySQL para fazer a replicacao da base de dados
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	[mysqld]
+	server-id               = 1
+	log_bin                 = /var/log/mysql/mysql-bin.log
+	expire_logs_days        = 10
+	max_binlog_size         = 100M
+	binlog_do_db            = exampledb
+	[...]
+
+# Reinicializando o servir MySQL db1.db.local
+#
+$ sudo /etc/init.d/mysql restart
+
+# Logon no MySQL db1.db.local
+#
+$ sudo mysql -u root -p
+	mysql> USE exampledb;
+	mysql> FLUSH TABLES WITH READ LOCK;
+	mysql> SHOW MASTER STATUS;
+
+# Logar no db1.db.local em outro terminha e executar os comandos abaixos.
+#
+$ cd /tmp
+$ mysqldump -u root -pp4r71cul4 --opt exampledb > snapshot.sql
+$ scp snapshot.sql root@192.168.0.4:/tmp
+
+# Executar os comandos abaixos no MySQL db1.db.local
+#
+	mysql> UNLOCK TABLES;
+	mysql> quit;
+
+# DB2
+#
+# Replicacao - db2.db.local
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	[mysqld]
+	server-id=2
+	master-connect-retry=60
+	replicate-do-db=exampledb
+	[...]
+
+# Reinicializar o servir MySQL db2.db.local
+$ sudo /etc/init.d/mysql restart
+
+# Logon no MySQL db2.db.local
+#
+$ sudo mysql -u root -p
+	mysql> CREATE DATABASE exampledb;
+	mysql> quit;
+
+# Criacao da base de dados baseado no dump da estrutura do outro servidor
+# db2.db.local)
+#
+$ /usr/bin/mysqladmin --user=root --password=p4r71cul4 stop-slave
+$ cd /tmp
+$ mysql -u root -pp4r71cul4 exampledb < snapshot.sql
+
+# Criacao da conexao entre os servidores
+#
+$ mysql -u root -p
+	mysql> CHANGE MASTER TO MASTER_HOST='192.168.0.3', MASTER_USER='slave_user', MASTER_PASSWORD='slave_password', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=19467;
+	mysql> START SLAVE;
+	mysql> quit;
+
+####
+
+MASTER <> MASTER
+#
+# Este tutorial tem por objetivo mostrar como configurar dois servidores MySQL
+# para trabalharem no modo HA. As bases de dados serao sincronizadas entre os
+# servidores.
+#
+# 192.168.74.26 - db1
+# 192.168.74.27 - db2
+
+# DB1/DB2
+#
+# Instalacao do MySQL/MariaDB
+#
+$ sudo apt-get install mysql-server mysql-client -y -d
+$ sudo apt-get install mariadb-server mariadb-client -y -d
+
+# Para ter certeza de que a replicacao funcione, o MySQL deve enxergar todos
+# computadores da rede e para isso eh recomendado que a linha "bind-address = 127.0.0.1",
+# presente no arquivo /etc/mysql/my.cnf, seja comentada em ambos os servidores MySQL.)
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	# Instead of skip-networking the default is now to listen only on
+	# localhost which is more compatible and is not less secure.
+	#bind-address           = 127.0.0.1
+	[...]
+
+# Reinicializar o servidor MySQL
+#
+$ sudo service mysql restart
+
+# DB1
+#
+# Configuracao do usuario slave_user que sera usado pelo db2.db.local para acessar
+# o MySQL localizado db1.db.local.)
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> GRANT REPLICATION SLAVE ON *.* TO repl@'%' identified by 'secretpassword';
+	mysql> FLUSH PRIVILEGES;
+	mysql> quit;
+
+# DB2
+#
+# Configuracao do usuario slave_user que sera usado pelo db1.db.local para acessar
+# o MySQL localizado db2.db.local.
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> GRANT REPLICATION SLAVE ON *.* TO repl@'%' identified by 'secretpassword';
+	mysql> FLUSH PRIVILEGES;
+	mysql> quit;
+
+# DB1
+#
+# Replicacao
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	[mysqld]
+	# Unique Server ID
+	server-id = 1
+
+	# Binlog file path
+	log_bin = /var/log/mysql/mysql-bin.log
+
+	# Do not replicate the following databases
+	binlog-ignore-db = mysql
+	replicate-ignore-db = mysql
+
+	# Auto increment offset
+	auto-increment-increment = 2
+
+	# Do not replicate sql queries for the local server ID
+	replicate-same-server-id = 0
+
+	# Beginne automatisch inkrementelle Werte mit 1
+	auto-increment-offset = 1
+
+	[...]
+
+# Reinicializar o servidor
+#
+$ sudo service mysql restart
+
+# DB2
+#
+# Replicacao
+#
+$ sudo vi /etc/mysql/my.cnf
+	[...]
+	[mysqld]
+	# Unique Server ID
+	server-id = 2
+
+	# Binlog file path
+	log_bin = /var/log/mysql/mysql-bin.log
+
+	# Do not replicate the following databases
+	binlog-ignore-db = mysql
+	replicate-ignore-db = mysql
+
+	# Auto increment offset
+	auto-increment-increment = 2
+
+	# Do not replicate sql queries for the local server ID
+	replicate-same-server-id = 0
+
+	# Beginne automatisch inkrementelle Werte mit 1
+	auto-increment-offset = 2
+
+	[...]
+
+# Reinicializar o servidor
+#
+$ sudo service mysql restart
+
+# DB2
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> CHANGE MASTER TO MASTER_HOST='db1.particula.local', MASTER_USER='repl', MASTER_PASSWORD='secretpassword';
+	mysql> start slave;
+	mysql> show slave status\G
+		Slave_IO_Running: Yes
+		Slave_SQL_Running: Yes
+
+	mysql> show master status;
+		+------------------+----------+--------------+------------------+
+		| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |
+		+------------------+----------+--------------+------------------+
+		| mysql-bin.000001 |      107 |              | mysql            |
+		+------------------+----------+--------------+------------------+
+	mysql> quit;
+
+# DB1
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> CHANGE MASTER TO MASTER_HOST='db2.particula.local', MASTER_USER='repl', MASTER_PASSWORD='secretpassword', MASTER_LOG_FILE='mysql-bin.000001', MASTER_LOG_POS=107;
+	mysql> start slave;
+	mysql> show slave status\G
+		Slave_IO_Running: Yes
+		Slave_SQL_Running: Yes
+	mysql> quit;
+
+# DB1
+# Teste
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> CREATE DATABASE exampledb1;
+	mysql> show databases;
+	mysql> quit;
+
+# DB2
+#
+$ sudo mysql --defaults-file=/etc/mysql/debian.cnf
+	mysql> CREATE DATABASE exampledb2;
+	mysql> show databases;
+	mysql> quit;
+
+####
+
+CLUSTER
+
+# TOPOLOGIA
+#
+(Management Node)
+	192.168.74.15 - db1
+
+(Data Nodes)
+	192.168.74.16 - db2
+	192.168.74.17 - db3
+
+(SQL Nodes)
+	192.168.74.18 - db4
+	192.168.74.19 - db5
+
+# DB1
+#
+# Configuracao
+#
+$ wget https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.4/mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+$ sudo apt-get install libdata-dumper-simple-perl libdata-dumper-concise-perl libaio1 -y -d
+$ sudo dpkg -i mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+
+$ sudo mkdir -p /var/lib/mysql-cluster
+$ cd /var/lib/mysql-cluster
+$ sudo vi config.ini
+	[ndb_mgmd default]
+	# Directory for MGM node log files
+	DataDir=/var/lib/mysql-cluster
+
+	[ndb_mgmd]
+	#Management Node db1
+	HostName=192.168.74.15
+
+	[ndbd default]
+	NoOfReplicas=2      # Number of replicas
+	DataMemory=256M     # Memory allocate for data storage
+	IndexMemory=128M    # Memory allocate for index storage
+	#Directory for Data Node
+	DataDir=/var/lib/mysql-cluster
+
+	[ndbd]
+	#Data Node db2
+	HostName=192.168.74.16
+
+	[ndbd]
+	#Data Node db3
+	HostName=192.168.74.17
+
+	[mysqld]
+	#SQL Node db4
+	HostName=192.168.74.18
+
+	[mysqld]
+	#SQL Node db5
+	HostName=192.168.74.19
+
+$ sudo /opt/mysql/server-5.6/bin/ndb_mgmd --config-file=/var/lib/mysql-cluster/config.ini
+	MySQL Cluster Management Server mysql-5.6.31 ndb-7.4.12
+	2016-09-21 11:05:35 [MgmtSrvr] INFO     -- The default config directory '/opt/mysql/server-5.6/mysql-cluster' does not exist. Trying to create it...
+	2016-09-21 11:05:35 [MgmtSrvr] INFO     -- Sucessfully created config directory
+
+$ sudo systemctl enable rc-local.service
+$ sudo vi /etc/rc.local
+	...
+	/opt/mysql/server-5.6/bin/ndb_mgmd -f /var/lib/mysql-cluster/config.ini
+	exit 0
+
+$ sudo /opt/mysql/server-5.6/bin/ndb_mgm
+	-- NDB Cluster -- Management Client --
+	ndb_mgm> show
+	Connected to Management Server at: localhost:1186
+	Cluster Configuration
+	---------------------
+	[ndbd(NDB)]     2 node(s)
+	id=2 (not connected, accepting connect from 192.168.74.16)
+	id=3 (not connected, accepting connect from 192.168.74.17)
+
+	[ndb_mgmd(MGM)] 1 node(s)
+	id=1    @192.168.74.15  (mysql-5.6.31 ndb-7.4.12)
+
+	[mysqld(API)]   2 node(s)
+	id=4 (not connected, accepting connect from 192.168.74.18)
+	id=5 (not connected, accepting connect from 192.168.74.19)
+
+# DB2/DB3
+#
+# Configuracao
+#
+$ wget https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.4/mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+$ sudo apt-get install libdata-dumper-simple-perl libdata-dumper-concise-perl libaio1 -y -d
+$ sudo dpkg -i mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+
+$ sudo vi /etc/my.cnf
+	[mysqld]
+	ndbcluster
+	ndb-connectstring=192.168.74.15     # IP address of Management Node
+
+	[mysql_cluster]
+	ndb-connectstring=192.168.74.15     # IP address of Management Node
+
+$ sudo mkdir -p /var/lib/mysql-cluster
+
+$ sudo /opt/mysql/server-5.6/bin/ndbd
+	2016-09-21 11:39:39 [ndbd] INFO     -- Angel connected to '192.168.74.15:1186'
+	2016-09-21 11:39:39 [ndbd] INFO     -- Angel allocated nodeid: 2
+
+$ sudo systemctl enable rc-local.service
+$ sudo vi /etc/rc.local
+	...
+	/opt/mysql/server-5.6/bin/ndbd
+	exit 0
+
+# DB4/DB5
+#
+$ wget https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.4/mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+$ sudo apt-get install libdata-dumper-simple-perl libdata-dumper-concise-perl libaio1 libnuma1 -y -d
+$ sudo dpkg -i mysql-cluster-gpl-7.4.12-debian8-x86_64.deb
+
+$ sudo vi /etc/my.cnf
+	[mysqld]
+	ndbcluster
+	ndb-connectstring=192.168.74.15       # IP address for server management node
+	default_storage_engine=ndbcluster     # Define default Storage Engine used by MySQL
+
+	[mysql_cluster]
+	ndb-connectstring=192.168.74.15       # IP address for server management node
+
+$ sudo groupadd mysql
+$ sudo useradd -r -g mysql -s /bin/false mysql
+$ sudo /opt/mysql/server-5.6/scripts/mysql_install_db --user=mysql
+$ sudo cp /opt/mysql/server-5.6/support-files/mysql.server /etc/init.d/mysqld
+$ sudo systemctl enable mysqld.service
+$ sudo systemctl start mysqld
+$ sudo ln -s /opt/mysql/server-5.6/bin/mysql /usr/bin/
+
+# DB1
+#
+# Teste
+#
+$ sudo /opt/mysql/server-5.6/bin/ndb_mgm
+	ndb_mgm> show
+	Connected to Management Server at: localhost:1186
+	Cluster Configuration
+	---------------------
+	[ndbd(NDB)]     2 node(s)
+	id=2    @192.168.74.16  (mysql-5.6.31 ndb-7.4.12, Nodegroup: 0, *)
+	id=3    @192.168.74.17  (mysql-5.6.31 ndb-7.4.12, Nodegroup: 0)
+
+	[ndb_mgmd(MGM)] 1 node(s)
+	id=1    @192.168.74.15  (mysql-5.6.31 ndb-7.4.12)
+
+	[mysqld(API)]   2 node(s)
+	id=4    @192.168.74.18  (mysql-5.6.31 ndb-7.4.12)
+	id=5    @192.168.74.19  (mysql-5.6.31 ndb-7.4.12)
+
+# DB1
+#
+# Teste
+#
+$ sudo mysql -u root
+mysql> SHOW ENGINE NDB STATUS \G
+mysql> CREATE DATABASE cluster;
+mysql> USE cluster;
+mysql> CREATE TABLE cluster_test (name VARCHAR(20), value VARCHAR(20)) ENGINE=ndbcluster;
+mysql> insert into cluster_test (name,value) values('some_name','some_value');
+mysql> select * from cluster_test;
+	+-----------+------------+
+	| name      | value      |
+	+-----------+------------+
+	| some_name | some_value |
+	+-----------+------------+
+	1 row in set (0.00 sec)
+
+# DB5
+#
+# Teste
+#
+$ sudo mysql -u root
+mysql> USE cluster;
+mysql> select * from cluster_test;
+	+-----------+------------+
+	| name      | value      |
+	+-----------+------------+
+	| some_name | some_value |
+	+-----------+------------+
+	1 row in set (0.00 sec)

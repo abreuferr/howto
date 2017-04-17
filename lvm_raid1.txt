@@ -1,0 +1,91 @@
+#: Title : Setup RAID1 + LVM Server
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Setup RAID1 and LVM Server
+#: Options : None
+#: Reference : https://www.howtoforge.com/linux_lvm
+
+1. hardware
+
+	$ sudo fdisk -l
+
+		Disk /dev/sdc: 10.7 GB, 10737418240 bytes
+		255 heads, 63 sectors/track, 1305 cylinders, total 20971520 sectors
+		Units = sectors of 1 * 512 = 512 bytes
+		Sector size (logical/physical): 512 bytes / 512 bytes
+		I/O size (minimum/optimal): 512 bytes / 512 bytes
+		Disk identifier: 0x00000000
+
+		Disk /dev/sdc doesn't contain a valid partition table
+
+		Disk /dev/sdb: 10.7 GB, 10737418240 bytes
+		255 heads, 63 sectors/track, 1305 cylinders, total 20971520 sectors
+		Units = sectors of 1 * 512 = 512 bytes
+		Sector size (logical/physical): 512 bytes / 512 bytes
+		I/O size (minimum/optimal): 512 bytes / 512 bytes
+		Disk identifier: 0x00000000
+
+		Disk /dev/sdb doesn't contain a valid partition table
+
+	$ sudo fdisk /dev/sdX
+		Hex code (type L to list codes): <-- 8e
+
+2. Install
+	$ sudo apt-get install lvm2 dmsetup mdadm xfsprogs
+
+3. LVM
+
+Create
+	$ sudo pvcreate /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Delete
+	$ sudo pvremove /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Show
+	$ sudo pvdisplay
+
+Create a volume
+	$ sudo vgcreate lvm_volume /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Show volume
+	$ sudo vgdisplay
+
+Rename volume
+	$ sudo vgrename lvm_volume lvm_data
+
+Delete volume
+	$ sudo vgremove lvm_data
+
+Create a logical volumes
+	$ sudo lvcreate --name share --size 40G lvm_volume
+
+Show logical volume
+	$ sudo lvdisplay
+
+Rename logical volume
+	$ sudo lvrename lvm_volume share backup
+
+Delete logical volume
+	$ sudo lvremove /dev/lvm_volume/backup
+
+Change the size of the logical volume
+	$ sudo lvextend -L1.5G /dev/lvm_volume/backup
+	$ sudo lvreduce -L1G /dev/lvm_volume/backup
+
+Add extra hardisk
+	$ sudo fdisk /dev/sdf
+	$ sudo pvcreate /dev/sdf1
+	$ sudo vgextend lvm_volume /dev/sdf1
+	$ sudo vgdisplay
+
+4. File System
+
+Format
+	$ sudo mkfs.ext4 /dev/lvm_volume/backup
+
+Mount
+	$ sudo mkdir /mnt/backup
+	$ sudo mount /dev/lvm_volume/backup /mnt/backup
+
+Fstab
+	$ sudo vi /etc/fstab
+	/dev/lvm_volume/backup   /mnt/backup     ext4       rw,noatime    0 0

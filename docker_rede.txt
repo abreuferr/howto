@@ -1,0 +1,230 @@
+#: Title : rede
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : uma visao sobre rede no mundo docker
+#: Options :
+#: Reference :
+
+BRIDGE DEFAULT
+# exibindo as interfaces de rede
+#
+$  docker network ls
+	NETWORK ID          NAME                DRIVER
+	dbb41f5020f4        bridge              bridge
+	4a7ad58d3745        host                host
+	de2f4259a2b7        none                null
+
+# exibir informacoes sobre a interface bridge
+#
+$ sudo ifconfig
+	docker0	Link encap:Ethernet  HWaddr 02:42:8a:dd:43:e8
+    		inet addr:172.17.0.1  Bcast:0.0.0.0  Mask:255.255.0.0
+			UP BROADCAST MULTICAST  MTU:1500  Metric:1
+			RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+			TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+			collisions:0 txqueuelen:0
+			RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+# executando um container, baseado na imagem do debian, para obter informacoes
+# sobre rede em um container
+#
+$ docker container run -ti debian
+    root@904344a005e3:/# cat /etc/hosts
+    172.17.0.4      904344a005e3
+
+# obtendo informacoes sobre a interface de rede dentro do container
+#
+root@904344a005e3:/# ip a
+    8: eth0@if19: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group def
+        link/ether 02:42:ac:11:00:04 brd ff:ff:ff:ff:ff:ff
+        inet 172.17.0.4/16 scope global eth0
+            valid_lft forever preferred_lft forever
+        inet6 fe80::42:acff:fe11:4/64 scope link
+            valid_lft forever preferred_lft forever
+
+# obter mais informacoes sobre as interfaces de rede de nome bridge
+#
+$ docker network inspect bridge
+        	"Name": "bridge",
+        	"Id": "317ccc76a9a5b6f8ddc6e1bb7792e5949acada55eccf151a599af682fe0d9378",
+        	"Scope": "local",
+        	"Driver": "bridge",
+        	"EnableIPv6": false,
+        	"IPAM": {
+            	"Driver": "default",
+            	"Options": null,
+            	"Config": [
+                	{
+                    	"Subnet": "172.17.0.0/16",
+                    	"Gateway": "172.17.0.1"
+                	}
+            	]
+        	},
+
+MY BRIDGE
+# sera criado uma nova interface bridge, de nome my-bridge-network, e
+# essa nova interface sera conectada a um container. Desta forma, o
+# container fica isolado dos outros containers.
+
+# criando uma nova interface bridge de nome (my-bridge-network)
+#
+$ docker network create -d bridge my-bridge-network
+
+# informacao basica sobre as interfaces de rede
+#
+$ docker network ls
+	NETWORK ID          NAME                DRIVER              SCOPE
+	67139a9440e3        bridge              bridge              local
+	995051d41f4f        host                host                local
+	9947e592cbf5        my-bridge-network   bridge              local
+	5a8e944dadc1        none                null                local
+
+# informacao extra sobre a nova de rede bridge
+#
+$ docker network inspect my-bridge-network
+            "Name": "my-bridge-network",
+            "Id": "8f949de830d2a475e6361c7e2cd813d498d62363804b86afa1de2eeebf1b269a",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": {},
+                "Config": [
+                    {
+                        "Subnet": "172.18.0.0/16",
+                        "Gateway": "172.18.0.1/16"
+                    }
+                ]
+            },
+
+# criando uma interface bridge de nome (br0)
+# neste caso, sera possivel especificar a subnet, o range de IP, o gateway
+#
+$ docker network create --driver=bridge --subnet=172.28.0.0/16 --ip-range=172.28.5.0/24 --gateway=172.28.5.254 br0
+
+# informacao basica sobre as interfaces de redes
+#
+$ docker network ls
+	NETWORK ID          NAME                DRIVER              SCOPE
+	d59284c44b56        br0                 bridge              local
+	67139a9440e3        bridge              bridge              local
+	995051d41f4f        host                host                local
+	9947e592cbf5        my-bridge-network   bridge              local
+	5a8e944dadc1        none                null                local
+
+# informacao extra sobre a interface de rede br0
+#
+$ docker network inspect br0
+            "Name": "br0",
+            "Id": "fbd6c66396824f8adab8452872d51abf1e1c75ea6e1fbf24f32c8f869ef95789",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": {},
+                "Config": [
+                    {
+                        "Subnet": "172.28.0.0/16",
+                        "IPRange": "172.28.5.0/24",
+                        "Gateway": "172.28.5.254"
+                    }
+                ]
+            },
+
+# sera criado um novo container e sera conectado este container na
+# interface de rede bridge (my-bridge-networki/br)
+#
+$ docker run --network=my-bridge-network -itd --name=container busybox
+$ docker run --network=br0 -itd --name=container busybox
+
+# informacao sobre o container e a associacao do mesmo com a nova
+# interface bridge
+#
+$ docker network inspect my-bridge-network
+	      	"Name": "my-bridge-network",
+        	"Id": "8f949de830d2a475e6361c7e2cd813d498d62363804b86afa1de2eeebf1b269a",
+        	"Scope": "local",
+        	"Driver": "bridge",
+        	"EnableIPv6": false,
+        	"IPAM": {
+            	"Driver": "default",
+            	"Options": {},
+            	"Config": [
+                	{
+                    	"Subnet": "172.17.0.0/16",
+                    	"Gateway": "172.17.0.1/16"
+                	}
+            	]
+        	},
+        	"Internal": false,
+        	"Containers": {
+	            "1505548c055c5a380278080f2c186e3001e69262b000113496842caafbd20c70": {
+    	            "Name": "container3",
+        	        "EndpointID": "35342e2fbb8ae820f47836de30cb20b5e2544a949516afb7dfb303ece23ae514",
+            	    "MacAddress": "02:42:ac:12:00:02",
+                	"IPv4Address": "172.17.0.2/16",
+                	"IPv6Address": ""
+            	}
+        	},
+
+# o objetivo deste comando eh o de permitir a conexao de um container ja em
+# execucao em uma interface de rede previamente criada
+#
+$ docker container run -d --name web training/webapp python app.py
+$ docker network connect my-bridge-network web
+
+OVERLAY
+
+CRIACAO DA REDE OVERLAY
+# comando para criar a rede de nome "my-net"
+#
+$ docker network create --driver overlay --subnet=10.0.9.0/24 my-net
+$ docker network create -d overlay --subnet=192.168.0.0/16 --subnet=192.170.0.0/16 --gateway=192.168.0.100 --gateway=192.170.0.100 --ip-range=192.168.1.0/24 --aux-address a=192.168.1.5 --aux-address b=192.168.1.6 --aux-address a=192.170.1.5 --aux-address b=192.170.1.6 my-net
+
+REDIRECIONAMENTO DE PORTA
+
+# redirecionamento de porta realizada de forma manual (-p)
+# tanto as portas 80 quanto 443 foram exportadas,
+# CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+# 13727cb59082        nginx               "nginx -g 'daemon off"   13 seconds ago      Up 12 seconds       80/tcp, 443/tcp     berserk_curie
+# mas foi criado somente para a porta 80 um redirecionamento manual (porta 80 host e porta 80 no container)
+#
+$ docker container run -d -p 80:80 nginx
+	CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                         NAMES
+	ab579bd5ea96        nginx               "nginx -g 'daemon off"   2 seconds ago       Up 1 seconds        0.0.0.0:80->80/tcp, 443/tcp   nauseous_tesla
+
+# informacao sobre o redirecionamento
+#
+$ iptables -t nat -nL
+	Chain DOCKER (2 references)
+	target     prot opt source               destination
+	RETURN     all  --  0.0.0.0/0            0.0.0.0/0
+	DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:80 to:172.17.0.3:80
+
+# informacao sobre o redirecionamento
+#
+$ docker container ls
+	CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS                         NAMES
+	a85866072cfb        nginx               "nginx -g 'daemon off"   About a minute ago   Up About a minute   0.0.0.0:80->80/tcp, 443/tcp   gloomy_bohr
+	80150099ee45        nginx               "nginx -g 'daemon off"   12 minutes ago       Up 12 minutes       80/tcp, 443/tcp               drunk_davinci
+
+# A opcao (-P) redireciona a porta 32770 do host para a porta 80 do container e a porta 32769 do host para a porta 443 do container
+#
+$ docker container run -d -P nginx
+	CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                           NAMES
+	6f9a9fa011db        nginx               "nginx -g 'daemon off"   5 seconds ago       Up 4 seconds        0.0.0.0:32770->80/tcp, 0.0.0.0:32769->443/tcp   elated_mayer
+
+# a opcao (-p) permite fazer o mapeamento da porta 443 de forma manualmente. Desta forma, a porta 443 do host foi mapeada para a porta 443 do container
+# a opcao (-P) permite fazer o mapeamento da porta 32771 do host para a porta 80 do container.
+#
+$ docker container run -d -P -p 443:443 nginx
+	CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                           NAMES
+	719823f4f79a        nginx               "nginx -g 'daemon off"   4 seconds ago       Up 3 seconds        0.0.0.0:443->443/tcp, 0.0.0.0:32771->80/tcp     hungry_kare
+	6f9a9fa011db        nginx               "nginx -g 'daemon off"   3 minutes ago       Up 3 minutes        0.0.0.0:32770->80/tcp, 0.0.0.0:32769->443/tcp   elated_mayer
+
+# mapeamento manual das portas 8080:80 e 8443:443
+#
+$ docker container run -d -p 8080:80 -p 8443:443 nginx
+	CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                                         NAMES
+	33d989ef863b        nginx               "nginx -g 'daemon off"   4 seconds ago       Up 4 seconds        0.0.0.0:8080->80/tcp, 0.0.0.0:8443->443/tcp   sharp_hugle

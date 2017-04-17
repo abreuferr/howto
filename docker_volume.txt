@@ -1,0 +1,101 @@
+#: Title : Volume
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : informacoes sobre volume e docker
+#: Options :
+#: Reference :
+
+DOCKER DATA VOLUMES
+# o volume eh independente do container
+# o volume pode ser compartilhado entre containers
+# alteracao no volume nao ira com a imagem
+
+# no exemplo abaixo, sera criado um container de nome volumetest.
+# no container sera criado um diretorio de nome volume.
+# no host sera criado uma pasta que tem por objetivo criar um link entre o host
+# e o container
+#
+$ docker run -ti --name volumetest -v /volume ubuntu
+	"Mounts": [
+		{
+			"Name": "61962050e4481e0198a17c2e42aa210a25df007f1f5d5246f10ea7a7a264b65b",
+			"Source": "/var/lib/docker/volumes/61962050e4481e0198a17c2e42aa210a25df007f1f5d5246f10ea7a7a264b65b/_data",
+			"Destination": "/volume",
+			"Driver": "local",
+			"Mode": "",
+			"RW": true,
+			"Propagation": ""
+		}
+	],
+
+5.2. VOLUME ENTRE O HOST E A IMAGEM
+# criacao de um volume
+# host - /home/cosmo/docker/volume
+# docker - /volume
+#
+$ mkdir /home/cosmo/docker/volume
+
+# no exemplo abaixo, sera criado um container de nome volumetest.
+# no container sera criado um diretorio de nome volume.
+# no host sera criado um "link" entre os diretorio /home/cosmo/dockervolume do
+# host e o diretorio /volume do container
+#
+# qualquer arquivo que for crado via /home/cosmo/dockervolume ou /volume estara
+# disponivel tanto para o container quanto para o host.
+#
+$ docker container run -ti --name volumetest -v /home/cosmo/dockervolume:/volume debian
+
+# mesmo exemplo que o comando anterior, so que o volume esta em modo leitura - ro
+#
+$ docker container run -d -P --name volumetest -v /home/cosmo/dockervolume:/volume:ro debian
+
+# no container
+#
+root@b669198b2b9f:/# touch volume/teste_volume.txt
+
+# no host
+#
+$ ls /home/cosmo/docker/volume/
+	teste_volume.txt
+
+# executando o container e conectando os volumes
+# o volume do container fica com somente leitura (RO)
+#
+$ docker run -ti -v /home/cosmo/dockervolume/:/volume:ro debian
+
+5.3. VOLUME ENTRE CONTAINERS (DATA ONLY CONTEINER)
+# sera criado dois containers com o PostgreSQL e sera utilizado o
+# container dbdata para compartilhar os dados.
+#
+# sera criado um container com o nome DBDADOS que sera utilizado para compartilhar
+# os bancos de dados entre os dois cpntainer com o PostgreSQL
+
+# nome do container - dbdados
+# so - centos
+# volume compartilhado - /data
+# obs: esse continer eh criado mas a unica funcao dele eh o de servidor como
+# um repositorio da base de dados do Postgresql
+#
+$ docker container create -v /data --name dbdados centos
+
+# localizacao do volume DATA dentro do host
+#
+$ docker container inspect -f {{.Mounts}} dbdados
+	[{b5c6f7e07182b470249f2773a86aae4bb22a473b883e6e0d3a07412795fb3154 /var/lib/docker/volumes/b5c6f7e07182b470249f2773a86aae4bb22a473b883e6e0d3a07412795fb3154/_data /data local  true }]
+
+# criacao de um container (--name pgsql1) que tera o seu banco de dados compartilhado
+# com o container dbdados (--volumes-from dbdados) e volume data
+#
+$ docker container run -d -p 5432:5432 --name pgsql1 --volumes-from dbdados -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql
+
+# criacao de um container (--name pgsql2) que tera o seu banco de dados compartilhado
+# com outro container através do container dbdados (--volumes-from dbdados)
+#
+$ docker container run -d -p 5433:5432 --name pgsql2 --volumes-from dbdados -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql
+
+# dados armazenados no diretorio
+#
+$ ls /var/lib/docker/volumes/b5c6f7e07182b470249f2773a86aae4bb22a473b883e6e0d3a07412795fb3154/_data/
+	base         pg_ident.conf  pg_snapshots  pg_tblspc    postgresql.conf  server.key
+	global       pg_multixact   pg_stat       pg_twophase  postmaster.opts
+	pg_clog      pg_notify      pg_stat_tmp   PG_VERSION   postmaster.pid
+	pg_hba.conf  pg_serial      pg_subtrans   pg_xlog      server.crt

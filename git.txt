@@ -1,0 +1,440 @@
+#: Title : git
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Teoria sobre o software Git
+#: Options :	None
+#: Reference :	https://try.github.io
+#:		http://giovannireisnunes.wordpress.com/
+
+1. TEORICO
+
+VERSAO
+# Versao do Git
+#
+$ git --version
+
+CONFIGRACAO
+# configuracao global do perfil do usuario no git
+#
+# se por acaso for um parametro local, basta alterar o parametro
+# --global pelo parametro --local
+#
+# Os paramentros sao salvos no arquivo  ~/.gitconfig
+#
+$ git config --global user.name "caio ferreria"
+$ git config --global user.email "abreuferr@gmail.com"
+$ git config --global color.ui true
+
+# Visualizar as configuracoes
+#
+$ git config --list
+
+INICIALIZACAO DE UM PROJETO
+# inicializar um repositorio Git
+#
+# sera criado um diretorio de nome .git dentro do diretorio de trabalho que
+# sera utilizado pela ferramenta Git para fazer todo o versionamento
+#
+$ git init
+
+STATUS
+# visualizar o status dos arquivos do projeto
+#
+$ git status	, versao completa
+$ git status -s	, versao resumida
+
+LOG
+# visualizar o log ou historico do projeto
+#
+$ git log					,	visualizacao padrao do log
+$ git log --graph	,	visualizar o arquivo de log em formato grafo
+$ git show				, visualiza alteracoes realizadas no ultimo commit
+$ git log -p -2		; visualizar somente as duas ultimas alteracoes
+$ git log --stat	; visualizar algumas estatisticas
+
+IGNORAR ARQUIVO
+# existe a possibilidade de excluir arquivos que estao dentro do diretorio do
+# projeto e que por algum motivo não sera necessario fazer um versionamento,
+# como por exemplo, arquivos temporarios. Para isso, basta adicionar os arquivos
+# desejados no arquivo .gitignore
+#
+$ cat .gitignore
+	*.[oa]
+	*~
+
+ADD
+# adicionar arquivoi(s) ao staging area.
+# a partir deste ponto, os arquivos adicionados serão monitorados pelo Git.
+#
+$ git add <arquivo>		, adiciona somente um arquivo ao repositorio
+$ git add *.txt				, adiciona todos os arquivos TXT ao repositorio
+$ git add --all				, adiciona todos os arquivos ao repositorio
+$ git add doc/*.txt		, adicionar todos os arquivos TXT localizados no diretorio doc
+
+DIFF
+# o comando DIFF permite visualizar as diferencas entre as versoes do aquivo.
+#
+$ git diff
+	diff --git a/README.md b/README.md
+	index 8425f0e..e02ffc1 100644
+	--- a/README.md
+	+++ b/README.md
+	@@ -2,7 +2,7 @@
+	#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+ 	#: Description : Projeto utilizado para estudar a ferramenta Git
+ 	#: Options : None
+	-#: Reference : None
+	+#: Reference : Site da Git
+ 	## 1 - Capa do livro
+ 	capa.txt
+
+# outra forma de visualizar as diferencas dos arquivos.
+#
+# neste caso, eh possivel visualizar dentro dos arquivos as diferencas
+#
+$ git diff --staged
+
+COMMIT
+# a funcao do comando COMMIT eh o de transferir o arquivo que acabou de ser
+# alterado para a area de versionamento. A partir deste ponto, o arquivo fica
+# armazenado no repositorio.
+#
+# depois de executar o comando "git add ..." eh necessario
+# executar o comando "git commit" para adicionar um comentario
+# em relacao a acao tomada que foi a de adicionar um arquivo.
+#
+# o comando COMMIT tambem serve para inserir um comentario e identificando
+# o que foi feito no arquivo.
+#
+$ git commit -m "Adicionar o comentario"	,	adiciona um comentario a alteracao
+
+ADD + COMMIT + PUSH
+# depois de feito qualquer tipo de alteracao no arquivos do Projeto
+# devesse executar os comando
+#
+$ git add <arquivo>
+$ get commit -m 'Adicionar comentario'
+$ get push origin master
+
+# o comando abaixo equivale aos comandos
+# git add ... + git commit ...
+# o comando abaixo nao funciona para novos arquivos
+#
+$ git commit -am "Comentario"
+
+REMOVER ARQUIVO
+# existe a possibilidade de remover um arquivo previamente gerenciado pelo Git.
+#
+$ rm <ARQUIVO>			; remover o arquivo do computador
+$ git rm <ARQUIVO>	; remover o arquivo do Git
+
+MOVER ARQUIVO
+# existe a possibilidade de mover ou renomear um arquivo previamente gerenciado
+# pelo Git.
+#
+$ mv <ARQUIVO1>	<ARQUIVO2>		; remover o arquivo do computador
+$ git mv <ARQUIVO1>	<ARQUIVO2>; remover o arquivo do Git
+
+UNDO
+# Refazer o ultimo comentario do commit
+#
+$ git commit --amend											,	altera o comentário do último commit
+
+# Remover um arquivo que foi adicionado erroneamente.
+#
+# por exemplo, foram alteados dois aquivos, foi executado o comando "git add *"
+# mas foi detectado que eh necessario adicionar um comentario para cada arquivo
+# adicionado.
+#
+$ git reset HEAD <ARQUIVO>
+
+# reverter a ultima alteracao/commit aplicado sobre um arquivo
+#
+$git checkout -- <ARQUIVO>
+
+TAG
+# Existe a possibilidade de colocar tags em pontos especificos no historico do
+# versionamento. tags podem ser utilizadas para versionar o software, v1.0/v 1.1)
+
+# visualizar as tags existentes
+#
+$ git tag
+
+# procurar por determinadas tags
+#
+$ git tag -l 'v1.*'
+
+# adicionando tag com comentario
+#
+$ git tag -a v1.0 -m 'versao 1.0'
+
+SERVIDOR REMOTO (GITHUB)
+# visualizar os servidores remotos
+#
+$ git remote -v
+	origin	https://github.com/abreuferr/git.git (fetch)
+	origin	https://github.com/abreuferr/git.git (push)
+
+# Fazer o clone/download do PROJETO do servidor REMOTO (GitHub)
+#
+$ git clone https://github.com/abreuferr@gmail.com/MeuProjeto.git
+
+# adicionar um repositorio remoto.
+#
+# git remote add [NOME_CURTO] [URL]
+#
+# utilizando a opcao de [NOME_CURTO], nao sera necessario utilizar a URL, basta
+# utilizar o NOME_CURTO, que no exemplo abaixo se chama ORIGIN.
+#
+$ git remote add origin https://github.com/abreuferr@gmail.com/MeuProjeto.git
+
+# o comando FETCH permite fazer o download somente dos arquivos que ainda nao
+# existem no repositorio local. (REMOTO -> LOCAL)
+#
+# git fetch [NOME_CURTO]
+#
+$ git fetch origin
+
+# o comando PUSH ira enviar os arquivo do repositorio local para o repositorio
+# remoto (LOCAL -> REMOTO)
+#
+# git push [NOME_CURTO] [BRANCH]
+#
+$ git push origin master
+
+# O comando PULL ira sincronizar o projeto que esta localizado no servidor remoto
+# com o servidor local.
+#
+# o objetivo deste comando eh o sincronizar as alteracoes que foram
+# feitas no servidor remoto com o servidor local e em seguida executar o merge
+# entre as versoes dos arquivos.
+#
+$ git pull origin master
+
+BRANCH
+# O branch consiste em uma ramificacao da arvore principal do repositorio.
+# o branch eh utilizado para criar uma ramificacao na arvore principal cujo
+# objetivo eh o de permitir a criacao de uma espécide de fork de um arquivo
+# do projeto ou de todo o projeto.
+#
+# a principal funcao do branch eh a de permitir que seja feito alteracoes no
+# projeto sem que seja feito essa alteracoes no ramo principal de desenvolvimento.
+#
+# o arquivo pode ser alterado tanto no banch MASTER quanto no novo branch.
+# para que as alteracoes sejam unidas em um unico arquivo, sera utiliza
+# a opcao de merge.
+#
+# a branch principal recebe o nome de MASTER. Ja as outras branch podem ser nomeadas.
+
+# comando utilizado para criar o branch
+#
+$ git branch <NOME_BRANCH>
+
+# comando utilizado para visualizar os branchs e em qual branch se encontra (*)
+#
+$ git branch
+
+# visualizar o ultimo commit em cada branch
+#
+$ git branch -v
+
+# comando utilizado para acessar uma branch
+#
+$ git checkout <NOME_BRANCH>
+
+# comando utilizado para criar uma branch e acessar a branch que acabou de ser
+# criada
+#
+$ git checkout -b <NOME_BRANCH>
+
+MERGE
+# depois de executar todas as alteracoes nos arquivos nos diversos branchs,
+# sera necessario unir todos o BRANCH no branch MASTER.
+#
+$ git checkout master
+	Switched to branch 'master'
+$ git merge <NOME_BRANCH>
+$ git merge -X ours <branch>	,	Faz merge da <branch> especificada com a master,
+																força modificações da master para o caso de ter
+																erros na branch
+
+# depois de executar o MERGE, eh possivel remover as branch existentes
+# para isso basta executar o comando
+# BRANCH com o parametro -d
+#
+$ git branch -d <NOME_BRANCH>	, remove uma branch de cada vez
+$ git branch | grep -v "master" | xargs git branch -D	, remove todas as branch de uma unica vez
+
+# visualizar quais as branch que foram "merged" e quais nao foram
+#
+$ git branch --merged
+$ git branch --no-merged
+
+REBASING
+# alem da utilizacao do comando MERGE, existe outra forma de unir os varios
+# branchs no banch MASTER. Essa outra forma eh atraves do comando REBASE
+# Para isso, deve-se
+#
+# 1 - acessar a branch onde foram alterados os arquivos
+# 2 - executar o comando "git rebase master"
+#
+$ git rebase master
+
+2. PRATICO
+
+2.1. TRABALHO EM GRUPO
+# Nesse exemplo, o ambiente de desenvolvimento do projeto consiste de um servidor
+# git, como por exemplo o GitHub, e dois desenvolvedores trabalhando em partes
+# diferentes do mesmo projeto.
+
+# DEV1
+#  clonar o projeto do github > editar um arquivo > fazer o commit
+#
+$ git clone https://github.com/abreuferr/git.git
+$ cd git
+$ vi capa.txt
+$ git commit -am "foi alterado a capa"
+
+# DEV2
+#  clonar o projeto do github > editar um arquivo > fazer o commit
+#
+$ git clone https://github.com/abreuferr/git.git
+$ cd git
+$ vi referencia.txt
+$ git commit -am "foi alterado a referencia"
+
+# DEV2
+# enviar as alteracoes para o github
+#
+$ git push origin master
+
+# DEV1
+# enviar as alteracoes para o github
+#
+$ git push origin master
+	! [rejected]        master -> master (fetch first)
+	error: failed to push some refs to 'https://github.com/abreuferr/git.git'
+
+# quando o DEV1 tentou fazer o git push, ocorreu um erro pois o DEV2 fez um
+# git push antes e os arquivos de DEV1 estao diferentes/defasados em relacao ao
+# GitHub
+#
+# para solucionar este problema, o DEV1 deve primeiro fazer o download das
+# alteracoes do GitHub para em seguida fazer o merge e por ultimo enviar para o
+# repositorio.
+# download > merge > push
+
+# DEV1
+#
+$ git fetch origin
+		From https://github.com/abreuferr/git
+  	c824dcd..3df3473  master     -> origin/master
+$ git merge origin/master
+		Merge made by the 'recursive' strategy.
+		referencia.txt | 1 +
+ 		1 file changed, 1 insertion(+)
+$ git push origin master
+
+# nesse ponto, o repositorio do DEV2 esta diferente de DEV1 pois ele acabou de
+# realizar um git push. Agora eh o DEV2 quem deve fazer o sincronismo.
+
+# DEV2
+#
+$ git fetch origin
+$ git merge origin/master
+
+2.2. BRANCH
+# o objetivo deste branch eh o de editar a capa do livro em um ramo diferente do
+# master. Desta forma, o ramo principal, MASTER, continua preservado enquanto o
+# ramo CAPA eh alterado, alterar o arquivo CAPA.TXT
+
+CAPA
+# criacao e visualizacao do brach capa - capa.txt
+#
+$ git branch capa
+$ git branch
+	  capa
+	* master
+
+# alternando do banch MASTER para o banch CAPA
+#
+$ git checkout capa
+	Switched to branch 'capa'
+
+# editando e alterando o arquivo capa.txt
+#
+$ vi capa.txt
+$ git status
+	On branch capa
+	Changes not staged for commit:
+  		(use "git add <file>..." to update what will be committed)
+  		(use "git checkout -- <file>..." to discard changes in working directory)
+
+			modified:   capa.txt
+
+		no changes added to commit (use "git add" and/or "git commit -a")
+
+# comandois ADD (-a) e COMMIT (-m)
+#
+$ git commit -a -m "Primeiras alteracoes na capa do livro"
+
+CORPO
+# Corpo do livro - desenvolvimento.txt
+#
+$ git branch corpo
+$ git checkout corpo
+$ git branch
+	capa
+	conclusao
+	* corpo
+	master
+$ vi desenvlvimento.txt
+$ git commit -a -m "Primeiras alteracoes no corpo do livro"
+
+CONCLUSAO
+# Conclusao do livro - conclusao.txt
+#
+$ git branch conclusao
+$ git checkout conclusao
+$ git branch
+	  capa
+	* conclusao
+	  corpo
+	  master
+$ vi conclusao.txt
+$ git commit -a -m "Primeiras alteracoes na conclusao do livro"
+
+CORPO
+# Corpo do livro - desenvolvimento.txt
+#
+$ git branch corpo
+$ git checkout corpo
+$ git branch
+	capa
+	conclusao
+	* corpo
+	master
+$ vi desenvlvimento.txt
+$ git commit -a -m "Foi acrescentado um capitulo ao corpo do livro"
+
+MERGE
+# depois de executar todas as alteracoes nos arquivos nos diversos branchs,
+# sera necessario unir todos o BRANCH no branch MASTER.
+#
+$ git checkout master
+	Switched to branch 'master'
+$ git branch
+	  capa
+	  conclusao
+	  corpo
+	* master
+$ git merge capa
+$ git merge corpo
+$ git merge conclusao
+
+# depois de executar o MERGE, eh possivel remover os outros branchs
+# para isso basta executar o comando
+# BRANCH com o parametro -d
+#
+$ git branch -d capa
+$ git branch -d corpo
+$ git branch -d conclusao

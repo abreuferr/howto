@@ -1,0 +1,334 @@
+#: Title : DNS Howto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao do Bind9 no GNU/Linux Debian Stable
+#: Options : None
+#: Reference :	http://www.howtoforge.com/traditional_dns_howto
+		http://www.howtoforge.com/howto_bind_chroot_debian
+		www.debian-administration.org/article/343/Configuring_Dynamic_DNS__DHCP_on_Debian_Stable
+
+1. INSTALACAO
+# nessa parte do tutorial, sao configurado dois servidore de DNS, servidor primario
+# e servidor sendario.
+
+# NS1/NS2
+#
+# instalacao do bind
+#
+$ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
+
+2. CONFIGIRACAO DNS PRIMARIO (NS1) e DNS SECUNDARIO (NS2)
+# Reincializacao do Bind
+#
+$	sudo systemctl restart bind9
+
+2.1. CONFIGURACAO DO DNS PRIMARIO (NS1)
+
+# Local File
+#
+$ sudo vi /etc/bind/named.conf.local (master)
+	// Master zones
+	zone "particula.local" {
+	        type master;
+	        file "/etc/bind/db.particula.local";	# zone file path
+	        allow-transfer { 192.168.74.6; };	# ns2 private IP address - secondary
+		notify yes;
+	};
+
+	// Reverse
+	zone "74.168.192.in-addr.arpa" {
+	        type master;
+	        file "/etc/bind/db.74.168.192.in-addr.arpa";	# zone file path
+		allow-transfer { 192.168.42.6; };	# ns2 private IP address - secondary
+	};
+
+# Forward Zone File
+#
+$ sudo vi /etc/bind/db.particula.local (master)
+	; Start of Authority (SOA) record
+	$TTL 604800
+	@ IN SOA ns1.particula.local. root.particula.local. (
+				2010101301;	Serial
+				3600;				Refresh [1h]
+				600;				Retry   [10m]
+				86400;			Expire  [1d]
+				600 );			Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS ns1.particula.local.
+				IN NS ns2.particula.local.
+
+	; Mail Exchange (MX) records.
+				IN MX 10 srv6.particula.local.
+
+	; Address (A) records. (real-names of machines)
+				IN A 192.168.74.5
+	ns1                    	IN A 192.168.74.5
+	ns2                    	IN A 192.168.74.6
+	srv1                  	IN A 192.168.74.7
+	srv2                  	IN A 192.168.74.8
+	srv3                  	IN A 192.168.74.9
+	srv4                  	IN A 192.168.74.10
+	srv5                  	IN A 192.168.74.11
+	srv6                  	IN A 192.168.74.12
+
+	; Aliases in Canonical Name (CNAME) records...
+	www			IN CNAME srv5
+
+# Reverse Zone File
+#
+$ sudo vi /etc/bind/db.74.168.192.in-addr.arpa (master)
+	; Start of Authority (SOA) record
+	$TTL   900
+	@ IN SOA ns1.particula.local. root.particula.local. (
+				2010101301;	Serial
+				3600;				Refresh [1h]
+				600;				Retry   [10m]
+				86400;			Expire  [1d]
+				600 );			Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS ns1.particula.local.
+				IN NS ns2.particula.local.
+
+	; Addresses point to canonical names (PTR) for reverse lookups
+	5                       IN PTR    ns1.particula.local.
+	6                       IN PTR    ns2.particula.local.
+	7                       IN PTR    srv1.particula.local.
+	8                       IN PTR    srv2.particula.local.
+	9                       IN PTR    srv3.particula.local.
+	10                      IN PTR    srv4.particula.local.
+	11                      IN PTR    srv5.particula.local.
+	12                      IN PTR    srv6.particula.local.
+
+# Comando utilizado para verificar se as configuracoes estao corretas
+#
+$ sudo named-checkconf
+
+2.2. CONFIGURACAO DO DNS SECUNDARIO (NS2)
+#
+$ sudo vi /etc/bind/named.conf.local (slave)
+	// Slave zones
+	//
+	zone "particula.local" {
+        	type slave;
+        	file "/etc/bind/db.particula.local";
+	        masters { 192.168.74.5; };	# ns1 private IP
+		allow-notify { 192.168.74.5; };
+	};
+
+	// Reverse zone
+	zone "74.168.192.in-addr.arpa" {
+		type slave;
+    		file "/etc/bind/db.74.168.192.in-addr.arpa";
+    		masters { 192.168.74.5; };	# ns1 private IP
+	};
+
+# NS1/NS2
+#
+# alterando a permissao do diretorio do Bind
+#
+$ sudo chown -R bind:bind /etc/bind (master)
+
+# reinicializar o servico do Bind
+#
+$ sudo systemctl restart bind9
+
+# reler os arquivos de configuracao do Bind
+#
+$ sudo systemctl reload bind9
+
+3. CHROOT
+# sudo /etc/init.d/bind9 stop
+
+# sudo vi /etc/default/bind9
+	OPTIONS="-u bind -t /var/lib/named"
+
+# sudo mkdir -p /var/lib/named/etc
+
+# sudo mkdir /var/lib/named/dev
+
+# sudo mkdir -p /var/lib/named/var/cache/bind
+
+# sudo mkdir -p /var/lib/named/var/run/bind/run
+
+# sudo mv /etc/bind /var/lib/named/etc
+
+# sudo ln -s /var/lib/named/etc/bind /etc/bind
+
+# sudo mknod /var/lib/named/dev/null c 1 3
+
+# sudo mknod /var/lib/named/dev/random c 1 8
+
+# sudo chmod 666 /var/lib/named/dev/null /var/lib/named/dev/random
+
+# sudo chown -R bind:bind /var/lib/named/var/*
+
+# sudo chown -R bind:bind /var/lib/named/etc/bind
+
+# cd /var/lib/named/var/cache/bind
+
+# sudo touch managed-keys.bind
+
+# sudo /etc/init.d/bind9 start
+
+3. DNS + DHCP
+
+#: Technical information
+    servidor DNS primario		192.168.0.5
+    servidor DNS secundario		192.168.0.6
+    servidor DHCP server        192.168.0.7
+
+# dnssec-keygen -a hmac-md5 -b 128 -n USER dhcpupdate (dns master)
+
+# cat Kdhcpupdate.+157+62711.key (master)
+    dhcpupdate. IN KEY 0 3 157 xOxhRZXVrtaDjbZs5f9mgg==
+
+# named.conf.local (master)
+    // Master zones
+    zone "particula.local" {
+        	type master;
+        	file "/etc/bind/db.particula.local";
+        	allow-transfer { 192.168.0.6; };
+   	 allow-update { key dhcpupdate; };
+   	 notify yes;
+    };
+
+    zone "0.168.192.in-addr.arpa" {
+        	type master;
+        	file "/etc/bind/db.0.168.192.in-addr.arpa";
+   		 allow-update { key dhcpupdate; };
+   		 notify yes;
+    };
+
+    key "dhcpupdate" {
+   		 algorithm hmac-md5;
+        	secret "xOxhRZXVrtaDjbZs5f9mgg==";
+    };
+
+# db.particula.local (dns master)
+    ; Start of Authority (SOA) record
+    $TTL   900
+    @ IN SOA ns1.particula.local. root.particula.local. (
+                3600;     serial
+                3600;     refresh, seconds
+                3600;     retry, seconds
+                3600;     expire, seconds
+                900 );     minimum, seconds
+
+    ; Name Server (NS) records.
+   		IN NS ns1.particula.local.
+   		IN NS ns2.particula.local.
+
+    ; Mail Exchange (MX) records.
+   		IN MX 10 server.particula.local.
+
+    ; Address (A) records. (real-names of machines)
+   		IN A 192.168.0.5
+    ns1		IN A 192.168.0.5
+    ns2   	IN A 192.168.0.6
+    server  	IN A 192.168.0.7
+
+    ; Aliases in Canonical Name (CNAME) records...
+    www		IN CNAME server
+    ftp		IN CNAME server
+    proxy	IN CNAME server
+
+# db.0.168.192.in-addr.arpa (dns master)
+    ; Start of Authority (SOA) record
+    $TTL   900
+    @ IN SOA ns1.particula.local. root.particula.local. (
+               	3600;     serial
+                3600;     refresh, seconds
+   	       	3600;     retry, seconds
+   	       	3600;     expire, seconds
+   	       	900 );     minimum, seconds
+
+    ; Name Server (NS) records.
+   		IN NS ns1.particula.local.
+   		IN NS ns2.particula.local.
+
+    ; Addresses point to canonical names (PTR) for reverse lookups
+    5		IN PTR	ns1.particula.local.
+    6 		IN PTR	ns2.particula.local.
+    7       	IN PTR	server.particula.local.
+
+# named.conf.local (dns slave)
+    // Slave zones
+    //
+    zone "particula.local" {
+   	 type slave;
+   	 file "/etc/bind/db.particula.local";
+        masters { 192.168.0.5; };
+   	 allow-notify { 192.168.0.5; };
+    };
+
+# aptitude install dhcp3-server (dhcp server)
+
+# /etc/dhcp3/dhcpd.conf (dhcp server)
+    option domain-name "particula.local";
+    option domain-name-servers 192.168.0.5, 192.168.0.6;
+
+    default-lease-time 600;
+    max-lease-time 7200;
+
+    authoritative;
+
+    ddns-update-style interim;
+    update-static-leases on;
+
+    log-facility local7;
+
+    key dhcpupdate {
+        	algorithm hmac-md5;
+   	 secret xOxhRZXVrtaDjbZs5f9mgg==;
+    }
+
+    zone 0.168.192.in-addr.arpa. {
+        	primary 192.168.0.5;
+        	key dhcpupdate;
+    }
+
+    zone particula.local. {
+        	primary 192.168.0.5;
+        	key dhcpupdate;
+    }
+
+    subnet 192.168.0.0 netmask 255.255.255.0 {
+        	range 192.168.0.100 192.168.0.200;
+        	option routers 192.168.0.2;
+    }
+
+# /root/test_ddns (ns1)
+    server 192.168.0.5
+    zone particula.local
+    update delete teste.particula.local. A
+    update add teste.particula.local. 86400 A 192.168.0.123
+    send
+    zone 0.168.192.in-addr.arpa
+    update delete 123.0.168.192.in-addr.arpa PTR
+    update add 123.0.168.192.in-addr.arpa 86400 PTR teste.particula.local.
+
+# nsupdate -y dhcpupdate:xOxhRZXVrtaDjbZs5f9mgg== test_ddns (ns1)
+
+# host teste.particula.local (ns1)
+teste.particula.local has address 192.168.0.123
+
+# /root/test_ddns (dhcp server)
+    server 192.168.0.5
+    zone particula.local
+    update delete teste.particula.local. A
+    update add teste.particula.local. 86400 A 192.168.0.123
+    send
+    zone 0.168.192.in-addr.arpa
+    update delete 123.0.168.192.in-addr.arpa PTR
+    update add 123.0.168.192.in-addr.arpa 86400 PTR teste.particula.local.
+
+# nsupdate -y dhcpupdate:xOxhRZXVrtaDjbZs5f9mgg== test_ddns (dhcp server)
+
+# aptitude install dnsutils (dhcp server)
+
+# host teste.particula.local (dhcp server)
+teste.particula.local has address 192.168.0.123
+
+# /etc/dhcp3/dhclient.conf (client)
+    send host-name "client";
