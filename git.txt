@@ -58,9 +58,11 @@ IGNORAR ARQUIVO
 # como por exemplo, arquivos temporarios. Para isso, basta adicionar os arquivos
 # desejados no arquivo .gitignore
 #
-$ cat .gitignore
+$ cat ~/.gitignore
 	*.[oa]
 	*~
+	*.swp
+	*.swo
 
 ADD
 # adicionar arquivoi(s) ao staging area.
@@ -279,6 +281,36 @@ REBASING
 # 2 - executar o comando "git rebase master"
 #
 $ git rebase master
+
+SERVER
+
+# local
+#
+$ mkdir ~/myProject
+$ cd ~/myProject
+$ git init
+$ echo "Projeto" > README.md
+$ git add .
+$ git commit
+
+# server
+#
+$ ssh cosmo@gitserver.local
+$ mkdir gitServer
+$ cd gitServer
+$ mkdir myProject
+$ git init --bare
+$ logout
+
+# local
+#
+$ git remote add origin cosmo@gitserver.local:gitServer/myProject
+$ git push --set-upstream origin master
+
+# local
+#
+$ rm -rf myProject
+$ git clone cosmo@gitserver.local:gitServer/myProject
 
 2. PRATICO
 
