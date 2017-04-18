@@ -255,6 +255,14 @@ $ docker node update --availability active node5
 	wyvza7otcajvdfza8937luafv *  node2     Ready   Active        Leader
 	xe3s9fl955w9cwvl44yo2hcvs    node4     Ready   Active
 
+# criacao do servico giropops24 no manager do swarm
+#
+$ docker service create --name giropops24 --constraint 'node.role == manager' nginx
+
+# criacao do servico giropops24 no worker do swarm
+#
+$ docker service create --name giropops24 --constraint 'node.role == workers' nginx
+
 NETWORK
 
 # NODE1
@@ -310,16 +318,3 @@ root@4f867d52e667:/# curl Web2:8000
 	I'm ec4d7a258f06
 root@4f867d52e667:/# curl Web2:8000
 	I'm e75e82b680dc
-
-# VOLUME
-
-$ docker volume create volumedata
-	volumedata
-
-$ docker service create --name giropops2 --mount type=volume,source=volumedata,destination=/opt/giropops --network skynet -p 1234:80 nginx
-
-# bind = diretorio e não mais volume
-$ docker service create --name giropops23 --mount type=bind,source=/tmp,destination=/opt/giropops --network skynet -p 1234:80 nginx
-
-$ docker service create --name giropops24 --constraint 'node.role == manager' nginx
-$ docker service create --name giropops24 --constraint 'node.role == workers' nginx
