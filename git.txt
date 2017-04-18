@@ -471,3 +471,185 @@ $ git merge conclusao
 $ git branch -d capa
 $ git branch -d corpo
 $ git branch -d conclusao
+
+2.2. EXEMPLO 02 (https://codewords.recurse.com/issues/two/git-from-the-inside-out)
+
+mkdir alpha
+cd alpha
+
+mkdir data
+printf 'a' > data/letter.txt
+
+alpha
+└── data
+    └── letter.txt
+
+git init
+
+
+alpha
+├── data
+|   └── letter.txt
+└── .git
+    ├── objects
+    etc...
+
+git add data/letter.txt
+
+printf '1234' > data/number.txt
+
+alpha
+└── data
+    └── letter.txt
+    └── number.txt
+
+git add data
+
+printf '1' > data/number.txt
+git add data
+
+root
+└── data
+    └── a
+    └── 1
+
+git commit -m 'a1'
+
+a1
+└── root
+    └── data
+        └── a
+        └── 1
+
+$ cat .git/HEAD 
+	ref: refs/heads/master
+
+HEAD
+└── master
+    └── a1
+        └── root
+            └── data
+                └── a
+                └── 1
+
+
+
+printf '2' > data/number.txt
+
+git add data/number.txt
+
+git commit -m 'a2'
+
+
+git log
+	commit bb493895f29395cc19ec664da696c41d4fe11124
+	Author: caio ferreria <abreuferr@gmail.com>
+	Date:   Tue Apr 18 14:45:38 2017 -0300
+	    a2
+
+	commit 52ae1d49350bd740c811b3792ea25e6ff254a31e
+	Author: caio ferreria <abreuferr@gmail.com>
+	Date:   Tue Apr 18 14:28:12 2017 -0300
+	    a1
+
+git checkout bb493895f29395cc19ec664da696c41d4fe11124
+	Note: checking out 'bb493895f29395cc19ec664da696c41d4fe11124'.
+
+	You are in 'detached HEAD' state. You can look around, make experimental
+	changes and commit them, and you can discard any commits you make in this
+	state without impacting any branches by performing another checkout.
+
+	If you want to create a new branch to retain commits you create, you may
+	do so (now or later) by using -b with the checkout command again. Example:
+
+	  git checkout -b new_branch_name
+
+	HEAD is now at bb49389... a2
+
+printf '3' > data/number.txt
+git add data/number.txt
+git commit -m 'a3'
+
+git branch deputy
+
+git checkout master
+
+printf '789' > data/number.txt
+
+git checkout deputy
+
+printf '2' > data/number.txt
+
+git checkout deputy
+
+git merge master
+
+git checkout master
+
+git merge deputy
+
+printf '4' > data/number.txt
+
+git add data/number.txt
+
+git commit -m 'a4'
+	[master 6a66e09] a4
+
+$ git checkout deputy
+	Switched to branch 'deputy'
+
+$ printf 'b' > data/letter.txt
+
+$ git add data/letter.txt
+
+$ git commit -m 'b3'
+	[deputy 421ee95] b3
+
+$ git merge master -m 'b4'
+Merge made by the 'recursive' strategy.
+
+git checkout master
+
+git merge deputy
+
+git checkout deputy
+
+printf '5' > data/number.txt
+
+git add data/number.txt
+
+git commit -m 'b5'
+
+git checkout master
+
+printf '6' > data/number.txt
+
+git add data/number.txt
+
+git commit -m 'b6'
+
+git merge deputy
+
+	Auto-merging data/number.txt
+	CONFLICT (content): Merge conflict in data/number.txt
+	Automatic merge failed; fix conflicts and then commit the result.
+
+
+$ cat data/number.txt 
+<<<<<<< HEAD
+6
+=======
+5
+>>>>>>> deputy
+
+$ printf '11' > data/number.txt
+$ git add data/number.txt
+
+
+git commit -m 'b11'
+
+git rm data/letter.txt
+
+git commit -m '11'
+
+
