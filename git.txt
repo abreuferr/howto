@@ -477,19 +477,26 @@ $ git branch -d conclusao
 
 # criacao dos diretorios de trabalho
 #
-
 $ mkdir alpha
-$ cd alpha
-$ mkdir data
+$ mkdir alpha/data
+
+# criaacao e edicao do arquivo letter.txt
+#
 $ printf 'a' > data/letter.txt
 
+# arvore de diretorio
+#
 alpha
 └── data
     └── letter.txt
 
+# inicializando git
+#
 $ git init
 
-
+# estrutura de diretorios
+# agora com o diretorio do git
+#
 alpha
 ├── data
 |   └── letter.txt
@@ -497,53 +504,54 @@ alpha
     ├── objects
     etc...
 
+# adicionando o arquivo letter.txt no git
+#
 $ git add data/letter.txt
 
+# criando e inserindo dados no arquivo number.txt
+#
 $ printf '1234' > data/number.txt
 
+# estrutura de diretorio
+#
 alpha
 └── data
     └── letter.txt
     └── number.txt
 
-$ git add data
 
+# adicionando o novo arquivo letter.txt no git
+# na verdade, o que esta sendo inserido eh o qrquivo 
+# alterado.
+#
+$ git add data/letter.txt
+
+# inserindo novos dados no arquivo
+#
 $ printf '1' > data/number.txt
+
+# arquivo adicionado
+#
 $ git add data
 
-root
-└── data
-    └── a
-    └── 1
-
+# primerio commit dos arquivos no git
+#
 $ git commit -m 'a1'
 
-a1
-└── root
-    └── data
-        └── a
-        └── 1
-
-$ cat .git/HEAD 
-	ref: refs/heads/master
-
-HEAD
-└── master
-    └── a1
-        └── root
-            └── data
-                └── a
-                └── 1
-
-
-
+# inserindo novos dados no arquivo
+#
 $ printf '2' > data/number.txt
 
+# arquivo adicionado
+#
 $ git add data/number.txt
 
+# commit
+#
 $ git commit -m 'a2'
 
-
+# log dos commits
+#
 $ git log
 	commit bb493895f29395cc19ec664da696c41d4fe11124
 	Author: caio ferreria <abreuferr@gmail.com>
@@ -569,75 +577,137 @@ $ git checkout bb493895f29395cc19ec664da696c41d4fe11124
 
 	HEAD is now at bb49389... a2
 
+# alterando o arquivo
+#
 $ printf '3' > data/number.txt
+
+# adicionando o arquivo
+#
 $ git add data/number.txt
+
+# commit do arquivo
+#
 $ git commit -m 'a3'
 
+# criando uma branch/ramificacao
+#
 $ git branch deputy
 
+# movendo o ponteiro para a branch master
+#
 $ git checkout master
 
+# alterando o arquivo
+#
 $ printf '789' > data/number.txt
 
+# mudando o ponteiro para a branch deputy
+#
 $ git checkout deputy
 
+# o arquivo number.txt esta sendo alterado na banch debuty
+# 
 $ printf '2' > data/number.txt
 
-$ git checkout deputy
-
+# esse comando une os arquivos da branch master e deputy
+#
 $ git merge master
 
+# voltando para a branch master
+#
 $ git checkout master
 
+# fazendo um merge do conteudo do arquivo da branch master 
+# com a deputy
+#
 $ git merge deputy
 
+# arquiterar o arquivo
+#
 $ printf '4' > data/number.txt
 
+# adicioanr o arquivo
+#
 $ git add data/number.txt
 
+# executando o commit
+#
 $ git commit -m 'a4'
 	[master 6a66e09] a4
 
+# mudano para a branch deputy
+#
 $ git checkout deputy
 	Switched to branch 'deputy'
 
+# alterando o arquivo
+#
 $ printf 'b' > data/letter.txt
 
+# adicionado o arquivo
+#
 $ git add data/letter.txt
 
+# executando o commit
+#
 $ git commit -m 'b3'
 	[deputy 421ee95] b3
 
+# uniao das branch
+#
 $ git merge master -m 'b4'
 Merge made by the 'recursive' strategy.
 
+# retorando para a branch master
+#
 $ git checkout master
 
+# merge da master com a deputy
+#
 $ git merge deputy
 
+# mudando para a branch deputy
+#
 $ git checkout deputy
 
+# altarar o arquivo number
+#
 $ printf '5' > data/number.txt
 
+# adicionar o arquivo
+#
 $ git add data/number.txt
 
+# executar o commit
+#
 $ git commit -m 'b5'
 
+# retornando para a branch master
+#
 $ git checkout master
 
+# alterando o arquivo
+#
 $ printf '6' > data/number.txt
 
+# adicionando o arquiv
+#
 $ git add data/number.txt
 
+# commit do arquivo
+#
 $ git commit -m 'b6'
 
+# conflito no merge
+#
 $ git merge deputy
 
 	Auto-merging data/number.txt
 	CONFLICT (content): Merge conflict in data/number.txt
 	Automatic merge failed; fix conflicts and then commit the result.
 
-
+# conteudo do arquivo number
+#
 $ cat data/number.txt 
 <<<<<<< HEAD
 6
@@ -645,14 +715,21 @@ $ cat data/number.txt
 5
 >>>>>>> deputy
 
+# alteracao do arquivo
+#
 $ printf '11' > data/number.txt
+
+# adicionando o aquivo
+#
 $ git add data/number.txt
 
-
+# commit do arquivo
+#
 $ git commit -m 'b11'
 
+# removendo o arqivo
+#
 $ git rm data/letter.txt
 
+# ultimo commit
 $ git commit -m '11'
-
-
