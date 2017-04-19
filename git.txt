@@ -179,7 +179,7 @@ $ git remote -v
 
 # Fazer o clone/download do PROJETO do servidor REMOTO (GitHub)
 #
-$ git clone https://github.com/abreuferr@gmail.com/MeuProjeto.git
+$ git clone https://github.com/abreuferr/howto.git
 
 # adicionar um repositorio remoto.
 #
@@ -188,7 +188,7 @@ $ git clone https://github.com/abreuferr@gmail.com/MeuProjeto.git
 # utilizando a opcao de [NOME_CURTO], nao sera necessario utilizar a URL, basta
 # utilizar o NOME_CURTO, que no exemplo abaixo se chama ORIGIN.
 #
-$ git remote add origin https://github.com/abreuferr@gmail.com/MeuProjeto.git
+$ git remote add origin https://github.com/abreuferr/MeuProjeto.git
 
 # o comando FETCH permite fazer o download somente dos arquivos que ainda nao
 # existem no repositorio local. (REMOTO -> LOCAL)
@@ -283,6 +283,7 @@ REBASING
 $ git rebase master
 
 SERVER
+# criar um servidor git particular 
 
 # local
 #
@@ -361,10 +362,12 @@ $ git push origin master
 $ git fetch origin
 		From https://github.com/abreuferr/git
   	c824dcd..3df3473  master     -> origin/master
+
 $ git merge origin/master
 		Merge made by the 'recursive' strategy.
 		referencia.txt | 1 +
  		1 file changed, 1 insertion(+)
+
 $ git push origin master
 
 # nesse ponto, o repositorio do DEV2 esta diferente de DEV1 pois ele acabou de
@@ -375,7 +378,7 @@ $ git push origin master
 $ git fetch origin
 $ git merge origin/master
 
-2.2. BRANCH
+BRANCH
 # o objetivo deste branch eh o de editar a capa do livro em um ramo diferente do
 # master. Desta forma, o ramo principal, MASTER, continua preservado enquanto o
 # ramo CAPA eh alterado, alterar o arquivo CAPA.TXT
@@ -401,9 +404,7 @@ $ git status
 	Changes not staged for commit:
   		(use "git add <file>..." to update what will be committed)
   		(use "git checkout -- <file>..." to discard changes in working directory)
-
 			modified:   capa.txt
-
 		no changes added to commit (use "git add" and/or "git commit -a")
 
 # comandois ADD (-a) e COMMIT (-m)
@@ -474,17 +475,19 @@ $ git branch -d conclusao
 
 2.2. EXEMPLO 02 (https://codewords.recurse.com/issues/two/git-from-the-inside-out)
 
-mkdir alpha
-cd alpha
+# criacao dos diretorios de trabalho
+#
 
-mkdir data
-printf 'a' > data/letter.txt
+$ mkdir alpha
+$ cd alpha
+$ mkdir data
+$ printf 'a' > data/letter.txt
 
 alpha
 └── data
     └── letter.txt
 
-git init
+$ git init
 
 
 alpha
@@ -494,26 +497,26 @@ alpha
     ├── objects
     etc...
 
-git add data/letter.txt
+$ git add data/letter.txt
 
-printf '1234' > data/number.txt
+$ printf '1234' > data/number.txt
 
 alpha
 └── data
     └── letter.txt
     └── number.txt
 
-git add data
+$ git add data
 
-printf '1' > data/number.txt
-git add data
+$ printf '1' > data/number.txt
+$ git add data
 
 root
 └── data
     └── a
     └── 1
 
-git commit -m 'a1'
+$ git commit -m 'a1'
 
 a1
 └── root
@@ -534,14 +537,14 @@ HEAD
 
 
 
-printf '2' > data/number.txt
+$ printf '2' > data/number.txt
 
-git add data/number.txt
+$ git add data/number.txt
 
-git commit -m 'a2'
+$ git commit -m 'a2'
 
 
-git log
+$ git log
 	commit bb493895f29395cc19ec664da696c41d4fe11124
 	Author: caio ferreria <abreuferr@gmail.com>
 	Date:   Tue Apr 18 14:45:38 2017 -0300
@@ -552,7 +555,7 @@ git log
 	Date:   Tue Apr 18 14:28:12 2017 -0300
 	    a1
 
-git checkout bb493895f29395cc19ec664da696c41d4fe11124
+$ git checkout bb493895f29395cc19ec664da696c41d4fe11124
 	Note: checking out 'bb493895f29395cc19ec664da696c41d4fe11124'.
 
 	You are in 'detached HEAD' state. You can look around, make experimental
@@ -566,33 +569,33 @@ git checkout bb493895f29395cc19ec664da696c41d4fe11124
 
 	HEAD is now at bb49389... a2
 
-printf '3' > data/number.txt
-git add data/number.txt
-git commit -m 'a3'
+$ printf '3' > data/number.txt
+$ git add data/number.txt
+$ git commit -m 'a3'
 
-git branch deputy
+$ git branch deputy
 
-git checkout master
+$ git checkout master
 
-printf '789' > data/number.txt
+$ printf '789' > data/number.txt
 
-git checkout deputy
+$ git checkout deputy
 
-printf '2' > data/number.txt
+$ printf '2' > data/number.txt
 
-git checkout deputy
+$ git checkout deputy
 
-git merge master
+$ git merge master
 
-git checkout master
+$ git checkout master
 
-git merge deputy
+$ git merge deputy
 
-printf '4' > data/number.txt
+$ printf '4' > data/number.txt
 
-git add data/number.txt
+$ git add data/number.txt
 
-git commit -m 'a4'
+$ git commit -m 'a4'
 	[master 6a66e09] a4
 
 $ git checkout deputy
@@ -608,27 +611,27 @@ $ git commit -m 'b3'
 $ git merge master -m 'b4'
 Merge made by the 'recursive' strategy.
 
-git checkout master
+$ git checkout master
 
-git merge deputy
+$ git merge deputy
 
-git checkout deputy
+$ git checkout deputy
 
-printf '5' > data/number.txt
+$ printf '5' > data/number.txt
 
-git add data/number.txt
+$ git add data/number.txt
 
-git commit -m 'b5'
+$ git commit -m 'b5'
 
-git checkout master
+$ git checkout master
 
-printf '6' > data/number.txt
+$ printf '6' > data/number.txt
 
-git add data/number.txt
+$ git add data/number.txt
 
-git commit -m 'b6'
+$ git commit -m 'b6'
 
-git merge deputy
+$ git merge deputy
 
 	Auto-merging data/number.txt
 	CONFLICT (content): Merge conflict in data/number.txt
@@ -646,10 +649,10 @@ $ printf '11' > data/number.txt
 $ git add data/number.txt
 
 
-git commit -m 'b11'
+$ git commit -m 'b11'
 
-git rm data/letter.txt
+$ git rm data/letter.txt
 
-git commit -m '11'
+$ git commit -m '11'
 
 
