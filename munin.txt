@@ -1,0 +1,73 @@
+#: Title : Munin
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Aplicativo de monitoramento Munin
+#: Options : None
+#: Reference :	https://www.digitalocean.com/community/tutorials/how-to-install-the-munin-monitoring-tool-on-debian-8
+		https://www.howtoforge.com/tutorial/server-monitoring-with-munin-and-monit-on-debian/
+
+SERVER
+
+# INSTALL
+#
+$ sudo apt-get install munin munin-node munin-plugins-extra apache2
+
+# CONFIG MUNIN
+#
+$ sudo vi /etc/munin/munin.conf
+	dbdir     /var/lib/munin
+	htmldir   /var/www/munin
+	logdir    /var/log/munin
+	rundir    /var/run/munin
+	...
+	tmpldir   /etc/munin/templates
+	...
+	[monitor.particula.local]
+	daddress 127.0.0.1
+	use_node_name yes
+
+	[ns1.particula.local]
+	address 192.168.74.5
+	use_node_name yes
+
+	[ns2.particula.local]
+	address 192.168.74.6
+	use_node_name yes
+
+$ sudo mkdir /var/www/munin
+$ sudo chown munin:munin /var/www/munin
+
+$ sudo vi /etc/apache2/conf-available/munin.conf
+	Alias /munin /var/www/munin
+
+	<Directory /var/www/munin>
+       	 Require all granted
+       	 Options FollowSymLinks SymLinksIfOwnerMatch
+	</Directory>
+
+	ScriptAlias /munin-cgi/munin-cgi-graph /usr/lib/munin/cgi/munin-cgi-graph
+	<Location /munin-cgi/munin-cgi-graph>
+       	 Require all granted
+       	 Options FollowSymLinks SymLinksIfOwnerMatch
+       	 <IfModule mod_fcgid.c>
+       	     SetHandler fcgid-script
+       	 </IfModule>
+       	 <IfModule !mod_fcgid.c>
+       	     SetHandler cgi-script
+       	 </IfModule>
+	</Location>
+
+$ sudo systemctl restart munin-node
+$ sudo systemctl restart apache2
+
+CLIENT
+
+# INSTALL
+#
+$ sudo apt-get install munin-node -y -d
+
+# CONFIG MUNIN
+#
+$ sudo vi /etc/munin/munin-node.conf
+	allow ^192\.168\.74\.14$
+
+$ sudo service munin-node restart

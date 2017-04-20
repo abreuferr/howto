@@ -1,0 +1,52 @@
+#: Title : DRDB Howto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalação e configuracao do GlusterFS 3.5 no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : https://www.howtoforge.com/tutorial/install-and-configure-drdb-for-network-filesystem-replication-debian-8/
+
+TOPOLOGIA
+#
+# configuracao dos servidores a serem utilizados
+#
+drdb1	192.168.74.1
+drdb2	192.168.74.2
+
+INSTALACAO
+
+# drdb1/drdb2
+#
+# Instalacao dos componentes necessarios
+#
+$ sudo apt-get install drbd-utils ocfs2-tools -y -d
+
+
+CONFIGURACAO
+
+# DRDB1/DRDB2
+#
+$ sudo vi /etc/drbd.d/global_common.conf
+	global {
+		usage-count yes;
+	(....)
+
+	common {
+		net {
+                	protocol C;
+
+$ sudo vi /etc/drbd.d/r0.res
+	resource r0 {
+	  on drdb1.particula.local {
+	    device    /dev/drbd1;
+	    disk      /dev/sdb;
+	    address   192.168.0.11:7789;
+	    meta-disk internal;
+	  }
+	  on drdb2.particula.local {
+	    device    /dev/drbd1;
+	    disk      /dev/sdb;
+	    address   192.168.0.12:7789;
+	    meta-disk internal;
+	  }
+	}
+
+$ sudo drbdadm create-md r0

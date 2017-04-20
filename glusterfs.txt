@@ -48,7 +48,7 @@ CRIACAO DO VOLUME
 #
 # (os arquivos serao replicados entre os varios servidores)
 #
-$ sudo gluster volume create glustervol replica 3 transport tcp srv1.particula.local:/mnt/glusterfs srv2.particula.local:/mnt/glusterfs srv3.particula.local:/mnt/glusterfs
+$ sudo gluster volume create glustervol replica 3 transport tcp srv1.particula.local:/mnt/glusterfs srv2.particula.local:/mnt/glusterfs srv3.particula.local:/mnt/glusterfs force
 	Creation of volume replicate has been successful
 
 # (os arquivos serao distribuidos entre os varios servidores)
@@ -91,4 +91,4 @@ $ sudo mount.glusterfs srv1.particula.local:/glustervol /mnt/glusterfs
 
 # /etc/fstab
 #
-$ srv1.particula.local:/glustervol /mnt/glusterfs glusterfs defaults,_netdev 0 0
+	srv1.particula.local:/glustervol /mnt/glusterfs glusterfs defaults,_netdev 0 0
