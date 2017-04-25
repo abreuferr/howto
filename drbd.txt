@@ -20,7 +20,7 @@ INSTALACAO
 $ sudo apt-get install drbd-utils ocfs2-tools drbd8-utils -y -d
 
 
-CONFIGURACAO
+1. CONFIGURACAO PRIMARIO<>SECUNDARIO
 
 # DRBD1/DRBD2
 #
@@ -60,13 +60,79 @@ $ sudo drbdadm create-md r0
 	New drbd meta data block successfully created.
 	success
 
-# DRDB1
+# DRBD1
 #
 $ sudo drbdadm up r0
-$ sudo drbdadm primary --force r0
 
-
-# DRDB1/DRDB2
+# promover o DRBD1 como primario
 #
-$ sudo mkdir /mnt/drbd1
+$ sudo drbdadm primary --force r0
+$ cat /proc/drbd
+	version: 8.4.3 (api:1/proto:86-101)
+	srcversion: 1A9F77B1CA5FF92235C2213 
+	 1: cs:Connected ro:Primary/Secondary ds:UpToDate/UpToDate C r-----
+	    ns:20970844 nr:0 dw:0 dr:20971756 al:0 bm:1280 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:0
 
+	version: 8.4.3 (api:1/proto:86-101)
+	srcversion: 1A9F77B1CA5FF92235C2213 
+	 1: cs:Connected ro:Secondary/Primary ds:UpToDate/UpToDate C r-----
+	    ns:0 nr:20970844 dw:20970844 dr:0 al:0 bm:1280 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:0
+
+# DRBD1
+#
+# como eh feito a copia da particao, nao eh necessario formatar o disco
+# rigido o DRBD2
+#
+$ sudo mkfs.ext4 /dev/drbd1
+$ sudo mkdir /mnt/drbd1
+$ sudo mount /dev/drbd1 /mnt/drbd1/
+
+# DRDB1
+#
+# simular o desastre-recovery
+#
+$ sudpo poweroff
+
+# DRBD2
+#
+$ sudo mount /dev/drbd1 /mnt/drbd1/
+	mount: /dev/drbd1 is write-protected, mounting read-only
+	mount: mount /dev/drbd1 on /mnt/drbd1 failed: Wrong medium type
+
+$ cat /proc/drbd
+	version: 8.4.3 (api:1/proto:86-101)
+	srcversion: 1A9F77B1CA5FF92235C2213 
+
+	 1: cs:WFConnection ro:Secondary/Unknown ds:UpToDate/DUnknown C r-----
+	    ns:0 nr:21434036 dw:21434036 dr:0 al:0 bm:1280 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:0
+
+# como eh possivel notar, o disco rigido primario esta em modo "Unknown"
+# indicando que o disco rigido primario esta indisponivel.
+
+# tornando o DRBD2 como primario.
+#
+$ sudo drbdadm primary r0
+
+# comando utilizado para constatar que o DRBD2 agora eh o disco rigido
+# primario
+#
+$ cat /proc/drbd
+	version: 8.4.3 (api:1/proto:86-101)
+	srcversion: 1A9F77B1CA5FF92235C2213 
+
+	 1: cs:StandAlone ro:Primary/Unknown ds:UpToDate/DUnknown   r-----
+	    ns:0 nr:21434036 dw:21434056 dr:1517 al:2 bm:1280 lo:0 pe:0 ua:0 ap:0 ep:1 wo:f oos:16
+
+
+# mount
+#
+$ sudo mount /dev/drbd1 /mnt/drbd1/
+
+# DRBD1
+#
+# como nao eh possivel existir dois discos rigidos
+# primarios, sera necessario rebaixar o DRBD1 para 
+# secundario
+#
+$ sudo drbdadm secondary r0
+$ sudo drbdadm connect --discard-my-data r0
