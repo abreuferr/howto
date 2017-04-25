@@ -1,0 +1,93 @@
+#: Title : Varnish Cache
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao do Varnish Cache 
+#: Options : None
+#: Reference :  https://www.cyberciti.biz/faq/how-to-install-and-configure-varnish-cache-on-ubuntu-linux-16-04-lts/
+
+HOST VARNISH
+
+# esse equipamento tem por objetivo o de cache web
+#
+# IP - 192.168.0.13(eth0) / 192.168.0.14(eth1)
+#
+# a placa de rede eth0(192.168.13) tem por objetivo o de 
+# receber as requisicoes de acesso as paginas web.
+# 
+# a placa de rede eth1(192.168.0.14) tem por objetivo 
+# a de redirecionar os dados para o servidor 
+# web (192.168.0.15)
+
+# INSTALACAO
+#
+# instalacao no varnish cache no debian
+#
+$ sudo apt update
+$ sudo apt upgrade
+$ sudo apt install varnish -y -d
+
+# verificar se o varnish esta ativo
+#
+$ sudo netstat -tulpn | grep varnishd
+	tcp        0      0 0.0.0.0:6081            0.0.0.0:*               LISTEN      4533/varnishd   
+	tcp        0      0 127.0.0.1:6082          0.0.0.0:*               LISTEN      4513/varnishd   
+	tcp6       0      0 :::6081                 :::*                    LISTEN      4533/varnishd   
+	tcp6       0      0 ::1:6082                :::*                    LISTEN      4513/varnishd   
+
+
+CONFIGURACAO
+
+# /lib/systemd/system/varnish.service – arquivo de configuracao padrao
+# /etc/varnish/ – arquivo de configuracao
+# TCP 6081 port – porta utilizada pelo Varnish
+# TCP 6082 port – porta de configuracao do Varnish
+#
+$ sudo vi /lib/systemd/system/varnish.service
+	[Unit]
+	Description=Varnish HTTP accelerator
+
+	[Service]
+	Type=forking
+	LimitNOFILE=131072
+	LimitMEMLOCK=82000
+	ExecStartPre=/usr/sbin/varnishd -C -f /etc/varnish/default.vcl
+	ExecStart=/usr/sbin/varnishd -a 192.168.0.13:80 -T localhost:6082 -f /etc/varnish/default.vcl -S /etc/varnish/secret -s malloc,1024m
+	ExecReload=/usr/share/varnish/reload-vcl
+
+	[Install]
+	WantedBy=multi-user.target
+
+# reinicializar o servico
+#
+$ sudo systemctl daemon-reload
+
+# redirecionar os dados do varnish para o IP 192.168.0.15 (web server)
+#
+$ sudo vi /etc/varnish/default.vcl
+	backend default {
+	    .host = "192.168.0.15";
+	    .port = "80";
+	}
+
+# reinicializar o servico
+#
+$ sudo systemctl restart varnish.service
+
+HOST APACHE
+
+# instalacao do apache
+#
+$ sudo apt-get install apache2
+
+# alterando o ip da configuracao do apache2
+#
+$ sudo vi /etc/apache2/ports.conf
+	Listen 192.168.0.15:80
+
+# alterando o virtual host do apache2
+#
+$ sudo vi /etc/apache2/sites-enabled/000-default.conf
+	<VirtualHost 192.168.0.15:80>
+
+# reinicializar os servicos
+#
+$ sudo systemctl restart apache2.service

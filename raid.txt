@@ -1,0 +1,100 @@
+#: Title : RAID
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalacao e configuracao de RAID no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : Boson Treinamentos
+
+1. Instalacao
+	sudo apt-get install mdadm
+
+2. RAID
+2.0 RAID 0
+
+2.1 RAID 1
+
+# discos
+	/dev/sdb
+	/dev/sdc
+
+# criar as partcoes e formatar os discos rigidos sdb e sdc no formato fd
+	sudo fdisk /dev/sdb
+	sudo fdisk /dev/sdc
+
+# criacao do raid 1 com dois discos rigidos
+	sudo mdadm --create /dev/md0 --verbose --level=1 --raid-device=2 /dev/sd[bc]1
+
+# informacoes sobre o raid 1
+	sudo mdadm --detail /dev/md0
+
+# arquivo de configuracao do raid 1
+	/etc/mdadm/mdadm.conf
+
+# adicionar o raid 1 no arquivo de configuracao
+	sudo su
+	mdadm -Es | grep md >> /etc/mdadm/mdadm.conf
+	exit
+
+# formatar o raid 1 no formato ext4
+	sudo mkfs.ext4 /dev/md0
+
+# montar o raid 1
+	sudo mkdir /mnt/raid1
+	sudo mount -t ext4 /dev/md0 /mnt/raid1/
+
+# verificar o ponto de montagem do raid 1
+	sudo df -h
+
+# verificar o status do raid 1
+	sudo mdadm --detail /dev/md0
+
+# fstab
+	sudo blkid
+		/dev/md0: UUID="6fa1e03f-d958-46db-9b36-e19b344715b5" TYPE="ext4"
+	sudo vi /etc/fstab
+		UUID=6fa1e03f-d958-46db-9b36-e19b344715b5	/mnt/raid1	ext4	defaults	0    0
+
+# TESTE
+# simular falha no raid 1 (sdc1)
+	sudo mdadm --manage --set-faulty /dev/md0 /dev/sdc1
+
+# remover o disco com defeito
+	sudo mdadm /dev/md0 -r /dev/sdc1
+
+# adicionar o disco no raid 1
+	sudo mdadm /dev/md0 -a /dev/sdc1
+
+# EXCLUIR O RAID
+# desmontar
+	sudo umount /dev/md0
+
+# parar o raid
+	sudo mdadm --stop /dev/md0
+
+# remover
+	sudo mdadm --remove /dev/md0
+
+# excluir o superbloco
+	sudo mdadm --zero-superblock /dev/sd[bc]1
+
+2.2 RAID 5
+
+# discos
+	/dev/sdb
+	/dev/sdc
+	/dev/sdd
+
+# criar o raid
+	sudo mdadm --create --force --assume-clean /dev/md0 --verbose --level=5 --raid-device=3 /dev/sd[bcd]1
+
+# adicionar o raid ao arquivo de configuracao
+	sudo mdadm -Es | grep md >> /etc/mdadm/mdadm.conf
+
+# formatar o raid 1 no formato ext4
+	sudo mkfs.ext4 /dev/md0
+
+# montar o raid 1
+	sudo mount -t ext4 /dev/md0 /mnt/raid0/
+
+# fstab
+	blkid
+		UUID=664b53e1-d87a-4dbb-a25e-08d9bada14eb       /mnt/raid       ext4    defaults        0       0

@@ -1,0 +1,80 @@
+#: Title : RAID
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalacao e configuracao de RAID e LVM no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : https://www.howtoforge.com/linux_lvm_p6
+
+1. Instalacao
+	sudo apt-get install mdadm lvm2 dmsetup mdadm xfsprogs
+
+2. RAID
+
+# discos
+	/dev/sdb
+	/dev/sdc
+
+# criar as particoes e formatar os discos rigidos sdb e sdc no formato fd
+	sudo fdisk /dev/sdb
+	sudo fdisk /dev/sdc
+
+# criacao do raid 1 com dois discos rigidos
+	sudo mdadm --create /dev/md0 --verbose --level=1 --raid-device=2 /dev/sd[bc]1
+	
+# informacoes sobre o raid 1
+	sudo mdadm --detail /dev/md0
+	
+# arquivo de configuracao do raid 1
+	/etc/mdadm/mdadm.conf
+
+# adicionar o raid 1 no arquivo de configuracao
+	sudo su
+	mdadm -Es | grep md >> /etc/mdadm/mdadm.conf
+	exit
+
+# verificar o ponto de montagem do raid 1
+	sudo df -h
+
+# verificar o status do raid 1
+	sudo mdadm --detail /dev/md0
+	
+3. LVM
+
+# formatar o disco rigido
+	$ sudo fdisk /dev/sdX
+		Hex code (type L to list codes): <-- 8e
+
+# Preparar o volume
+	$ sudo pvcreate /dev/md0p1
+
+# Mostrar informacoes sobre o disco rigido
+	$ sudo pvdisplay
+
+# Criar o volume
+	$ sudo vgcreate lvm_volume /dev/md0p1
+
+# Mostrar informacoes sobre o volume
+	$ sudo vgdisplay
+
+# Criar o volume logical
+	$ sudo lvcreate --name share --size 40G lvm_volume
+
+# Format
+	$ sudo mkfs.ext4 /dev/lvm_volume/share
+
+# Mount
+	$ sudo mkdir /mnt/share
+	$ sudo mount /dev/lvm_volume/share /mnt/share
+
+# Fstab
+	$ sudo vi /etc/fstab
+	/dev/lvm_volume/share   /mnt/share     ext4       rw,noatime    0 0
+
+4. Teste do RAID 1
+# simular falha no raid 1 (sdc1)
+	sudo mdadm --manage --set-faulty /dev/md0 /dev/sdc1
+
+# remover o disco com defeito
+	sudo mdadm /dev/md0 -r /dev/sdc1
+
+# adicionar o disco no raid 1
+	sudo mdadm /dev/md0 -a /dev/sdc1

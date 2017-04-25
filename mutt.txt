@@ -1,0 +1,55 @@
+#: Title : Mutt_GMail
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Mutt e GMail
+#: Options : None
+#: Reference :	https://blog.bartbania.com/raspberry_pi/consolify-your-gmail-with-mutt/
+		https://www.linux.com/blog/setup-mutt-gmail-centos-and-ubuntu
+
+$ sudo apt-get install urlview muttprint muttprint-manual mutt-patched w3m
+
+$ mkdir -p ~/.mutt/cache/headers
+$ mkdir ~/.mutt/cache/bodies
+$ touch ~/.mutt/certificates
+
+$ touch ~/.muttrc
+
+$ vim ~/.muttrc
+	set from = 'abreuferr@gmail.com'
+	set realname = 'caio abreu ferreira'
+
+	set ssl_starttls=yes
+	set ssl_force_tls=yes
+
+	# IMAP SETTINGS
+	set imap_user = 'abreuferr@gmail.com'
+	set imap_pass = 'vqbumsfzivzxvrzv'
+
+	# SMTP SETTINGS
+	set smtp_url = 'smtp://abreuferr@smtp.gmail.com:587/'
+	set smtp_pass = 'vqbumsfzivzxvrzv' # use the same password as for IMAP
+	set smtp_authenticators = 'gssapi:login'
+
+	# REMOTE GMAIL FOLDERS
+	set folder = 'imaps://imap.gmail.com:993'
+	set spoolfile = '+INBOX'
+	set postponed ='+[Google Mail]/Drafts'
+	set trash = '+[Google Mail]/Trash'
+
+	# LOCAL FOLDERS FOR CACHED HEADERS AND CERTIFICATES
+	set header_cache =~/.mutt/cache/headers
+	set message_cachedir =~/.mutt/cache/bodies
+	set certificate_file =~/.mutt/certificates
+
+	# SECURING
+	set move = no  #Stop asking to move read messages to mbox!
+	set imap_keepalive = 900
+
+	# Editor
+	set editor = "vim"
+
+	macro index gi '=INBOX' 'Go to inbox'
+	macro index ga '=[Google Mail]/All Mail' 'Go to all mail'
+	macro index gs '=[Google Mail]/Sent Mail' 'Go to Sent Mail'
+	macro index gd '=[Google Mail]/Drafts' 'Go to drafts'
+
+$ chmod 700 .muttrc

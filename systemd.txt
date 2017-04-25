@@ -1,0 +1,64 @@
+#: Title : Systemd
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : uma serie de comandos do systemd
+#: Options : None
+#: Reference :  
+
+# Starting and Stopping Services
+$ sudo systemctl start application.service
+$ sudo systemctl start application
+$ sudo systemctl stop application.service
+
+# Restarting and Reloading
+$ sudo systemctl restart application.service
+$ sudo systemctl reload application.service
+$ sudo systemctl reload-or-restart application.service
+
+# Enabling and Disabling Services
+$ sudo systemctl enable application.service
+$ sudo systemctl disable application.service
+
+# Checking the Status of Services
+$ sudo systemctl status application.service
+$ sudo systemctl is-active application.service
+$ sudo systemctl is-failed application.service
+
+# Listing Current Units
+$ sudo systemctl list-units
+$ sudo systemctl list-units --all
+$ sudo systemctl list-units --all --state=inactive
+$ sudo systemctl list-units --type=service
+
+# Listing All Unit Files
+$ sudo systemctl list-unit-files
+
+# Displaying a Unit File
+$ sudo systemctl cat atd.service
+
+# Displaying Dependencies
+$ sudo systemctl list-dependencies sshd.service
+
+# Checking Unit Properties
+$ sudo systemctl show sshd.service
+
+# Masking and Unmasking Units
+$ sudo systemctl mask nginx.service
+$ sudo systemctl list-unit-files
+$ sudo systemctl unmask nginx.service
+
+# Editing Unit Files
+$ sudo systemctl edit nginx.service
+$ sudo systemctl edit --full nginx.service
+$ sudo rm -r /etc/systemd/system/nginx.service.d
+$ sudo rm /etc/systemd/system/nginx.service
+$ sudo systemctl daemon-reload
+
+# Getting and Setting the Default Target
+$ sudo systemctl get-default
+$ sudo systemctl set-default graphical.target
+
+# Using Shortcuts for Important Events
+$ sudo systemctl rescue
+$ sudo systemctl halt
+$ sudo systemctl poweroff
+$ sudo systemctl reboot

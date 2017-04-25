@@ -1,0 +1,76 @@
+#: Title : HAProxy
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao do HAProxy no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : https://www.howtoforge.com/tutorial/ubuntu-load-balancer-haproxy/
+
+1. Introducao
+
+2. Teoria
+web1 - 192.168.74.9
+web2 - 192.168.74.10
+haproxy - 192.168.74.11
+
+3. Pratico
+3.1. Instalacao - HAProxy
+	# Instalacao do HAProxy
+	$ sudo aptitude install haproxy -y -d
+
+3.2. Configuracao - HAProxy
+	# Ativacao do HAProxy
+	$ sudo vi /etc/default/haproxy
+		ENABLED=1
+
+	# Backup de seguranca
+	$ sudo mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.BKP
+
+	# Configuracao do HAProxy
+	$ sudo vi /etc/haproxy/haproxy.cfg
+		global
+        	log /dev/log   local0
+        	log 127.0.0.1   local1 notice
+        	maxconn 4096
+        	user haproxy
+        	group haproxy
+        	daemon
+
+		defaults
+        		log     global
+        		mode    http
+        		option  httplog
+        		option  dontlognull
+        		retries 3
+        		option redispatch
+        		maxconn 2000
+        		timeout connect    5000
+        		timeout client     50000
+        		timeout server     50000
+
+		listen webfarm 0.0.0.0:80
+    			mode http
+    			stats enable
+    			stats uri /haproxy?stats
+    			balance roundrobin
+    			option httpclose
+    			option forwardfor
+    			server srv5 192.168.74.9:80 check
+    			server srv6 192.168.74.10:80 check
+	# Restart
+	$ sudo /etc/init.d/haproxy restart
+
+3.3. Configuracao - SRV5/SRV6
+	# Alteracao do arquivo index.html
+	$ sudo sh -c "echo \<h1\>Hostname: srv5 \(192.168.74.9\)\<\/h1\> >> /var/www/index.html"
+	$ sudo sh -c "echo \<h1\>Hostname: srv6 \(192.168.74.10\)\<\/h1\> >> /var/www/index.html"
+
+3.4. Configuracao - SRV6
+	# Alteracao do arquivo index.html
+	$ sudo sh -c "echo \<h1\>Hostname: srv6 \(192.168.74.10\)\<\/h1\> >> /var/www/index.html"
+
+3.5. Teste
+	# Teste da configuracao
+	Browser - http://192.168.74.11/
+
+3.6. Sites
+	http://192.168.74.11/
+	http://192.168.74.11/haproxy?stats
