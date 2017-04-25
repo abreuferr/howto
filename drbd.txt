@@ -1,0 +1,72 @@
+#: Title : DRDB Howto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalação e configuracao do DRBD no GNU/Linux Debian Stable
+#: Options : None
+#: Reference : www.howtoforge.com/tutorial/install-and-configure-drdb-for-network-filesystem-replication-debian-8/
+
+TOPOLOGIA
+#
+# configuracao dos servidores a serem utilizados
+#
+drbd1	192.168.74.1
+drbd2	192.168.74.2
+
+INSTALACAO
+
+# DRBD1/DRBD2
+#
+# Instalacao dos componentes necessarios
+#
+$ sudo apt-get install drbd-utils ocfs2-tools drbd8-utils -y -d
+
+
+CONFIGURACAO
+
+# DRBD1/DRBD2
+#
+$ sudo vi /etc/drbd.d/global_common.conf
+	global {
+		usage-count yes;
+	(....)
+
+	common {
+		net {
+                	protocol C;
+
+$ sudo vi /etc/drbd.d/r0.res
+	resource r0 {
+	  on drbd1 {
+	    device    /dev/drbd1;
+	    disk      /dev/sdb;
+	    address   192.168.0.11:7789;
+	    meta-disk internal;
+	  }
+	  on drbd2 {
+	    device    /dev/drbd1;
+	    disk      /dev/sdb;
+	    address   192.168.0.12:7789;
+	    meta-disk internal;
+	  }
+	}
+
+$ sudo drbdadm create-md r0
+	--==  Thank you for participating in the global usage survey  ==--
+	The server's response is:
+
+	you are the 4121th user to install this version
+	initializing activity log
+	NOT initializing bitmap
+	Writing meta data...
+	New drbd meta data block successfully created.
+	success
+
+# DRDB1
+#
+$ sudo drbdadm up r0
+$ sudo drbdadm primary --force r0
+
+
+# DRDB1/DRDB2
+#
+$ sudo mkdir /mnt/drbd1
+
