@@ -1,0 +1,23 @@
+#: Title : nginx web server
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao do Varnish Cache 
+#: Options : None
+#: Reference :  
+
+INSTALACAO
+
+# instalacao do nginx no debian
+#
+$ sudo apt-get install nginx -y -d
+
+
+SYSTEMD
+
+# start/stop/restart
+#
+$ sudo systemctl stop nginx	; parar o nginx
+$ sudo systemctl start nginx	; inicializar o nginx
+$ sudo systemctl restart nginx	; reinicializar o nginx
+$ sudo systemctl reload nginx	; re-ler a configuracao
+$ sudo systemctl enable nginx	; ativar o nginx no boot
+

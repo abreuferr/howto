@@ -8,6 +8,10 @@ HOST VARNISH
 
 # esse equipamento tem por objetivo o de cache web
 #
+# ele possui duas placas de rede, uma que recebe as
+# requisicoes da internet e a outra que redireciona
+# as requisições para o servidor web.
+#
 # IP - 192.168.0.13(eth0) / 192.168.0.14(eth1)
 #
 # a placa de rede eth0(192.168.13) tem por objetivo o de 
@@ -17,7 +21,7 @@ HOST VARNISH
 # a de redirecionar os dados para o servidor 
 # web (192.168.0.15)
 
-# INSTALACAO
+INSTALACAO DO VARNISH
 #
 # instalacao no varnish cache no debian
 #
@@ -34,8 +38,10 @@ $ sudo netstat -tulpn | grep varnishd
 	tcp6       0      0 ::1:6082                :::*                    LISTEN      4513/varnishd   
 
 
-CONFIGURACAO
-
+CONFIGURACAO DO VARNISH
+#
+# informacoes preliminares
+#
 # /lib/systemd/system/varnish.service – arquivo de configuracao padrao
 # /etc/varnish/ – arquivo de configuracao
 # TCP 6081 port – porta utilizada pelo Varnish
@@ -79,6 +85,7 @@ HOST APACHE
 $ sudo apt-get install apache2
 
 # alterando o ip da configuracao do apache2
+# e configurar o papache para trabalhar na porta 80.
 #
 $ sudo vi /etc/apache2/ports.conf
 	Listen 192.168.0.15:80
@@ -91,3 +98,45 @@ $ sudo vi /etc/apache2/sites-enabled/000-default.conf
 # reinicializar os servicos
 #
 $ sudo systemctl restart apache2.service
+
+HOST VARNISH
+
+# reinicializar o servico do varnish
+#
+$ sudo systemctl restart varnish.service
+
+HOST QUALQUER - TESTE
+
+# realizando teste para comprovar o redirecionamento
+# utilizando a ferramenta curl
+#
+# o aplicativo CURL foi apontado para o varnish, que por sua
+# vez foi redirecionado para o apache2
+#
+$ curl -I http://192.168.0.13
+	HTTP/1.1 200 OK
+	Date: Tue, 02 May 2017 18:31:37 GMT
+	Server: Apache/2.4.10 (Debian)
+	Last-Modified: Tue, 25 Apr 2017 20:40:04 GMT
+	Vary: Accept-Encoding
+	Content-Type: text/html
+	X-Varnish: 65538 3
+	Age: 47
+	Via: 1.1 varnish-v4
+	ETag: W/"29cd-54e03ba87b040-gzip"
+	Connection: keep-alive
+
+HOST VARNISH
+
+# informacao sobre a atuacao do varnish
+#
+$ sudo varnishtop
+
+$ cd /var/log/varnish
+$ sudo tail -f varnish.log
+$ sudo tail -f varnishncsa.log
+
+$ sudo varnishstat
+$ sudo varnishstat -1
+$ sudo varnishstat -1 | grep -i cache
+
