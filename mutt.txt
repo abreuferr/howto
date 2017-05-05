@@ -52,4 +52,4 @@ $ vim ~/.muttrc
 	macro index gs '=[Google Mail]/Sent Mail' 'Go to Sent Mail'
 	macro index gd '=[Google Mail]/Drafts' 'Go to drafts'
 
-$ chmod 700 .muttrc
+$ chmod 700 ~/.muttrc
