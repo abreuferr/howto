@@ -1,0 +1,27 @@
+#: Title : Iptable
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Iptable on Debian Stable
+#: Options : None
+#: Reference :	
+
+1. DEFINICAO
+
+2. PRATICO
+
+# versao do software
+#
+$ sudo iptables --version
+	iptables v1.4.21
+
+# exibir as regras vigentes
+#
+$ sudo iptables -L
+	Chain INPUT (policy ACCEPT)
+	target     prot opt source               destination         
+
+	Chain FORWARD (policy ACCEPT)
+	target     prot opt source               destination         
+
+	Chain OUTPUT (policy ACCEPT)
+	target     prot opt source               destination         
+

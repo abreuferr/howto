@@ -1,0 +1,38 @@
+#: Title : LAMP
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : LAMP and Debian Stable
+#: Options : None
+#: Reference :	
+
+ATUALIZACAO
+
+# atualizacao do gnu/linux debian
+#
+$ sudo apt-get update && sudo apt-get upgrade
+
+# APACHE2
+
+# instalacao do apache2
+#
+$ sudo apt-get install apache2 -y -d
+
+# MYSQL
+
+# instalacao do mysql
+#
+$ sudo apt-get install mysql-server -y -d
+
+
+# script de seguranca
+#
+$ sudo mysql_secure_installation
+
+# PHP
+
+# instalacao do php
+#
+$ sudo apt-get install php5 php5-mysql libapache2-mod-php5 -y -d
+
+# reinicializando o apache2
+#
+$ sudo systemctl restart apache2

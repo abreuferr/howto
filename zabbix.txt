@@ -1,0 +1,76 @@
+#: Title : Zabbiudo dpkg -i zabbix-release_3.2-1+jessie_all.deb
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Zabbix and Debian Stable
+#: Options : None
+#: Reference :	
+
+ATUALIZACAO
+#
+# atualizacao do gnu/linux debian
+#
+$ sudo apt-get update && sudo apt-get upgrade
+
+INSTALACAO (SERVER)
+#
+$ wget http://repo.zabbix.com/zabbix/3.2/debian/pool/main/z/zabbix-release/zabbix-release_3.2-1+jessie_all.deb
+$ sudo dpkg -i zabbix-release_3.2-1+jessie_all.deb
+$ sudo apt-get update
+$ sudo apt-get install zabbix-server-mysql zabbix-frontend-php -y -d
+
+MYSQL
+#
+# configuracao do mysql para armazenar os dados 
+# gerados pelo zabbix
+#
+$ sudo mysql -u root -p 
+	mysql -uroot -p
+	mysql> create database zabbix character set utf8 collate utf8_bin;
+	mysql> grant all privileges on zabbix.* to zabbix@localhost identified by 'zabbix';
+	mysql> quit;
+
+# comandos utilizado para criar as tabelas na base de dados
+# do mysql referentes ao zabbix
+#
+# a senha utilizada eh a senha definida no comando anterior 
+#
+$ sudo cd /usr/share/doc/zabbix-server-mysql
+$ sudo zcat create.sql.gz | sudo mysql -uzabbix -p zabbix
+
+ZABBIX
+#
+# configurando o zabbix
+#
+$ sudo vi /etc/zabbix/zabbix_server.conf
+	DBHost=localhost   			## localhost ou IP
+	DBName=zabbix  				## nome da base de dados
+	DBUser =zabbix   			## nome do usuario zabbix
+	DBPassword=zabbix  			## senha de acesso a base de dados
+
+# inicializando os sericos
+#
+$ sudo service zabbix-server restart
+
+PHP
+#
+# configurando time zone no php
+#
+# https://secure.php.net/manual/en/timezones.php
+#
+$ sudo vi /etc/zabbix/apache.conf
+	php_value date.timezone America/Sao_Paulo
+
+CONFIGURACAO WEB
+#
+http://<IP_ADDRESS>/zabbix
+	Admin/zabbix
+
+INSTALACAO (CLIENT)
+#
+$ sudo apt-get install zabbix-agent -y -d
+
+CONFIGURACAO (CLIENT)
+#
+$ sudo vi /etc/zabbix/zabbix_agentd.conf
+	Server=192.168.0.10
+	Hostname=Monitor
+$ sudo service zabbix-agent restart
