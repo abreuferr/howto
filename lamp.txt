@@ -10,29 +10,107 @@ ATUALIZACAO
 #
 $ sudo apt-get update && sudo apt-get upgrade
 
-# APACHE2
+INSTALACAO 
 
+# APACHE2
+#
 # instalacao do apache2
 #
 $ sudo apt-get install apache2 -y -d
 
 # MYSQL
-
+#
 # instalacao do mysql
 #
 $ sudo apt-get install mysql-server -y -d
 
+# PHP
+#
+# instalacao do php
+#
+$ sudo apt-get install php5 php5-mysql libapache2-mod-php5 -y -d
+
+MYSQL
 
 # script de seguranca
 #
 $ sudo mysql_secure_installation
 
-# PHP
+APACHE2 PROCESSOS
 
-# instalacao do php
+# parar o servico do apache
 #
-$ sudo apt-get install php5 php5-mysql libapache2-mod-php5 -y -d
+$ sudo systemctl stop apache2
 
-# reinicializando o apache2
+# inicializar o servico do apache
+#
+$ sudo systemctl start apache2
+
+# reinicializar o servico do apache
 #
 $ sudo systemctl restart apache2
+
+# releitura do servico do apache caso tenha
+# alterado somente o arquivo de configuracao
+#
+$ sudo systemctl reload apache2
+
+# desabilitar o servico do apache
+#
+$ sudo systemctl disable apache2
+
+# ativar o servico do apache
+#
+$ sudo systemctl enable apache2
+
+APACHE2 DIRETORIO
+
+# direotrio de trabalho 
+#
+	/var/www/html
+
+APACHE2 CONFIGURACAO
+
+# diretorio a onde sao armazenados os arquivos de configuracao do apache
+#
+	/etc/apache2
+
+# arquivos principal de configuracao do apache
+#
+	/etc/apache2/apache2.conf
+
+# arquivo de configuracao que define qual porta o Apache ira escutar.
+#
+	/etc/apache2/ports.conf
+
+# Diretorio onde sao armazenados os arquivos de configuracao dos 
+# Virtual Hosts. Nesse diretorios estao armazenados os links simbolicos
+#
+	/etc/apache2/sites-available/
+
+# Diretorio onde sao armazenados realmente os arquivos de configuracao
+# do Vritual Hosts.
+#
+	/etc/apache2/sites-enabled/
+
+# Nesses diretorios estao armazenados fragmentos dos arquivos de configuracao
+# dos Virtual Hosts. As configuracoes sao ativadas atraves do comando a2enconf
+# e desativado atraves do comando a2disconf
+#
+	/etc/apache2/conf-available/, /etc/apache2/conf-enabled/
+
+# Nesses diretorios sao armazenados os arquivos de configuracao dos modulos 
+# utilizados pelo apache. Os modulos sao habilitados atraves do comando
+# a2enmod e sao desabilitados pelo comando a2dismod.
+# 
+	/etc/apache2/mods-available/, /etc/apache2/mods-enabled/
+
+APACHE2 LOG
+
+# Arquivo default de log do Apache
+#
+	/var/log/apache2/access.log: By default, every request to your web server is recorded in this log file unless Apache is configured to do otherwise.
+
+# Arquivo default de log de erros do Apache
+#
+	/var/log/apache2/error.log
