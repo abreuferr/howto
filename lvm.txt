@@ -1,0 +1,179 @@
+#: Title : Setup RAID1 + LVM Server
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Setup RAID1 and LVM Server
+#: Options : None
+#: Reference : https://www.howtoforge.com/linux_lvm
+
+1. hardware
+
+	$ sudo fdisk -l
+
+		Disk /dev/sdc: 10.7 GB, 10737418240 bytes
+		255 heads, 63 sectors/track, 1305 cylinders, total 20971520 sectors
+		Units = sectors of 1 * 512 = 512 bytes
+		Sector size (logical/physical): 512 bytes / 512 bytes
+		I/O size (minimum/optimal): 512 bytes / 512 bytes
+		Disk identifier: 0x00000000
+
+		Disk /dev/sdc doesn't contain a valid partition table
+
+		Disk /dev/sdb: 10.7 GB, 10737418240 bytes
+		255 heads, 63 sectors/track, 1305 cylinders, total 20971520 sectors
+		Units = sectors of 1 * 512 = 512 bytes
+		Sector size (logical/physical): 512 bytes / 512 bytes
+		I/O size (minimum/optimal): 512 bytes / 512 bytes
+		Disk identifier: 0x00000000
+
+		Disk /dev/sdb doesn't contain a valid partition table
+
+	$ sudo fdisk /dev/sdX
+		Hex code (type L to list codes): <-- 8e
+
+2. Install
+	$ sudo apt-get install lvm2 dmsetup mdadm xfsprogs
+
+3. LVM
+
+Create
+	$ sudo pvcreate /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Delete
+	$ sudo pvremove /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Show
+	$ sudo pvdisplay
+
+Create a volume
+	$ sudo vgcreate lvm_volume /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+
+Show volume
+	$ sudo vgdisplay
+
+Rename volume
+	$ sudo vgrename lvm_volume lvm_data
+
+Delete volume
+	$ sudo vgremove lvm_data
+
+Create a logical volumes
+	$ sudo lvcreate --name share --size 40G lvm_volume
+
+Show logical volume
+	$ sudo lvdisplay
+
+Rename logical volume
+	$ sudo lvrename lvm_volume share backup
+
+Delete logical volume
+	$ sudo lvremove /dev/lvm_volume/backup
+
+Change the size of the logical volume
+	$ sudo lvextend -L1.5G /dev/lvm_volume/backup
+	$ sudo lvreduce -L1G /dev/lvm_volume/backup
+
+Add extra hardisk
+	$ sudo fdisk /dev/sdf
+	$ sudo pvcreate /dev/sdf1
+	$ sudo vgextend lvm_volume /dev/sdf1
+	$ sudo vgdisplay
+
+4. File System
+
+Format
+	$ sudo mkfs.ext4 /dev/lvm_volume/backup
+
+Mount
+	$ sudo mkdir /mnt/backup
+	$ sudo mount /dev/lvm_volume/backup /mnt/backup
+
+Fstab
+	$ sudo vi /etc/fstab
+	/dev/lvm_volume/backup   /mnt/backup     ext4       rw,noatime    0 0
+
+### Jefferson ###
+
+# criacao dos PVs
+#
+cosmo@workstation:~$ sudo pvcreate /dev/sdb 
+  Physical volume "/dev/sdb" successfully created
+cosmo@workstation:~$ sudo pvcreate /dev/sdc
+  Physical volume "/dev/sdc" successfully created
+
+# criacao do VG
+#
+cosmo@workstation:~$ sudo vgcreate vg_volume /dev/sdb /dev/sdc 
+  /proc/devices: No entry for device-mapper found
+  /proc/devices: No entry for device-mapper found
+  Volume group "vg_volume" successfully created
+
+# criacao do LV
+#
+cosmo@workstation:~$ sudo lvcreate -L 3G -n lv_volume vg_volume
+  Logical volume "lv_volume" created
+
+# formatar o LV
+#
+cosmo@workstation:~$ sudo mkfs.ext4 /dev/vg_volume/lv_volume 
+
+# montar o LV
+#
+cosmo@workstation:~$ sudo mount /dev/vg_volume/lv_volume /mnt/lv/
+
+# resultado final
+#
+cosmo@workstation:~$ df -h
+Filesystem                       Size  Used Avail Use% Mounted on
+/dev/mapper/vg_volume-lv_volume  2.9G  4.5M  2.8G   1% /mnt/lv
+
+##
+# AMPLIACAO
+##
+
+# o LV foi ampliado em 500M
+#
+cosmo@workstation:~$ sudo lvextend -L +500M /dev/vg_volume/lv_volume 
+  Size of logical volume vg_volume/lv_volume changed from 3.00 GiB (768 extents) to 3.49 GiB (893 extents).
+  Logical volume lv_volume successfully resized
+
+# concluir o redimencionamento
+#
+cosmo@workstation:~$ sudo resize2fs /dev/vg_volume/lv_volume 
+resize2fs 1.42.12 (29-Aug-2014)
+Filesystem at /dev/vg_volume/lv_volume is mounted on /mnt/lv; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 1
+The filesystem on /dev/vg_volume/lv_volume is now 914432 (4k) blocks long.
+
+# resultado final
+#
+cosmo@workstation:~$ sudo df -h
+Filesystem                       Size  Used Avail Use% Mounted on
+/dev/mapper/vg_volume-lv_volume  3.4G  6.0M  3.2G   1% /mnt/lv
+
+##
+# REDUCAO
+##
+
+# para poder reduzir o tamanho do volume, eh necessario
+# primeiramente desmontar o mesmo.
+#
+cosmo@workstation:~$ sudo umount /mnt/lv/
+
+# checagem da integridade do LVM
+#
+cosmo@workstation:~$ sudo e2fsck -f /dev/vg_volume/lv_volume
+
+# o LVM foi reduzido em 1.0GB, de 3.4GB para 2.4GB
+#
+cosmo@workstation:~$ sudo resize2fs /dev/vg_volume/lv_volume 1G
+resize2fs 1.42.12 (29-Aug-2014)
+Resizing the filesystem on /dev/vg_volume/lv_volume to 262144 (4k) blocks.
+The filesystem on /dev/vg_volume/lv_volume is now 262144 (4k) blocks long.
+
+#
+cosmo@workstation:~$ sudo lvreduce -L 2.4G /dev/vg_volume/lv_volume 
+  WARNING: Reducing active logical volume to 2.49 GiB
+  THIS MAY DESTROY YOUR DATA (filesystem etc.)
+Do you really want to reduce lv_volume? [y/n]: y
+  Size of logical volume vg_volume/lv_volume changed from 3.49 GiB (893 extents) to 2.49 GiB (512 extents).
+  Logical volume lv_volume successfully resized
+
