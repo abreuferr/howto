@@ -1,7 +1,7 @@
 ## Docker
-docker_compose.txt
-docker_dockerfile.txt
-docker_hardware.txt
+- docker_compose.txt
+- docker_dockerfile.txt
+docker_hardware.txt- 
 docker_intro.txt
 docker_mysql_cluster.txt
 docker_mysql_swarm_GaleraCluster.txt
