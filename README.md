@@ -1,4 +1,4 @@
-dns.txt
+## Docker
 docker_compose.txt
 docker_dockerfile.txt
 docker_hardware.txt
@@ -13,10 +13,16 @@ docker_swarm(1).txt
 docker_swarm.txt
 docker_volume.txt
 docker_wordpress.txt
-git.txt
+
+## GNU/LINUX
+dns.txt
 glusterfs.txt
 lvm_raid1.txt
 mysql_comando.txt
 mysql_server.txt
-openbsd.txt
 
+## PROGRAMAÇÃO
+git.txt
+
+## BSD
+openbsd.txt
