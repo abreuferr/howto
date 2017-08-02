@@ -2,16 +2,16 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Instalação e configuracao do GlusterFS 3.5 no GNU/Linux Debian Stable
 #: Options : None
-#: Reference : https://www.howtoforge.com/high-availability-storage-with-glusterfs-3.2.x-on-debian-wheezy-automatic-file-replication-mirror-across-two-storage-servers
 
 TOPOLOGIA
 #
 # configuracao dos servidores a serem utilizados
 #
-srv1	192.168.74.1 (gluster server)
-srv2	192.168.74.2 (gluster server)
-srv3	192.168.74.3 (gluster server)
-srv4	192.168.74.4 (gluster client)
+srv1		192.168.74.1	(gluster server)
+srv2		192.168.74.2	(gluster server)
+srv3		192.168.74.3	(gluster server)
+srv4		192.168.74.4	(gluster client)
+workstation	dhcp 		(gluster client)
 
 INSTALACAO
 #
@@ -92,3 +92,44 @@ $ sudo mount.glusterfs srv1.particula.local:/glustervol /mnt/glusterfs
 # /etc/fstab
 #
 	srv1.particula.local:/glustervol /mnt/glusterfs glusterfs defaults,_netdev 0 0
+
+ADICIONANDO MAIS UM SERVIDOR AO GLUSTER SERVER
+
+INSTALACAO
+#
+# SRV4
+#
+# Instalacao do software glusterFS
+#
+$ sudo apt-get install glusterfs-server -y -d
+
+# Diretorio para formar o Gluster File Sistem
+#
+$ sudo mkdir /mnt/glusterfs
+
+# SRV1
+#
+# adicionando o servidor srv4 ao pool de servidores Gluster
+#
+$ sudo gluster peer probe gfs4.particula.local
+	peer probe: success.
+
+# SRV1
+#
+# adicionando o servidor srv4 ao pool de servidores Gluster
+#
+$ sudo gluster volume add-brick glustervol replica 4 gfs4.particula.local:/mnt/glusterfs/ force
+
+# informacao sobre o gluster
+#
+$ sudo gluster vol info
+	Volume Name: glustervol
+	Type: Replicate
+	Volume ID: 653caf82-63af-4893-bcf9-59435848a1d1
+	Status: Started
+	Number of Bricks: 1 x 4 = 4
+	Transport-type: tcp
+	Brick1: gfs1.particula.local:/mnt/glusterfs
+	Brick2: gfs2.particula.local:/mnt/glusterfs
+	Brick3: gfs3.particula.local:/mnt/glusterfs
+	Brick4: gfs4.particula.local:/mnt/glusterfs
