@@ -60,19 +60,15 @@ $ sudo vi /etc/haproxy/haproxy.cfg
 $ sudo /etc/init.d/haproxy restart
 
 TESTE
-3.3. Configuracao - SRV5/SRV6
+Configuracao - web5/web6
 	# Alteracao do arquivo index.html
-	$ sudo sh -c "echo \<h1\>Hostname: srv5 \(192.168.74.9\)\<\/h1\> >> /var/www/index.html"
-	$ sudo sh -c "echo \<h1\>Hostname: srv6 \(192.168.74.10\)\<\/h1\> >> /var/www/index.html"
+	$ sudo sh -c "echo \<h1\>Hostname: srv5 \(192.168.0.16\)\<\/h1\> >> /var/www/index.html"
+	$ sudo sh -c "echo \<h1\>Hostname: srv6 \(192.168.0.17\)\<\/h1\> >> /var/www/index.html"
 
-3.4. Configuracao - SRV6
-	# Alteracao do arquivo index.html
-	$ sudo sh -c "echo \<h1\>Hostname: srv6 \(192.168.74.10\)\<\/h1\> >> /var/www/index.html"
-
-3.5. Teste
+Teste
 	# Teste da configuracao
-	Browser - http://192.168.74.11/
+	Browser - http://192.168.0.15/
 
-3.6. Sites
-	http://192.168.74.11/
-	http://192.168.74.11/haproxy?stats
+Sites
+	http://192.168.0.15/
+	http://192.168.0.15/haproxy?stats

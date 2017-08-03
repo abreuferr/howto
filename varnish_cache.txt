@@ -2,11 +2,11 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Configuracao do Varnish Cache 
 #: Options : None
-#: Reference :  https://www.cyberciti.biz/faq/how-to-install-and-configure-varnish-cache-on-ubuntu-linux-16-04-lts/
 
 HOST VARNISH
 
-# esse equipamento tem por objetivo o de cache web
+# esse equipamento tem por objetivo o de ser um web
+# cache
 #
 # ele possui duas placas de rede, uma que recebe as
 # requisicoes da internet e a outra que redireciona
@@ -21,7 +21,7 @@ HOST VARNISH
 # a de redirecionar os dados para o servidor 
 # web (192.168.0.15)
 
-INSTALACAO DO VARNISH
+INSTALACAO DO VARNISH VIA PACOTE
 #
 # instalacao no varnish cache no debian
 #
@@ -139,4 +139,3 @@ $ sudo tail -f varnishncsa.log
 $ sudo varnishstat
 $ sudo varnishstat -1
 $ sudo varnishstat -1 | grep -i cache
-
