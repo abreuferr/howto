@@ -73,9 +73,11 @@ $ sudo vi /etc/nginx/sites-available/www.particula.local.conf
 $ sudo ln -s /etc/nginx/sites-available/www.particula.local.conf /etc/nginx/sites-enabled/www.particula.local.conf
 
 #
-# configuracao do site www.particula.local - teste
+# teste do arquivo de configuracao
 #
 $ sudo nginx -t
+	nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+	nginx: configuration file /etc/nginx/nginx.conf test is successful
 
 #
 # releitura dos arquivos de configuracao
@@ -101,3 +103,54 @@ $ sudo vi /var/www/www.particula.local/index.html
 	<h1>www.particula.local</h1>
 	</body>
 	</html>
+
+SEGURANCA
+#
+# a primeira dica de seguranca para o nginx eh a de salvar os
+# dados em uma outra particao e montar essa nova particao com
+# as opcoes nosuid,noexec,nodev no arquivo /etc/fstab. Desta
+# forma, nenhum executavel podera ser executado nessa particao.
+#
+$ vi /etc/fstab
+	/dev/sdb1       /mnt/www        ext4    defaults,nosuid,noexec,nodev    1       2
+
+#
+# sera necessario alterar os arquivos de configuracao do nginx
+#
+$ sudo vi /etc/nginx/sites-available/default
+	(...)
+	root /mnt/www/html;
+	(...)
+
+#
+# www.particula.local
+#
+$ sudo vi /etc/nginx/sites-available/www.particula.local.conf
+	(...)
+	root /mnt/www/html;
+	(...)
+
+#
+# prevenindo ataque do tipo Buffer Overflow
+#
+$ sudo vi /etc/nginx/nginx.conf
+	http {
+	(...)
+
+		##
+		# Buffer Overflow Attacks
+		##
+		client_body_buffer_size  1K;
+		client_header_buffer_size 1k;
+		client_max_body_size 1k;
+		large_client_header_buffers 2 1k;
+
+		##
+		# Timeouts
+		##
+		client_body_timeout   10;
+		client_header_timeout 10;
+		send_timeout          10;
+
+	(...)
+	}
