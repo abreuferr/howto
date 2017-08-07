@@ -7,6 +7,7 @@
 INSTALACAO
 # instalacao do nginx no debian
 #
+$ sudo apt-get update
 $ sudo apt-get install nginx -y -d
 
 SYSTEMD
@@ -41,7 +42,8 @@ $ sudo vi /etc/nginx/nginx.conf
 #
 # configuracao do site padrao armazenados no servidor
 #
-$ sudo vi /etc/nginx/sites-enabled/default
+$ sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+$ sudo vi /etc/nginx/sites-available/default
 
 WWW.PARTICULA.LOCAL
 #
@@ -154,3 +156,18 @@ $ sudo vi /etc/nginx/nginx.conf
 
 	(...)
 	}
+
+#
+# HTTPS
+#
+
+$ sudo vi /etc/nginx/sites-available/default
+
+	server {
+	        # SSL configuration
+	        #
+	        listen 443 ssl default_server;
+	        listen [::]:443 ssl default_server;
+		(...)
+	}
+
