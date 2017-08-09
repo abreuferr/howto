@@ -35,10 +35,9 @@ CONFIGURACAO PADRAO
 #
 # configuracao do nginx
 #
-$ sudo ln -s /etc/nginx/sites-available/particula.local /etc/nginx/sites-enabled/particula.local
 $ sudo vi /etc/nginx/sites-available/particula.local
+$ sudo ln -s /etc/nginx/sites-available/particula.local /etc/nginx/sites-enabled/particula.local
 server {
-
         listen 80;
         server_name particula.local nginxlb.particula.local;
 
