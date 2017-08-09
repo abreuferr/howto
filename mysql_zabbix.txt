@@ -1,0 +1,10 @@
+#: Title : mysql zabbix
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : como configurar o zabbix para monitorar o mysql
+#: Options : esse tutorial nao engloba a instalacao e configura
+	tanto do mysql quanto do zabbix. esses tutoriais estao
+	em outros textos.
+
+
+
+
