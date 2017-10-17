@@ -21,14 +21,15 @@ CONFIGRACAO
 #
 # Os paramentros sao salvos no arquivo  ~/.gitconfig
 #
-$ git config --global user.name "caio ferreria"
-$ git config --global user.email "abreuferr@gmail.com"
-$ git config --global color.ui true
-$ git config --global core.excludesfile ~/.gitignore
+$ git config --global user.name "caio ferreria" ; nome do usuario
+$ git config --global user.email "abreuferr@gmail.com"  ; e-mail do usuario
+$ git config --global color.ui true ; ativar cor
+$ git config --global core.excludesfile ~/.gitignore    ; arquivos a serem ignorados
+$ git config --global help.autocorrect 1    ; let git automatically correct typos such as "comit" and "pussh." 
 
 # Visualizar as configuracoes
 #
-$ git config --list
+$ git config --list --global
 
 IGNORAR ARQUIVO
 # existe a possibilidade de excluir arquivos que estao dentro do diretorio do
@@ -42,6 +43,9 @@ $ cat ~/.gitignore
 	*.swp
 	*.swo
 
+CONFIGURAR A CHAVE SSH PARA O ACESSO AO SERVIDOR GIT
+
+
 INICIALIZACAO DE UM PROJETO
 # inicializar um repositorio Git
 #
@@ -49,6 +53,10 @@ INICIALIZACAO DE UM PROJETO
 # sera utilizado pela ferramenta Git para fazer todo o versionamento
 #
 $ git init
+
+# clonar um projeto
+$ git clone https://remote.com/repo.git
+$ git clone ssh://git@remote.com:/repo.git
 
 STATUS
 # visualizar o status dos arquivos do projeto
@@ -227,6 +235,7 @@ COMMIT
 # o que foi feito no arquivo.
 #
 $ git commit -m "Adicionar o comentario"	;	adiciona um comentario a alteracao
+$ git commit --allow-empty-message -m   ; adicionar um commit com mensagem em branco
 
 COMMIT + ADD
 # o comando abaixo equivale aos comandos
@@ -238,7 +247,7 @@ $ git commit -am "Comentario"
 UNDO
 # Refazer o ultimo comentario do commit
 #
-$ git commit --amend	; altera o comentário do último commit
+$ git commit --amend -m "msg"	; altera o comentário do último commit
 
 # Remover um arquivo que foi adicionado erroneamente.
 #
