@@ -1,0 +1,110 @@
+#: Title : OpenBSD DNS
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : servidor de dns
+#: Options : None
+#: Reference :  
+
+# MASTER/SLAVE
+#
+# /etc/rc.conf.local
+	named_flags=""
+	named_user=named
+	named_chroot=/var/named
+
+# MASTER
+#
+# /var/named/etc/named.conf
+	// Master zones
+	zone "particula.local" {
+	        type master;
+	        file "master/db.particula.local";
+	        allow-transfer { 192.168.74.6; };
+		notify yes;
+	};
+
+	zone "74.168.192.in-addr.arpa" {
+	        type master;
+	        file "master/db.74.168.192.in-addr.arpa";
+	};
+
+# MASTER
+#
+# /var/named/master/db.particula.local
+	; Start of Authority (SOA) record
+	$TTL   900
+	@ IN SOA srv1.particula.local. root.particula.local. (
+                                2010101301;     Serial
+                                3600;           Refresh [1h]
+                                600;            Retry   [10m]
+                                86400;          Expire  [1d]
+                                600 );          Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS srv1.particula.local.
+				IN NS srv2.particula.local.
+
+	; Mail Exchange (MX) records.
+				IN MX 10 srv8.particula.local.
+
+	; Address (A) records. (real-names of machines)
+                                IN A 192.168.74.5
+        srv1                    IN A 192.168.74.5
+        srv2                    IN A 192.168.74.6
+        srv3                    IN A 192.168.74.7
+        srv4                    IN A 192.168.74.8
+        srv5                    IN A 192.168.74.9
+        srv6                    IN A 192.168.74.10
+        srv7                    IN A 192.168.74.11
+        srv8                    IN A 192.168.74.12
+
+	; Aliases in Canonical Name (CNAME) records...
+	www                     IN CNAME srv7
+
+# MASTER
+#
+# /var/named/master/db.74.168.192.in-addr.arpa
+	; Start of Authority (SOA) record
+	$TTL   900
+	@ IN SOA srv1.particula.local. root.particula.local. (
+                                2010101301;     Serial
+                                3600;           Refresh [1h]
+                                600;            Retry   [10m]
+                                86400;          Expire  [1d]
+                                600 );          Negative Cache TTL [1h]
+
+	; Name Server (NS) records.
+				IN NS srv1.particula.local.
+				IN NS srv2.particula.local.
+
+	; Addresses point to canonical names (PTR) for reverse lookups
+        5                       IN PTR    srv1.particula.local.
+        6                       IN PTR    srv2.particula.local.
+        7                       IN PTR    srv3.particula.local.
+        8                       IN PTR    srv4.particula.local.
+        9                       IN PTR    srv5.particula.local.
+        10                      IN PTR    srv6.particula.local.
+        11                      IN PTR    srv7.particula.local.
+        12                      IN PTR    srv8.particula.local.
+
+# SLAVE
+#
+# /var/named/etc/named.conf
+	// Slave zones
+	//
+	zone "particula.local" {
+        	type slave;
+        	file "slave/db.particula.local";
+	        masters { 192.168.74.5; };
+		allow-notify { 192.168.74.5; };
+	};
+
+# SLAVE
+#
+# /etc/syslog.conf
+	[ ... ]
+	local0.*                                                /var/log/named.log
+
+# touch /var/log/named.log
+# install -m 700 -o named -g named -d /var/named/log
+# pkill -HUP syslogd
+# rndc reload

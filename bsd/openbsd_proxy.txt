@@ -1,0 +1,283 @@
+#: Title : OpenBSD Proxy
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : servidor proxy
+#: Options : None
+#: Reference :  
+
+PROXY SQUID
+PROXY SQUID TRANSPARENT
+# Roteiro de instalacao e configuracao do Squid para que o mesmo possa trabalhar
+# em modo transparente.
+
+# FIREWALL
+#
+$ sudo vi /et/pf.conf
+	int_if="em1"
+	pass in quick on $int_if proto tcp from any to any port 80 rdr-to 127.0.0.1 port 3128
+
+# Instalacao do Squid
+#
+$ sudo pkg_add -i squid (STABLE)
+
+# Regras basicas do Squid para trabalhar com proxy transparente
+#
+$ sudo vi /etc/squid/squid.conf
+	# Port on which connections are redirected
+	http_port  3128 transparent
+
+	cache_mem 256 MB
+	cache_dir   ufs /var/squid/cache 1024 16 256
+	cache_mgr   root@particula.local
+	cache_effective_user    _squid
+	cache_effective_group   _squid
+
+	ftp_user    root@particula.local
+
+	# Define the access log format
+	logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt
+	# Log client request activities ('squid' is the name of the log format to use)
+	access_log       /var/squid/logs/access.log squid
+
+	# Log information about the cache's behavior
+	cache_log        /var/squid/logs/cache.log
+	# Log the activities of the storage manager
+	cache_store_log  /var/squid/logs/store.log
+
+	# Classes
+	acl  all           src    all               # Any IP address
+	acl  localhost     src    127.0.0.0/8       # Localhost
+	acl  lan           src    192.168.79.0/24   # LAN where authorized clients reside
+	acl  manager       proto  cache_object      # Cache object protocol
+	acl  to_localhost  dst    127.0.0.0/8       # Requests to localhost
+	acl  SSL_ports     port   443               # https port
+	acl  Safe_ports    port   80 21 443         # http, ftp, https ports
+	acl  CONNECT       method CONNECT           # SSL CONNECT method
+
+	# Only allow cachemgr access from localhost
+	http_access  allow  manager localhost
+	http_access  deny   manager
+
+	# Deny requests to unknown ports
+	http_access  deny   !Safe_ports
+
+	# Deny CONNECT to other than SSL ports
+	http_access  deny   CONNECT !SSL_ports
+
+	# Prevent access to local web applications from remote users
+	http_access  deny   to_localhost
+
+	# Allow access from the local network
+	http_access  allow  lan
+
+	# Default deny (this must be the last rule)
+	http_access  deny   all
+
+# Criacao dos disretorios e arquivos necessarios para que o Squid
+# possa trabalhar
+#
+$ /usr/local/sbin/squid -z
+$ /usr/local/sbin/squid -d 1 -N
+$ /usr/local/sbin/squid -k shutdown
+
+# Habilitar o squid no arquivo de inicializacao para que o mesmo
+# seja inicializado quando o computador for inicializado
+#
+$ /etc/rc.local
+
+    if [ -x /usr/local/sbin/squid ]; then
+        echo -n ' squid';       /usr/local/sbin/squid
+    fi
+
+# O arquivo de configuracao do Squid sera lido novamente
+#
+$ squid -k reconfigure (# Reload Squid configuration)
+
+PROXY SQUID E SQUIDGUARD
+# Roteiro de instalacao e configuracao do Squid para que o mesmo possa trabalhar
+# com o software Squidguard.
+
+# Configuracao da regra do firewall para faze o redirecionamento de porta.
+#
+$ /et/pf.conf
+	int_if="em1"
+	pass in quick on $int_if proto tcp from any to any port 80 rdr-to 127.0.0.1 port 3128
+
+# Instalacao do softwares Squid e SquidGuard
+#
+$ pkg_add -i squid-x.x.STABLExx-snmp
+$ pkg_add -i squidGuard-1.4p0
+
+# Criando o diretorio a onde sera armazenado os arquivos dos sites que serao
+# bloqueados pelo SquidGuard
+#
+$ mkdir -p /etc/squidguard/db
+
+# Exemplo de sites que podem ser bloqueados
+#
+$ cp /usr/local/share/examples/squidguard/dest/blacklists.tar.gz /etc/squidguard/db/
+$ cd /etc/squidguard/db/
+$ tar -xjzf blacklists.tar.gz
+
+# Criacao dos diretorios e arquivos de trabalho do Squid
+$ /usr/local/sbin/squid -z
+$ /usr/local/sbin/squid -d 1 -N
+$ /usr/local/sbin/squid -k shutdown
+
+# Arquivo de configuracao do OPenBSD para que quando o computador for reinicializado
+# o Squid seja inicializado
+#
+$ /etc/rc.local
+
+    if [ -x /usr/local/sbin/squid ]; then
+        echo -n ' squid';       /usr/local/sbin/squid
+    fi
+
+# Arquivo de configuracao do SquidGuard
+#
+$ /etc/squidguard/squidguard.conf
+	logdir  /var/log/squidguard
+	dbhome  /etc/squidguard/db
+
+	time workhours {
+		weekly  mtwhf  09:00-18:00
+	}
+
+	time night {
+		weekly  * 18:00-24:00
+		weekly  * 00:00-09:00
+	}
+
+	time holidays {
+		date    *.01.01                 # New Year's Day
+		date    *.05.01                 # Labour Day
+		date    *.12.24 12:00-24:00     # Christmas Eve (short day)
+		date    *.12.25                 # Christmas Day
+		date    *.12.26                 # Boxing Day
+	}
+
+	src admin {
+		ip      192.168.79.5		# The administrator's PC
+		domain  particula.local		# The LAN domain
+		user    root			# The administrator's login names
+	}
+
+	src lan {
+		ip      192.168.79.0/24		# The internal network
+		domain  server.particula.local	# The LAN domain
+	}
+
+	dest porn {
+		domainlist			blacklists/porn/domains
+		urllist				blacklists/porn/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			porn.log
+	}
+
+	dest drugs {
+		domainlist			blacklists/drugs/domains
+		urllist				blacklists/drugs/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			drugs.log
+	}
+
+	dest gambling {
+		domainlist			blacklists/gambling/domains
+		urllist				blacklists/gambling/urls
+		# Logged info is anonymized to protect users' privacy
+		log anonymous			gambling.log
+	}
+
+	acl {
+		admin within workhours {
+			# The following rule allows everything except porn, drugs and
+			# gambling sites during work hours. '!' is the NOT operator.
+			pass !porn !drugs !gambling all
+		} else {
+			# Outside of work hours drugs and gambling sites are still blocked.
+			pass !drugs !gambling all
+		}
+		lan {
+			# The built-in 'in-addr' destination group matches any IP address.
+			pass !in-addr !porn !drugs !gambling all
+		}
+		default {
+			# Default deny to reject unknown clients
+			pass none
+			redirect http://www.google.com.br
+		}
+	}
+
+# Teste do Squid Guard
+$ echo "http://www.blocked.site 1.2.3.4/- user GET -" | squidGuard -c /etc/squidguard/squidguard.conf -d
+$ echo "http://www.good.site 1.2.3.4/- user GET -" | squidGuard -c /etc/squidguard/squidguard.conf -d
+$ squidGuard -C all
+$ chown -R _squid /etc/squidguard/db
+
+# Arquivo de configuracao do Squid para que o mesmo possa trabalhar com o
+# SquidGuard
+#
+$ /etc/squid/squid.conf
+	# Port on which connections are redirected
+	http_port  3128 transparent
+
+	cache_mem 256
+	cache_dir   ufs /var/squid/cache 1024 16 256
+	cache_mgr   root@particula.local
+	cache_effective_user    _squid
+	cache_effective_group   _squid
+
+	ftp_user    root@particula.local
+
+	# Define the access log format
+	logformat squid  %ts.%03tu %6tr %>a %Ss/%03Hs %<st %rm %ru %un %Sh/%<A %mt
+	# Log client request activities ('squid' is the name of the log format to use)
+	access_log       /var/squid/logs/access.log squid
+
+	# Log information about the cache's behavior
+	cache_log        /var/squid/logs/cache.log
+	# Log the activities of the storage manager
+	cache_store_log  /var/squid/logs/store.log
+
+	# Classes
+	acl  all           src    all               # Any IP address
+	acl  localhost     src    127.0.0.0/8       # Localhost
+	acl  lan           src    192.168.79.0/24   # LAN where authorized clients reside
+	acl  manager       proto  cache_object      # Cache object protocol
+	acl  to_localhost  dst    127.0.0.0/8       # Requests to localhost
+	acl  SSL_ports     port   443               # https port
+	acl  Safe_ports    port   80 21 443         # http, ftp, https ports
+	acl  CONNECT       method CONNECT           # SSL CONNECT method
+
+	# Only allow cachemgr access from localhost
+	http_access  allow  manager localhost
+	http_access  deny   manager
+
+	# Deny requests to unknown ports
+	http_access  deny   !Safe_ports
+
+	# Deny CONNECT to other than SSL ports
+	http_access  deny   CONNECT !SSL_ports
+
+	# Prevent access to local web applications from remote users
+	http_access  deny   to_localhost
+
+	# Allow access from the local network
+	http_access  allow  lan
+
+	# Default deny (this must be the last rule)
+	http_access  deny   all
+
+	###### SQUID GUARD ######
+
+	# Path to the redirector program
+	url_rewrite_program   /usr/local/bin/squidGuard
+
+	# Number of redirector processes to spawn
+	url_rewrite_children  5
+
+	# To prevent loops, don't send requests from localhost to the redirector
+	url_rewrite_access    deny  localhost
+
+# Comando para reler o arquivo de configuracao do Squid
+#
+$ /usr/local/sbin/squid -k reconfigure

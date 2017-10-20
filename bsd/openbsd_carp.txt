@@ -1,0 +1,148 @@
+#: Title : OpenBSD CARP
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : protocolo CARP
+#: Options : None
+#: Reference :  https://calomel.org/pf_carp.html
+                http://www.kernel-panic.it/openbsd/dns/
+                http://www.kernel-panic.it/openbsd/proxy/index.html
+
+# DIAGRAMA
+#
+                                         |
+                   +--------------------/ \------------------+
+                   |         carp1(em0) = 192.168.80.12      |
+                   |                                         |
+    192.168.80.10 em0                                       em0 192.168.80.11
+                   |                                         |
+               +-------+                  192.168.70.11  +-------+
+               |  fw0  |- em2 ---- CARP Pfsync ---- em2 -|  fw1  |
+               +-------+  192.168.70.10                  +-------+
+                   |                                         |
+    192.168.60.10 em1                                       em1 192.168.60.20
+                   |                                         |
+                   |         carp2(em1) = 192.168.60.12      |
+                   +--------------------\ /------------------+
+                                         |
+                                   Internal LAN
+                                  (192.168.60/24)
+#
+# HOST FW0
+#
+
+## External interface nic (em0)
+#
+$ cat /etc/hostname.em0
+  inet 192.168.80.10 255.255.255.0 NONE
+
+
+## Internal interface nic (em1)
+#
+$ cat /etc/hostname.em1
+  inet 192.168.60.10 255.255.255.0 NONE
+
+## Pfsync interface nic (em2)
+#
+$ cat /etc/hostname.em2
+  inet 192.168.70.10 255.255.255.0 NONE
+
+## Pfsync sync-device bound to the pfsyn nic (em2)
+#
+$ cat /etc/hostname.pfsync0
+  up syncdev em2
+
+## Carp1 Virtual interface bound to the external nic (em0)
+#
+$ cat /etc/hostname.carp1
+  inet 192.168.80.12 255.255.255.0 192.168.80.255 vhid 1 advbase 20 advskew 0 carpdev em0 pass 6f650f0bb2471295614139fd9d212b45
+
+## Carp2 Virtual interface bound to the internal nic (em1)
+#
+$ cat /etc/hostname.carp2
+  inet 192.168.60.12 255.255.255.0 192.168.60.255 vhid 2 advbase 20 advskew 0 carpdev em1 pass d0ecb9f6ed1c899bdc484cb0d26542ba
+
+## Packet forwarding and CARP preempt (add the following)
+#
+$ cat /etc/sysctl.conf
+  net.inet.carp.allow=1    # Allow the firewall to accept CARP packets
+  net.inet.carp.preempt=1  # Allow firewalls to failover when one goes down
+  net.inet.ip.forwarding=1 # Allow packet forwarding through the firewalls
+
+## Enable Pf (add the following)
+#
+$  cat /etc/rc.conf.local
+  pf=YES
+  pf_rules=/etc/pf.conf
+
+# Regras da firewall
+#
+$ cat /etc/pf.conf
+  ################ Macros ###################################
+  ### Interfaces ###
+  ExtIf="em0"
+  IntIf="em1"
+  CarpIf="em2"
+
+  ################ Filtering #################################
+  # CARP firewall fail over
+  pass on $CarpIf inet proto pfsync keep state
+  pass on { $ExtIf, $IntIf } inet proto carp keep state
+
+#
+# HOST FW1
+#
+
+## External interface nic (em0)
+#
+$ cat /etc/hostname.em0
+  inet 192.168.80.11 255.255.255.0 NONE
+
+## Internal interface nic (em1)
+#
+$ cat /etc/hostname.em1
+  inet 192.168.60.11 255.255.255.0 NONE
+
+## Pfsync interface nic (em2)
+#
+$ cat /etc/hostname.em2
+  inet 192.168.70.11 255.255.255.0 NONE
+
+## Pfsync sync-device bound to the pfsyn nic (em2)
+#
+$ cat /etc/hostname.pfsync0
+  up syncdev em2
+
+## Carp1 Virtual interface bound to the external nic (em0)
+#
+$ cat /etc/hostname.carp1
+  inet 192.168.80.12 255.255.255.0 192.168.80.255 vhid 1 advbase 20 advskew 10 carpdev em0 pass 6f650f0bb2471295614139fd9d212b45
+
+## Carp2 Virtual interface bound to the internal nic (em1)
+#
+$ cat /etc/hostname.carp2
+  inet 192.168.60.12 255.255.255.0 192.168.60.255 vhid 2 advbase 20 advskew 10 carpdev em1 pass d0ecb9f6ed1c899bdc484cb0d26542ba
+
+## Packet forwarding and CARP preempt (add the following)
+#
+$ cat /etc/sysctl.conf
+  net.inet.carp.allow=1    # Allow the firewall to accept CARP packets
+  net.inet.carp.preempt=1  # Allow firewalls to failover when one goes down
+  net.inet.ip.forwarding=1 # Allow packet forwarding through the firewalls
+
+## Enable Pf (add the following)
+#
+$ cat /etc/rc.conf.local
+  pf=YES
+  pf_rules=/etc/pf.conf
+
+# Regras da firewall
+$ cat /etc/pf.conf
+  ################ Macros ###################################
+  ### Interfaces ###
+  ExtIf="em0"
+  IntIf="em1"
+  CarpIf="em2"
+
+  ################ Filtering #################################
+  # CARP firewall fail over
+  pass on $CarpIf inet proto pfsync keep state
+  pass on { $ExtIf, $IntIf } inet proto carp keep state

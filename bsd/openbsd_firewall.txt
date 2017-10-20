@@ -1,0 +1,53 @@
+#: Title : OpenBSD Firewall
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : servidor firewall
+#: Options : None
+#: Reference :  
+
+# Um pequeno estudo sobre a firewall do OpenBSD
+
+# Arquivo de configuracao do OpenBSD (PF)
+# Permitir que o OpenBSD faca IP Forward
+#
+$ /etc/sysctl.conf:
+	net.inet.ip.forwarding=1
+
+# Arquivo de configuracao do OpenBSD (PF)
+#
+$ /etc/pf.conf
+    # macros
+    ext_if="em0"
+    int_if="em1"
+
+    tcp_services="{ 22, 113 }"
+    icmp_types="echoreq"
+
+    # options
+    set block-policy return
+    set loginterface em0
+    set skip on lo
+
+    # match rules
+    match out on egress inet from !(egress:network) to any nat-to (egress:0)
+
+    # filter rules
+    block in log
+    pass out quick
+
+    antispoof quick for { lo $int_if }
+
+    pass in on egress inet proto tcp from any to (egress) port $tcp_services
+
+    pass in inet proto icmp all icmp-type $icmp_types
+
+    pass in on $int_if
+
+# Alguns comandos interessantes para auxiliar na configuracao da firewall
+# do OpenBSD
+#
+$ pfctl -f /etc/pf.conf     Load the pf.conf file
+$ pfctl -nf /etc/pf.conf    Parse the file, but don't load it
+$ pfctl -sr                 Show the current ruleset
+$ pfctl -ss                 Show the current state table
+$ pfctl -si                 Show filter stats and counters
+$ pfctl -sa                 Show EVERYTHING it can show
