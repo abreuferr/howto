@@ -1,0 +1,16 @@
+# atualizar o freebsd
+#
+$ sudo pkg update && sudo pkg upgrade
+
+# instalar o pacote sudo
+#
+$ sudo pkg install sudo
+
+# editar o arquivo sudoers
+#
+$ sudo vi /usr/local/etc/sudoers
+    %wheel ALL=(ALL) ALL
+
+# adicionar o usuario cosmo no grupo wheel
+#
+$ pw group mod wheel -m cosmo
