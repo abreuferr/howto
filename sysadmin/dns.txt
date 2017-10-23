@@ -4,10 +4,6 @@
 #: Options : None
 
 1. INSTALACAO
-# nessa parte do tutorial, sao configurado dois servidore de DNS, servidor primario
-# e servidor sendario.
-
-# NS1/NS2
 #
 # instalacao do bind
 #
@@ -18,11 +14,13 @@ $ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
 $ sudo chown -R bind:bind /etc/bind (master)
 
 2. CONFIGIRACAO DNS PRIMARIO (NS1) e DNS SECUNDARIO (NS2)
+#
 # Reincializacao do Bind
 #
 $ sudo systemctl restart bind9
 
 2.1. CONFIGURACAO DO DNS PRIMARIO (NS1)
+#
 # Local File
 #
 $ sudo vi /etc/bind/named.conf.local (master)
@@ -30,15 +28,15 @@ $ sudo vi /etc/bind/named.conf.local (master)
 	zone "particula.local" {
 	        type master;
 	        file "/etc/bind/db.particula.local";	# zone file path
-	        allow-transfer { 192.168.74.6; };	# ns2 private IP address - secondary
+	        allow-transfer { 192.168.0.6; };	# ns2 private IP address - secondary
     		notify yes;
 	};
 
 	// Reverse
-	zone "74.168.192.in-addr.arpa" {
+	zone "0.168.192.in-addr.arpa" {
 	        type master;
-	        file "/etc/bind/db.74.168.192.in-addr.arpa";	# zone file path
-	    	allow-transfer { 192.168.42.6; };	# ns2 private IP address - secondary
+	        file "/etc/bind/db.0.168.192.in-addr.arpa";	# zone file path
+	    	allow-transfer { 192.168.0.6; };	# ns2 private IP address - secondary
 	};
 
 # Forward Zone File
@@ -61,22 +59,22 @@ $ sudo vi /etc/bind/db.particula.local (master)
 				IN MX 10 srv6.particula.local.
 
 	; Address (A) records. (real-names of machines)
-				IN A 192.168.74.5
-	ns1                    	IN A 192.168.74.5
-	ns2                    	IN A 192.168.74.6
-	srv1                  	IN A 192.168.74.7
-	srv2                  	IN A 192.168.74.8
-	srv3                  	IN A 192.168.74.9
-	srv4                  	IN A 192.168.74.10
-	srv5                  	IN A 192.168.74.11
-	srv6                  	IN A 192.168.74.12
+				            IN A 192.168.0.5
+	ns1                    	IN A 192.168.0.5
+	ns2                    	IN A 192.168.0.6
+	srv1                  	IN A 192.168.0.7
+	srv2                  	IN A 192.168.0.8
+	srv3                  	IN A 192.168.0.9
+	srv4                  	IN A 192.168.0.10
+	srv5                  	IN A 192.168.0.11
+	srv6                  	IN A 192.168.0.12
 
 	; Aliases in Canonical Name (CNAME) records...
-	www			IN CNAME srv5
+	www			            IN CNAME srv5
 
 # Reverse Zone File
 #
-$ sudo vi /etc/bind/db.74.168.192.in-addr.arpa (master)
+$ sudo vi /etc/bind/db.0.168.192.in-addr.arpa (master)
 	; Start of Authority (SOA) record
 	$TTL   900
 	@ IN SOA ns1.particula.local. root.particula.local. (
@@ -112,22 +110,16 @@ $ sudo vi /etc/bind/named.conf.local (slave)
 	zone "particula.local" {
         	type slave;
         	file "/etc/bind/db.particula.local";
-	        masters { 192.168.74.5; };	# ns1 private IP
-		    allow-notify { 192.168.74.5; };
+	        masters { 192.168.0.5; };	# ns1 private IP
+		    allow-notify { 192.168.0.5; };
 	};
 
 	// Reverse zone
-	zone "74.168.192.in-addr.arpa" {
+	zone "0.168.192.in-addr.arpa" {
             type slave;
-    		file "/etc/bind/db.74.168.192.in-addr.arpa";
-    		masters { 192.168.74.5; };	# ns1 private IP
+    		file "/etc/bind/db.0.168.192.in-addr.arpa";
+    		masters { 192.168.0.5; };	# ns1 private IP
 	};
-
-# NS1/NS2
-#
-# alterando a permissao do diretorio do Bind
-#
-$ sudo chown -R bind:bind /etc/bind (master)
 
 # reinicializar o servico do Bind
 #
@@ -137,15 +129,8 @@ $ sudo systemctl restart bind9
 #
 $ sudo systemctl reload bind9
 
-3. DNS Reverso (DNSCACHE)
-# instalacao do bind
+3. DNS Reverso (NSCACHE)
 #
-$ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
-
-# alterando a permissao do diretorio do Bind
-#
-$ sudo chown -R bind:bind /etc/bind (master)
-
 # NSCACHE
 #
 $ sudo vi /etc/bind/named.conf.options
@@ -170,6 +155,7 @@ $ sudo vi /etc/bind/named.conf.local
     };
 
 4. CHROOT
+#
 # sudo /etc/init.d/bind9 stop
 
 # sudo vi /etc/default/bind9
@@ -204,7 +190,7 @@ $ sudo vi /etc/bind/named.conf.local
 # sudo /etc/init.d/bind9 start
 
 5. DNS + DHCP
-
+#
 #: Technical information
     servidor DNS primario		192.168.0.5
     servidor DNS secundario		192.168.0.6
@@ -248,22 +234,22 @@ $ sudo vi /etc/bind/named.conf.local
                 900 );     minimum, seconds
 
     ; Name Server (NS) records.
-   		IN NS ns1.particula.local.
-   		IN NS ns2.particula.local.
+   		        IN NS ns1.particula.local.
+   		        IN NS ns2.particula.local.
 
     ; Mail Exchange (MX) records.
-   		IN MX 10 server.particula.local.
+   		        IN MX 10 server.particula.local.
 
     ; Address (A) records. (real-names of machines)
-   		IN A 192.168.0.5
-    ns1		IN A 192.168.0.5
-    ns2   	IN A 192.168.0.6
+   		        IN A 192.168.0.5
+    ns1		    IN A 192.168.0.5
+    ns2   	    IN A 192.168.0.6
     server  	IN A 192.168.0.7
 
     ; Aliases in Canonical Name (CNAME) records...
-    www		IN CNAME server
-    ftp		IN CNAME server
-    proxy	IN CNAME server
+    www		    IN CNAME server
+    ftp		    IN CNAME server
+    proxy	    IN CNAME server
 
 # db.0.168.192.in-addr.arpa (dns master)
     ; Start of Authority (SOA) record
@@ -271,27 +257,27 @@ $ sudo vi /etc/bind/named.conf.local
     @ IN SOA ns1.particula.local. root.particula.local. (
                	3600;     serial
                 3600;     refresh, seconds
-   	       	3600;     retry, seconds
-   	       	3600;     expire, seconds
-   	       	900 );     minimum, seconds
+   	       	    3600;     retry, seconds
+   	       	    3600;     expire, seconds
+   	       	    900 );     minimum, seconds
 
     ; Name Server (NS) records.
-   		IN NS ns1.particula.local.
-   		IN NS ns2.particula.local.
+   		        IN NS ns1.particula.local.
+   		        IN NS ns2.particula.local.
 
     ; Addresses point to canonical names (PTR) for reverse lookups
-    5		IN PTR	ns1.particula.local.
-    6 		IN PTR	ns2.particula.local.
+    5		    IN PTR	ns1.particula.local.
+    6 		    IN PTR	ns2.particula.local.
     7       	IN PTR	server.particula.local.
 
 # named.conf.local (dns slave)
     // Slave zones
     //
     zone "particula.local" {
-   	 type slave;
-   	 file "/etc/bind/db.particula.local";
+        type slave;
+        file "/etc/bind/db.particula.local";
         masters { 192.168.0.5; };
-   	 allow-notify { 192.168.0.5; };
+        allow-notify { 192.168.0.5; };
     };
 
 # aptitude install dhcp3-server (dhcp server)
@@ -343,7 +329,7 @@ $ sudo vi /etc/bind/named.conf.local
 # nsupdate -y dhcpupdate:xOxhRZXVrtaDjbZs5f9mgg== test_ddns (ns1)
 
 # host teste.particula.local (ns1)
-teste.particula.local has address 192.168.0.123
+    teste.particula.local has address 192.168.0.123
 
 # /root/test_ddns (dhcp server)
     server 192.168.0.5
@@ -368,6 +354,7 @@ teste.particula.local has address 192.168.0.123
 6. Troubleshoot DNS
 
 6.1. "A" record do dominio
+#
 $ nslookup particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -376,6 +363,7 @@ $ nslookup particula.local
 	Address: 192.168.0.5
 
 6.2. Dominio reverso
+#
 $ nslookup 192.168.0.5
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -383,6 +371,7 @@ $ nslookup 192.168.0.5
 	5.0.168.192.in-addr.arpa        name = ns1.particula.local.
 
 6.3. Informacao sobre um determinado host
+#
 $ nslookup web1.particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -391,6 +380,7 @@ $ nslookup web1.particula.local
 	Address: 192.168.0.16
 
 6.4. NS record
+#
 $ nslookup -query=ns www.particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -398,6 +388,7 @@ $ nslookup -query=ns www.particula.local
 	www.particula.local     canonical name = srv1.particula.local.
 
 6.5. Debug
+#
 $ nslookup -debugparticula.local                                                                                                                                                                
 	> set debug
 	> particula.local
@@ -430,6 +421,7 @@ $ nslookup -debugparticula.local
 	Address: 192.168.0.5
 
 6.6. Dig - A record
+#
 $ dig particula.local
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local
@@ -460,6 +452,7 @@ $ dig particula.local
 	;; MSG SIZE  rcvd: 128
 
 6.7. Dig - MX record
+#
 $ dig particula.local MX
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local MX
@@ -477,6 +470,7 @@ $ dig particula.local MX
 	particula.local.        604800  IN      MX      10 srv1.particula.local.
 
 6.7. Dig - SOA record
+#
 cosmo@ns1:~$ dig particula.local SOA
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local SOA
@@ -507,6 +501,7 @@ cosmo@ns1:~$ dig particula.local SOA
 	;; MSG SIZE  rcvd: 153
 
 6.8. Dig - TTL record
+#
 $ dig particula.local TTL
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local TTL
@@ -554,6 +549,7 @@ $ dig particula.local TTL
 	;; MSG SIZE  rcvd: 107
 
 6.9. Dig - ANY record
+#
 $ dig particula.local ANY +noall +answer
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local ANY +noall +answer
