@@ -13,13 +13,16 @@
 #
 $ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
 
+# alterando a permissao do diretorio do Bind
+#
+$ sudo chown -R bind:bind /etc/bind (master)
+
 2. CONFIGIRACAO DNS PRIMARIO (NS1) e DNS SECUNDARIO (NS2)
 # Reincializacao do Bind
 #
-$	sudo systemctl restart bind9
+$ sudo systemctl restart bind9
 
 2.1. CONFIGURACAO DO DNS PRIMARIO (NS1)
-
 # Local File
 #
 $ sudo vi /etc/bind/named.conf.local (master)
@@ -28,14 +31,14 @@ $ sudo vi /etc/bind/named.conf.local (master)
 	        type master;
 	        file "/etc/bind/db.particula.local";	# zone file path
 	        allow-transfer { 192.168.74.6; };	# ns2 private IP address - secondary
-		notify yes;
+    		notify yes;
 	};
 
 	// Reverse
 	zone "74.168.192.in-addr.arpa" {
 	        type master;
 	        file "/etc/bind/db.74.168.192.in-addr.arpa";	# zone file path
-		allow-transfer { 192.168.42.6; };	# ns2 private IP address - secondary
+	    	allow-transfer { 192.168.42.6; };	# ns2 private IP address - secondary
 	};
 
 # Forward Zone File
@@ -45,10 +48,10 @@ $ sudo vi /etc/bind/db.particula.local (master)
 	$TTL 604800
 	@ IN SOA ns1.particula.local. root.particula.local. (
 				2010101301;	Serial
-				3600;				Refresh [1h]
-				600;				Retry   [10m]
-				86400;			Expire  [1d]
-				600 );			Negative Cache TTL [1h]
+				3600;		Refresh [1h]
+				600;		Retry   [10m]
+				86400;		Expire  [1d]
+				600 );		Negative Cache TTL [1h]
 
 	; Name Server (NS) records.
 				IN NS ns1.particula.local.
@@ -78,10 +81,10 @@ $ sudo vi /etc/bind/db.74.168.192.in-addr.arpa (master)
 	$TTL   900
 	@ IN SOA ns1.particula.local. root.particula.local. (
 				2010101301;	Serial
-				3600;				Refresh [1h]
-				600;				Retry   [10m]
-				86400;			Expire  [1d]
-				600 );			Negative Cache TTL [1h]
+				3600;		Refresh [1h]
+				600;		Retry   [10m]
+				86400;		Expire  [1d]
+				600 );		Negative Cache TTL [1h]
 
 	; Name Server (NS) records.
 				IN NS ns1.particula.local.
@@ -110,12 +113,12 @@ $ sudo vi /etc/bind/named.conf.local (slave)
         	type slave;
         	file "/etc/bind/db.particula.local";
 	        masters { 192.168.74.5; };	# ns1 private IP
-		allow-notify { 192.168.74.5; };
+		    allow-notify { 192.168.74.5; };
 	};
 
 	// Reverse zone
 	zone "74.168.192.in-addr.arpa" {
-		type slave;
+            type slave;
     		file "/etc/bind/db.74.168.192.in-addr.arpa";
     		masters { 192.168.74.5; };	# ns1 private IP
 	};
@@ -134,7 +137,39 @@ $ sudo systemctl restart bind9
 #
 $ sudo systemctl reload bind9
 
-3. CHROOT
+3. DNS Reverso (DNSCACHE)
+# instalacao do bind
+#
+$ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
+
+# alterando a permissao do diretorio do Bind
+#
+$ sudo chown -R bind:bind /etc/bind (master)
+
+# NSCACHE
+#
+$ sudo vi /etc/bind/named.conf.options
+    options {
+        (...)
+
+        forwarders {
+            192.168.0.10    # ns1
+            192.168.0.11    # ns2
+        };
+
+        (...)
+    };
+
+$ sudo vi /etc/bind/named.conf.local
+    zone "particula.local" IN {
+        type forward;
+        forwarders {
+            192.168.0.10;
+            192.168.0.11;
+        };
+    };
+
+4. CHROOT
 # sudo /etc/init.d/bind9 stop
 
 # sudo vi /etc/default/bind9
@@ -168,7 +203,7 @@ $ sudo systemctl reload bind9
 
 # sudo /etc/init.d/bind9 start
 
-3. DNS + DHCP
+5. DNS + DHCP
 
 #: Technical information
     servidor DNS primario		192.168.0.5
@@ -330,9 +365,9 @@ teste.particula.local has address 192.168.0.123
 # /etc/dhcp3/dhclient.conf (client)
     send host-name "client";
 
-4. Troubleshoot DNS
+6. Troubleshoot DNS
 
-4.1. "A" record do dominio
+6.1. "A" record do dominio
 $ nslookup particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -340,14 +375,14 @@ $ nslookup particula.local
 	Name:   particula.local
 	Address: 192.168.0.5
 
-4.2. Dominio reverso
+6.2. Dominio reverso
 $ nslookup 192.168.0.5
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
 
 	5.0.168.192.in-addr.arpa        name = ns1.particula.local.
 
-4.3. Informacao sobre um determinado host
+6.3. Informacao sobre um determinado host
 $ nslookup web1.particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
@@ -355,14 +390,14 @@ $ nslookup web1.particula.local
 	Name:   web1.particula.local
 	Address: 192.168.0.16
 
-4.4. NS record
+6.4. NS record
 $ nslookup -query=ns www.particula.local
 	Server:         192.168.0.5
 	Address:        192.168.0.5#53
 
 	www.particula.local     canonical name = srv1.particula.local.
 
-4.5. Debug
+6.5. Debug
 $ nslookup -debugparticula.local                                                                                                                                                                
 	> set debug
 	> particula.local
@@ -394,7 +429,7 @@ $ nslookup -debugparticula.local
 	Name:   particula.local
 	Address: 192.168.0.5
 
-4.6. Dig - A record
+6.6. Dig - A record
 $ dig particula.local
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local
@@ -424,7 +459,7 @@ $ dig particula.local
 	;; WHEN: Fri Aug 04 07:55:31 -03 2017
 	;; MSG SIZE  rcvd: 128
 
-4.7. Dig - MX record
+6.7. Dig - MX record
 $ dig particula.local MX
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local MX
@@ -441,7 +476,7 @@ $ dig particula.local MX
 	;; ANSWER SECTION:
 	particula.local.        604800  IN      MX      10 srv1.particula.local.
 
-4.7. Dig - SOA record
+6.7. Dig - SOA record
 cosmo@ns1:~$ dig particula.local SOA
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local SOA
@@ -471,7 +506,7 @@ cosmo@ns1:~$ dig particula.local SOA
 	;; WHEN: Fri Aug 04 07:58:30 -03 2017
 	;; MSG SIZE  rcvd: 153
 
-4.8. Dig - TTL record
+6.8. Dig - TTL record
 $ dig particula.local TTL
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local TTL
@@ -518,7 +553,7 @@ $ dig particula.local TTL
 	;; WHEN: Fri Aug 04 08:01:33 -03 2017
 	;; MSG SIZE  rcvd: 107
 
-4.9. Dig - ANY record
+6.9. Dig - ANY record
 $ dig particula.local ANY +noall +answer
 
 	; <<>> DiG 9.9.5-9+deb8u13-Debian <<>> particula.local ANY +noall +answer
