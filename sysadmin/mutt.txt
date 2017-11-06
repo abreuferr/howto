@@ -2,8 +2,6 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Mutt e GMail
 #: Options : None
-#: Reference :	https://blog.bartbania.com/raspberry_pi/consolify-your-gmail-with-mutt/
-		https://www.linux.com/blog/setup-mutt-gmail-centos-and-ubuntu
 
 $ sudo apt-get install urlview muttprint muttprint-manual mutt-patched w3m
 

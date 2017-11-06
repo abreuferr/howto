@@ -1,0 +1,96 @@
+#: Title : Raspberry Pi AP
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Transformar um raspberry pi em um access point
+#: Options : None
+
+# INFORMACAO
+# o objetivo deste tutorial eh o de configurar o raspberry pi para ser
+# um access point e um gateway. Desta forma, o raspberry pi utilizara 
+# uma conexao wifi(access point) e uma conexao ethernet(gateway).
+
+# INSTALACAO
+#
+# instalacao dos aplicativos dnsmasq para ser o servidor dhcp e o software
+# hostapd para tornar o raspberry pi um access point
+#
+$ sudo apt-get install dnsmasq hostapd
+
+# CONFIGURACAO DO DNSMASQ (DHCP)
+#
+$ sudo vi /etc/dnsmasq.conf
+        interface=lo,wlan0
+        no-dhcp-interface=lo,eth0
+        bind-interfaces
+        server=8.8.8.8
+        domain-needed
+        bogus-priv
+        dhcp-range=wlan0,192.168.10.50,192.168.10.150,12h
+
+# CONFIGURACAO DO ACCESS POINT(WLAN0)
+#
+# alterar os parametros "interface=wlan0", "ssid=AP_NAME" e 
+# "wpa_passphrase=AP_PASSWORD"
+#
+sudo vi /etc/hostapd/hostapd.conf
+        ctrl_interface=/var/run/hostapd
+        ctrl_interface_group=0
+        interface=wlan0
+        driver=nl80211
+        ssid=AP_NAME
+        hw_mode=g
+        channel=11
+        wmm_enabled=0
+        macaddr_acl=0
+        auth_algs=1
+        wpa=2
+        wpa_passphrase=AP_PASSWORD
+        wpa_key_mgmt=WPA-PSK
+        wpa_pairwise=TKIP CCMP
+        rsn_pairwise=CCMP
+
+$ sudo vi /etc/default/hostapd
+        DAEMON_CONF="/etc/hostapd/hostapd.conf"
+
+$ sudo vi /etc/wpa_supplicant/wpa_supplicant.conf
+        country=US
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+
+        network={
+                ssid="AP_NAME"
+                psk="AP_PASSWD"
+                id_str="AP1"
+        }
+
+# CONFIGURACAO DAS INTERFACES DE REDE
+#
+$ sudo vi /etc/network/interfaces
+        source-directory /etc/network/interfaces.d
+
+        auto lo
+        auto eth0
+        auto wlan0
+        iface lo inet loopback
+
+        allow-hotplug eth0
+        iface eth0 inet static
+                address 192.168.0.10
+                netmask 255.255.255.0
+
+        allow-hotplug wlan0
+        iface wlan0 inet manual
+                wpa-roam /etc/wpa_supplicant/wpa_supplicant.conf
+                iface AP1 inet dhcp
+
+# REINICIALIZAR AS INTERFACES DE REDE
+#
+$ sudo ifdown --force eth0
+$ sudo ifdown --force wlan0
+$ sudo ifup eth0
+$ sudo ifup wlan0
+
+# SCRIPT DE FIREWALL
+#
+# ativar a opcao de NAT.
+#
+$ sudo vi /etc/init.d/rc.firewall.sh
