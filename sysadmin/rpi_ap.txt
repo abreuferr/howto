@@ -4,6 +4,7 @@
 #: Options : None
 
 # INFORMACAO
+#
 # o objetivo deste tutorial eh o de configurar o raspberry pi para ser
 # um access point e um gateway. Desta forma, o raspberry pi utilizara 
 # uma conexao wifi(access point) e uma conexao ethernet(gateway).
