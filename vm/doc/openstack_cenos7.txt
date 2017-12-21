@@ -1,6 +1,0 @@
-#: Title : Openstack CentOS 7
-#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Instalacao e configuracao do Openstack
-#: Options : foi utilizado o sistema operacaional gnu/linux openstack 7
-#: Reference :
-

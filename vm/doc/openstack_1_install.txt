@@ -1,0 +1,132 @@
+#: Title : Openstack - Instalacao e configuracao
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalacao e configuracao inicial do Openstack
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# METODO DE INSTALACAO
+#
+# Packstack: Utiliza o Puppet para automatizar a instalação de um ambiente OpenStack em 
+# distribuições CentOS/RedHat.
+
+# PREPARANDO O AMBIENTE
+#
+
+# atualizar o CentOS
+#
+$ sudo yum -y update
+
+# hostname da estacao
+#
+$ sudo hostnamectl set-hostname openstack.dominio.local
+
+# desabilitar o Network Manager
+#
+$ sudo systemctl stop NetworkManager
+$ sudo systemctl disable NetworkManager
+
+# desabilitar o firewalld
+#
+$ sudo systemctl stop firewalld
+$ sudo systemctl disable firewalld
+
+# selinux em modo permissivo
+#
+$ sudo setenforce 0
+$ sudo getenforce
+	Permissive
+$ sudo vi /etc/sysconfig/selinux
+	SELINUX=permissive
+
+# instalacao de componentes que serao necessario.
+#
+$ sudo yum install -y @virt* dejavu-lgc* xorg-x11-xauth* tigervnc libguestfs-tools policycoreutils-python bridge-utils
+
+# configurar as variaveis environment
+#
+$ sudo vi /etc/environment
+	LANG=en_US.utf-8
+	LC_ALL=en_US.utf-8
+
+# INSTALACAO DO OPENSTACK
+#
+
+# instalacao do repositorio do openstack
+#
+$ sudo yum install -y centos-release-openstack-ocata
+
+# habilitar o repositorio openstack ocata
+#
+$ sudo yum-config-manager --enable openstack-ocata
+
+# instalacao do OpenStack atraves do metodo packstack
+#
+$ sudo yum install -y openstack-packstack
+
+# criacao do arquivo de configuracao para instalar o openstack ocata
+#
+$ sudo packstack --gen-answer-file=/tmp/ocata-answer.txt
+
+# edicao do arquivo ocata-answer.txt
+#
+$ sudo vi /tmp/ocata-answer.txt
+	CONFIG_MANILA_INSTALL=y
+	CONFIG_HEAT_INSTALL=y
+
+# instalacao do openstack
+#
+$ sudo packstack --answer-file=/tmp/ocata-answer.txt
+
+# CONFIGURACAO DA PLACA DE REDE
+#
+
+# configuracao da placa br-ex
+#
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-br-ex
+	TYPE="Ethernet"
+	BOOTPROTO="none"
+	DEFROUTE="yes"
+	IPV4_FAILURE_FATAL="no"
+	IPV6INIT="no"
+	IPV6_AUTOCONF="no"
+	IPV6_DEFROUTE="no"
+	IPV6_FAILURE_FATAL="no"
+	NAME="br-ex"
+	DEVICE="br-ex"
+	ONBOOT="yes"
+	IPADDR="192.168.2.42"
+	PREFIX="24"
+	GATEWAY="192.168.2.1"
+	DNS1="127.0.0.1"
+	DNS2="192.168.2.1"
+	DNS3="8.8.8.8"
+	IPV6_PEERDNS="no"
+	IPV6_PEERROUTES="no"
+	IPV6_PRIVACY="no"
+
+# configuracao da placa eno1
+#
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eno1
+	TYPE="Ethernet"
+	BOOTPROTO="none"
+	DEFROUTE="yes"
+	IPV4_FAILURE_FATAL="no"
+	IPV6INIT="no"
+	IPV6_AUTOCONF="no"
+	IPV6_DEFROUTE="no"
+	IPV6_FAILURE_FATAL="no"
+	NAME="eno1"
+	DEVICE="eno1"
+	ONBOOT="yes"
+	TYPE=”OVSPort”
+	DEVICETYPE=”ovs”
+	OVS_BRIDGE=”br-ex”
+
+$ systemctl restart network
+
+# instalacao do openstack-utils
+#
+$ sudo yum install openstack-utils -y
+
+# ESTADO DO OPENSTACK
+#
+$ sudo openstack-status

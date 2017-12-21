@@ -1,0 +1,4 @@
+#: Title : Introducao ao Openstack
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Definicoes do Openstack
+#: Options : foi utilizado o sistema operacaional gnu/linux centos 7
