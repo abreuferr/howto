@@ -1,0 +1,25 @@
+#: Title : Openstack - maquina virtual
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Maquina Virtual no Openstack
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# Floating IP
+#
+# inicialmente eh necessario alocar um IP para o acesso externo a 
+# rede do projeto no Openstack
+#
+
+Project > Network> Floating IPs > Allocate IP To Project
+	Pool: external
+
+# Image - download
+#
+# download dos arquivos QCOW2
+#
+# CentOS 7 – http://cloud.centos.org/centos/7/images/
+# CentOS 6 – http://cloud.centos.org/centos/6/images/
+# Fedora 23 – https://download.fedoraproject.org/pub/fedora/linux/releases/23/Cloud/
+# Ubuntu – http://cloud-images.ubuntu.com/
+# Debian – http://cdimage.debian.org/cdimage/openstack/current/
+
+
