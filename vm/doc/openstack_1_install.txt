@@ -76,53 +76,6 @@ $ sudo vi /tmp/ocata-answer.txt
 #
 $ sudo packstack --answer-file=/tmp/ocata-answer.txt
 
-# CONFIGURACAO DA PLACA DE REDE
-#
-
-# configuracao da placa br-ex
-#
-$ sudo vi /etc/sysconfig/network-scripts/ifcfg-br-ex
-	TYPE="Ethernet"
-	BOOTPROTO="none"
-	DEFROUTE="yes"
-	IPV4_FAILURE_FATAL="no"
-	IPV6INIT="no"
-	IPV6_AUTOCONF="no"
-	IPV6_DEFROUTE="no"
-	IPV6_FAILURE_FATAL="no"
-	NAME="br-ex"
-	DEVICE="br-ex"
-	ONBOOT="yes"
-	IPADDR="192.168.2.42"
-	PREFIX="24"
-	GATEWAY="192.168.2.1"
-	DNS1="127.0.0.1"
-	DNS2="192.168.2.1"
-	DNS3="8.8.8.8"
-	IPV6_PEERDNS="no"
-	IPV6_PEERROUTES="no"
-	IPV6_PRIVACY="no"
-
-# configuracao da placa eno1
-#
-$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eno1
-	TYPE="Ethernet"
-	BOOTPROTO="none"
-	DEFROUTE="yes"
-	IPV4_FAILURE_FATAL="no"
-	IPV6INIT="no"
-	IPV6_AUTOCONF="no"
-	IPV6_DEFROUTE="no"
-	IPV6_FAILURE_FATAL="no"
-	NAME="eno1"
-	DEVICE="eno1"
-	ONBOOT="yes"
-	TYPE=”OVSPort”
-	DEVICETYPE=”ovs”
-	OVS_BRIDGE=”br-ex”
-
-$ systemctl restart network
-
 # instalacao do openstack-utils
 #
 $ sudo yum install openstack-utils -y

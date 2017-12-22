@@ -1,0 +1,70 @@
+#: Title : Openstack - projeto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Projeto/Project inicial do Openstack
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# Project (admin)
+#
+browser - http://192.168.2.42/
+
+Identity -> Projects -> Create Project
+	Name - particula
+	Description - projeto particula.local
+
+# User (admin)
+#
+browser - http://192.168.2.42/
+
+Identity -> Users -> Create User
+	User Name - caio
+	Description - particula.local user
+	Password - <SENHA>
+	Confirm Password - <SENHA>
+	Primary Project - <particula>
+	Role - _member_
+
+# Networks (admin)
+#
+browser - http://192.168.2.42/
+
+Project -> Networks -> Create Network
+	Network Name: internal
+	Admin State: UP
+	Create Subnet: checked
+	Subnet Name: internal-particula
+	Network Address: 192.168.254.0/24
+	IP Version: IPv4
+	Gateway IP: 192.168.254.1
+	DHCP: Enable
+
+# Networks (caio)
+#
+browser - http://192.168.2.42/
+
+Project -> Networks -> Create Network
+	Network Name: external
+	Admin State: UP
+	Create Subnet: checked
+	Subnet Name: external-tecmint
+	Network Address: 192.168.2.0/24
+	IP Version: IPv4
+	Gateway IP: 192.168.2.1
+	DHCP: Enable
+
+# Networks (admin)
+#
+browser - http://192.168.2.42/
+
+Admin -> System-> Networks > external Network > Ativar a opcao "External Network"
+
+# Router (caio)
+#
+browser - http://192.168.2.42/
+
+Project -> Network -> Routers > Create Router
+	Router Name: router_particula
+	Admin State: UP
+	External Network: external 
+
+Project -> Network -> Routers > router_particula > Interfaces > Add interface
+	Subnet: internal

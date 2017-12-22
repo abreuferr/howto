@@ -1,0 +1,63 @@
+#: Title : Openstack - Network
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao da rede
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# CONFIGURACAO DA PLACA DE REDE
+#
+
+# configuracao da placa br-ex
+#
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-br-ex
+        TYPE="Ethernet"
+        BOOTPROTO="none"
+        DEFROUTE="yes"
+        IPV4_FAILURE_FATAL="no"
+        IPV6INIT="no"
+        IPV6_AUTOCONF="no"
+        IPV6_DEFROUTE="no"
+        IPV6_FAILURE_FATAL="no"
+        NAME="br-ex"
+        DEVICE="br-ex"
+        ONBOOT="yes"
+        IPADDR="192.168.2.42"
+        PREFIX="24"
+        GATEWAY="192.168.2.1"
+        DNS1="127.0.0.1"
+        DNS2="192.168.2.1"
+        DNS3="8.8.8.8"
+        IPV6_PEERDNS="no"
+        IPV6_PEERROUTES="no"
+        IPV6_PRIVACY="no"
+
+# configuracao da placa eno1
+#
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eno1
+        TYPE="Ethernet"
+        BOOTPROTO="none"
+        DEFROUTE="yes"
+        IPV4_FAILURE_FATAL="no"
+        IPV6INIT="no"
+        IPV6_AUTOCONF="no"
+        IPV6_DEFROUTE="no"
+        IPV6_FAILURE_FATAL="no"
+        NAME="eno1"
+        DEVICE="eno1"
+        ONBOOT="yes"
+        TYPE=”OVSPort”
+        DEVICETYPE=”ovs”
+        OVS_BRIDGE=”br-ex”
+
+# reinicializar as placas de rede
+#
+$ systemctl restart network
+
+# informacoes das placas de redes
+#
+$ ip a
+	eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master ovs-system state UP qlen 1000
+	ink/ether 08:62:66:99:ba:65 brd ff:ff:ff:ff:ff:ff
+
+	br-ex: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN qlen 1000
+	link/ether 08:62:66:99:ba:65 brd ff:ff:ff:ff:ff:ff
+	inet 192.168.2.42/24 brd 192.168.2.255 scope global br-ex
