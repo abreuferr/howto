@@ -2,3 +2,16 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Definicoes do Openstack
 #: Options : foi utilizado o sistema operacaional gnu/linux centos 7
+
+# COMPONENTES DO OPENSTACK
+#
+horizon - dashboard - interface web (dashboard)
+keystone - componente responsavel pelo gerenciamento de autenticacao e autorizacao
+glance - componente responsavel pelo gerenciamento de imagens
+neutron - componente responsavel pelo gerenciamento de rede
+nova - componente responsavel pelo gerenciamento de instancias
+cinder - componente responsavel pelo gerenciamento de armazenamento/volume
+swift - componente responsavel pelo gerenciamento de armazenamento de objetos
+ceilometer - componente responsavel pela telemetria
+heat - componente responsavel pela orquestracao dos multiplos componentes do Openstack
+trove - componente responsavel pelo gerenciamento do banco de dados do Openstack
