@@ -1,6 +1,6 @@
 #: Title : Openstack - Network
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Configuracao da rede
+#: Description : Configuracao da rede no host
 #: Options : foi utilizado o sistema operacaional gnu/linux centos
 
 # CONFIGURACAO DA PLACA DE REDE

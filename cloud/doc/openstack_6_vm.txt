@@ -22,4 +22,20 @@ Project > Network> Floating IPs > Allocate IP To Project
 # Ubuntu – http://cloud-images.ubuntu.com/
 # Debian – http://cdimage.debian.org/cdimage/openstack/current/
 
+# Image - criacao
+#
+Project > Compute > Images > Create Image
+	Name: debian_9
+	Description: imagem do debian 9
+	File: <apontar para o arquivo QCOWW2 feito anteriormente> 
+	Format: QCOWW2 – QEMU Emulator
+	Architecture: leave blank
+	Minimum Disk: leave blank
+	Minimum RAM: leave blank
+	Public: unchecked
+	Protected: unchecked
 
+
+# Instancia - criacao
+#
+Project > Compute > Instances > Launch Instance

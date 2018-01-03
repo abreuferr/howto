@@ -1,0 +1,14 @@
+#: Title : Openstack - user
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : User no Openstack - criacao e gerenciamento de usuario
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# Create user
+#
+browser - http://192.168.2.42/
+
+Identity -> Users -> Create User
+	User Name: caio
+	Description: particula.local user manager
+	Password: <SENHA>
+	Confirm Password: <SENHA>

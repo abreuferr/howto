@@ -1,27 +1,7 @@
 #: Title : Openstack - projeto
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Projeto/Project inicial do Openstack
+#: Description : Network do Openstack
 #: Options : foi utilizado o sistema operacaional gnu/linux centos
-
-# Project (admin)
-#
-browser - http://192.168.2.42/
-
-Identity -> Projects -> Create Project
-	Name - particula
-	Description - projeto particula.local
-
-# User (admin)
-#
-browser - http://192.168.2.42/
-
-Identity -> Users -> Create User
-	User Name - caio
-	Description - particula.local user
-	Password - <SENHA>
-	Confirm Password - <SENHA>
-	Primary Project - <particula>
-	Role - _member_
 
 # Networks (admin)
 #

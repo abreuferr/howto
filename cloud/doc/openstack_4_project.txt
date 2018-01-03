@@ -1,0 +1,15 @@
+#: Title : Openstack - projeto
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Projeto/Project inicial do Openstack. Cada cliente 
+#: possui um projeto
+#: Options : foi utilizado o sistema operacaional gnu/linux centos
+
+# Project (admin)
+#
+browser - http://192.168.2.42/
+
+Identity -> Projects -> Create Project
+	Name: particula
+	Description: projeto particula.local
+	Projetc Members: <definir os membros do projeto>
+	Quota: <definir as caracteristicas do projeto>
