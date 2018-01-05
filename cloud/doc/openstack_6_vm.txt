@@ -39,3 +39,14 @@ Project > Compute > Images > Create Image
 # Instancia - criacao
 #
 Project > Compute > Instances > Launch Instance
+	Detail
+		Instance Name: web_server
+		Count: 1
+	Source
+		Allocated: debian_9
+		Create New Volume: No
+	Flavor
+		<selecionar uma das caracteristicas/opcao>
+	Networks
+		<selecionar a rede EXTERNAL>
+

@@ -15,9 +15,14 @@
 #
 $ sudo yum -y update
 
-# hostname da estacao
+# /etc/hostname da estacao
 #
-$ sudo hostnamectl set-hostname openstack.dominio.local
+$ sudo hostnamectl set-hostname openstack.particula.local
+$ sudo exec bash
+
+# /etc/hosts
+#
+$ sudo echo "192.168.2.42    openstack.particula.local" >> /etc/hosts
 
 # desabilitar o Network Manager
 #
@@ -50,15 +55,27 @@ $ sudo vi /etc/environment
 # INSTALACAO DO OPENSTACK
 #
 
+# habilitar o repositorio do rdo
+#
+# utilizar a ultima versao
+#
+$ sudo yum install -y https://www.rdoproject.org/repos/rdo-release.rpm
+
 # instalacao do repositorio do openstack
+#
+# versao ocata
 #
 $ sudo yum install -y centos-release-openstack-ocata
 
 # habilitar o repositorio openstack ocata
 #
+# versao ocata
+#
 $ sudo yum-config-manager --enable openstack-ocata
 
 # instalacao do OpenStack atraves do metodo packstack
+#
+# depois de definir se deseja instalar a ultima versao ou a versao OCATA
 #
 $ sudo yum install -y openstack-packstack
 
