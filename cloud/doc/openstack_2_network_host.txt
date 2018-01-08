@@ -9,44 +9,24 @@
 # configuracao da placa br-ex
 #
 $ sudo vi /etc/sysconfig/network-scripts/ifcfg-br-ex
-        TYPE="Ethernet"
-        BOOTPROTO="none"
-        DEFROUTE="yes"
-        IPV4_FAILURE_FATAL="no"
-        IPV6INIT="no"
-        IPV6_AUTOCONF="no"
-        IPV6_DEFROUTE="no"
-        IPV6_FAILURE_FATAL="no"
-        NAME="br-ex"
-        DEVICE="br-ex"
-        ONBOOT="yes"
-        IPADDR="192.168.2.42"
-        PREFIX="24"
-        GATEWAY="192.168.2.1"
-        DNS1="127.0.0.1"
-        DNS2="192.168.2.1"
-        DNS3="8.8.8.8"
-        IPV6_PEERDNS="no"
-        IPV6_PEERROUTES="no"
-        IPV6_PRIVACY="no"
+	DEVICE=br-ex
+	DEVICETYPE=ovs
+	TYPE=OVSBridge
+	BOOTPROTO=static
+	IPADDR=192.168.2.42
+	NETMASK=255.255.255.0
+	GATEWAY=192.168.2.1
+	DNS3=8.8.8.8
+	ONBOOT=yes
 
 # configuracao da placa eno1
 #
 $ sudo vi /etc/sysconfig/network-scripts/ifcfg-eno1
-        TYPE="Ethernet"
-        BOOTPROTO="none"
-        DEFROUTE="yes"
-        IPV4_FAILURE_FATAL="no"
-        IPV6INIT="no"
-        IPV6_AUTOCONF="no"
-        IPV6_DEFROUTE="no"
-        IPV6_FAILURE_FATAL="no"
-        NAME="eno1"
-        DEVICE="eno1"
-        ONBOOT="yes"
-        TYPE=”OVSPort”
-        DEVICETYPE=”ovs”
-        OVS_BRIDGE=”br-ex”
+	DEVICE=enp5s0
+	TYPE=OVSPort
+	DEVICETYPE=ovs
+	OVS_BRIDGE=br-ex
+	ONBOOT=yes
 
 # reinicializar as placas de rede
 #
@@ -54,10 +34,22 @@ $ systemctl restart network
 
 # informacoes das placas de redes
 #
-$ ip a
-	eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master ovs-system state UP qlen 1000
-	ink/ether 08:62:66:99:ba:65 brd ff:ff:ff:ff:ff:ff
+$ ifconfig
+br-ex: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.2.42  netmask 255.255.255.0  broadcast 192.168.2.255
+        inet6 2804:431:d718:7aff:21c:c0ff:fe2b:d1cb  prefixlen 64  scopeid 0x0<global>
+        inet6 fe80::c067:edff:fe24:c841  prefixlen 64  scopeid 0x20<link>
+        ether 00:1c:c0:2b:d1:cb  txqueuelen 1000  (Ethernet)
+        RX packets 3889  bytes 384742 (375.7 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 843  bytes 106611 (104.1 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 
-	br-ex: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN qlen 1000
-	link/ether 08:62:66:99:ba:65 brd ff:ff:ff:ff:ff:ff
-	inet 192.168.2.42/24 brd 192.168.2.255 scope global br-ex
+enp5s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::21c:c0ff:fe2b:d1cb  prefixlen 64  scopeid 0x20<link>
+        ether 00:1c:c0:2b:d1:cb  txqueuelen 1000  (Ethernet)
+        RX packets 3838  bytes 448344 (437.8 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 893  bytes 116905 (114.1 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device interrupt 17  memory 0xe3100000-e3120000  

@@ -13,7 +13,7 @@
 
 # atualizar o CentOS
 #
-$ sudo yum -y update
+$ sudo yum update
 
 # /etc/hostname da estacao
 #
@@ -22,7 +22,7 @@ $ sudo exec bash
 
 # /etc/hosts
 #
-$ sudo echo "192.168.2.42    openstack.particula.local" >> /etc/hosts
+$ sudo echo "192.168.2.42    openstack.particula.local	openstack" >> /etc/hosts
 
 # desabilitar o Network Manager
 #
@@ -44,7 +44,7 @@ $ sudo vi /etc/sysconfig/selinux
 
 # instalacao de componentes que serao necessario.
 #
-$ sudo yum install -y @virt* dejavu-lgc* xorg-x11-xauth* tigervnc libguestfs-tools policycoreutils-python bridge-utils
+$ sudo yum install @virt* dejavu-lgc* xorg-x11-xauth* tigervnc libguestfs-tools policycoreutils-python bridge-utils
 
 # configurar as variaveis environment
 #
@@ -59,13 +59,13 @@ $ sudo vi /etc/environment
 #
 # utilizar a ultima versao
 #
-$ sudo yum install -y https://www.rdoproject.org/repos/rdo-release.rpm
+$ sudo yum install https://www.rdoproject.org/repos/rdo-release.rpm
 
 # instalacao do repositorio do openstack
 #
 # versao ocata
 #
-$ sudo yum install -y centos-release-openstack-ocata
+$ sudo yum install centos-release-openstack-ocata
 
 # habilitar o repositorio openstack ocata
 #
@@ -77,7 +77,7 @@ $ sudo yum-config-manager --enable openstack-ocata
 #
 # depois de definir se deseja instalar a ultima versao ou a versao OCATA
 #
-$ sudo yum install -y openstack-packstack
+$ sudo yum install openstack-packstack
 
 # criacao do arquivo de configuracao para instalar o openstack ocata
 #
@@ -96,6 +96,21 @@ $ sudo packstack --answer-file=/tmp/ocata-answer.txt
 # instalacao do openstack-utils
 #
 $ sudo yum install openstack-utils -y
+
+# CONFIGURACAO
+#
+$ sudo vi /etc/neutron/plugin.ini
+	type_drivers = vxlan,flat
+	flat_networks = *
+$ sudo systemctl restart neutron-server
+
+$ sudo vi /etc/neutron/plugins/ml2/openvswitch_agent.ini
+	bridge_mappings =physnet1:br-ex
+$ sudo systemctl restart neutron-openvswitch-agent
+
+$ sudo vi /etc/neutron/l3_agent.ini
+	external_network_bridge =
+$ sudo systemctl restart neutron-l3-agent
 
 # ESTADO DO OPENSTACK
 #
