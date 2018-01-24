@@ -3,117 +3,277 @@
 #: Description : Setup LVM Server
 #: Options : None
 
-0. teoria
-#                                                                                                                                                                  
-# PH = phisical volume = volume fisico = sao os discos rigidos                                                                                                     
-# propriamente ditos                                                                                                                                               
-#                                                                                                                                                                  
-# VG = volume group = grupo de volume = consiste no agrupamento                                                                                                    
-# de PVs. basicamente consiste na reuniao de varios discos rigidos                                                                                                 
-# para formar um ou mais grupos.                                                                                                                                   
-#                                                                                                                                                                  
-# LV = logical volume = volumes logicos = depois de reunir os varios                                                                                               
-# discos rigidos em um ou mais grupos de volumes, agora podemos dividir                                                                                            
-# esses varios grupos de volumes em vaios volumes logicos, como por                                                                                                
-# exemplo, um volume para o samba, outro para paginas web (www) e assim                                                                                            
-# por diante.                                                                                                                                                      
-#                                                                                                                                                                  
-# para esse teste serao utilizado tres discos rigidos, /dev/sd[bcde]1          
+##
+#
+# TEORIA
+#
+##
 
-1. hardware
+# PV = phisical volume = volume fisico = sao os discos rigidos 
+# propriamente ditos
+#
+# VG = volume group = grupo de volume = consiste no agrupamento
+# de PVs. basicamente consiste na reuniao de varios discos rigidos
+# para formar um ou mais grupos.
+#
+# LV = logical volume = volumes logicos = depois de reunir os varios
+# discos rigidos em um ou mais grupos de volumes, agora podemos dividir
+# esses varios grupos de volumes em vaios volumes logicos, como por
+# exemplo, um volume para o samba, outro para paginas web (www) e assim
+# por diante.
+#
+# para esse teste serao utilizado tres discos rigidos, /dev/sd[bcde]1
+#
 
-	$ sudo fdisk /dev/sd[bcd]
-		Hex code (type L to list codes): <-- 8e
+##
+#
+# INSTALCAO
+#
+##
 
-2. Install
-
+#
+# instalacao dos software necessários
+#
 	$ sudo apt-get install lvm2 dmsetup mdadm xfsprogs
+##
+#
+# FORMATACAO
+#
+##
 
-3. LVM
+# os discos deve ser particionados e formatados (8e) utilizando o
+# aplicativo fdisk
+#
+    $ sudo fdisk /dev/sd[bcde]1
 
-# Create PV
+##
+#
+# PV
+#
+##
+
+# 
+# nessa etapa, serao criados os volumes fisicos.
+#
 	$ sudo pvcreate /dev/sd[bcd]1
 
-# Delete PV
+#
+# para desmontar um lvm, como ultima etapa, devesse
+# apagar os volumes fisicos.
+#
 	$ sudo pvremove /dev/sd[bcd]1
 
-# Show PV
+#
+# exibir informacoes sobre os volumes fisicos.
+#
 	$ sudo pvdisplay
+	$ sudo pvdisplay /dev/sdXY
 
-# Create VG
-	$ sudo vgcreate vg_volume /dev/sd[bcd]1
+##
+#
+# VG
+#
+##
 
-# Show VG
+#
+# depois de ser criado os volumes fisicos, a proxima etapa
+# consiste em reunir esses volumes fisicos em um volume
+# logico cujo nome no exemplo abaixo eh lvm_volume
+#
+	$ sudo vgcreate lvm_volume /dev/sd[bcd]1
+
+#
+# exibir informacoes sobre o(s) volume(s) logico(s)
+#
 	$ sudo vgdisplay
+	$ sudo vgdisplay lvm_volume
 
-# Rename VG
-	$ sudo vgrename vg_volume vg_data
+#
+# comando utilizado para renomear o volume logico criado
+# na etapa anterior.
+#
+	$ sudo vgrename lvm_volume vg_data
 
-# Delete VG
+#
+# comando utilizado para apagar o volume logico criado anteriormente.
+#
 	$ sudo vgremove vg_data
 
-# Create LV
-	$ sudo lvcreate --name share --size 40G vg_volume
+##
+#
+# LV
+#
+##
 
-# Show LV
+#
+# depois de criar os volumes fisicos e agrupar esses volumes fisicos
+# um volume logico de nome vg_data, agora esse volume logico sera
+# dividido em varios volumes logicos de acordo com as necessidade.
+#
+    $ sudo lvcreate --name samba --size 5G vg_data
+    $ sudo lvcreate --name web --size 10G vg_data
+
+#
+# exibir informacoes sobre o volume logico
+#
 	$ sudo lvdisplay
+	$ sudo lvscan
 
-# Rename LV
-	$ sudo lvrename vg_volume share backup
+#
+# renomvear o volume logico WEB para WWW
+# 
+	$ sudo lvrename vg_data web www 
 
-# Delete LV
-	$ sudo lvremove /dev/vg_volume/backup
+#
+# apagar o volume logico WWW
+#
+	$ sudo lvremove /dev/vg_data/www
 
-# Add extra hardisk
-	$ sudo fdisk /dev/sde
-    $ sudo pvcreate /dev/sde1
-	$ sudo vgextend vg_volume /dev/sde1
+#
+# depois de criar os volumes logicos SAMBA e WWW
+# eh necessario criar o sistema de arquivos e
+# montar.
+#
+
+#
+# formatar
+#
+	$ sudo mkfs -t ext4 /dev/vg_data/samba
+	$ sudo mkfs -t ext4 /dev/vg_data/www
+
+#
+# montar
+#
+	$ sudo mkdir /mnt/samba
+	$ sudo mkdir /mnt/www
+	$ sudo mount /dev/vg_data/samba /mnt/samba
+	$ sudo mount /dev/vg_data/www /mnt/www
+
+#
+# adicionar os volumes logicos montados no arquivo
+# /etc/fstab para que toda vez que o computador for
+# reinicializado, o mesmo seja montado de forma
+# automatica.
+#
+	$ sudo blkid
+	$ sudo vi /etc/fstab
+	UUID=XYZ	/mnt/samba      ext4    defaults      0 2
+	UUID=ABC	/mnt/www        ext4    defaults      0 2
+
+##
+# ADICIONAR UM NOVO DISCO RIGIDO AO VG_DATA
+##
+
+#
+# procedimentos para adicionar um novo disco rigido
+# ao VG_DATA
+#
+	$ sudo fdisk /dev/sdf   ; particionar o disco rigido
+	$ sudo pvcreate /dev/sdf1   ; criar o volume fisico do novo disco rigido
+	$ sudo vgextend vg_data /dev/sdf1   ; extender o VG com o novo disco rigido
 	$ sudo vgdisplay
 
-4. File System
+##
+# AMPLIACAO
+#
+# neste caso, o sistema de arquivo NAO foi formatado e nem
+# foi montado
+#
+# samba - de 5GB para 15GB
+# web - de 10GB para 25GB
+#
+$ sudo lvextend -L15G /dev/vg_data/samba
+$ sudo lvextend -L25G /dev/vg_data/web
+$ sudo lvscan
 
-Format
-	$ sudo mkfs.ext4 /dev/lvm_volume/backup
+##
+# REDUCAO
+#
+# neste caso, o sistema de arquivo NAO foi formatado e nem
+# foi montado
+# 
+# samba - de 15GB para 9GB
+# web - de 25GB para 17GB
+#
+$ sudo lvreduce -L9G /dev/vg_data/samba
+$ sudo lvreduce -L17G /dev/vg_data/web
+$ sudo lvscan
 
-Mount
-	$ sudo mkdir /mnt/backup
-	$ sudo mount /dev/vg_volume/backup /mnt/backup
+##
+# AMPLIACAO
+#
+# neste caso, o sistema de arquivo FOI formatado e
+# foi montado
+#
+# samba - de 9GB para 15GB
+# web - de 15GB para 25GB
+#
+$ sudo umount /mnt/samba/
+$ sudo umount /mnt/web/
 
-Fstab
-	$ sudo vi /etc/fstab
-	/dev/vg_volume/backup   /mnt/backup     ext4       rw,noatime    0 0
+$ sudo lvextend -L15G /dev/vg_data/samba
+$ sudo lvextend -L25G /dev/vg_data/web
 
-5. Ampliacao do LV
+$ sudo e2fsck -f /dev/vg_data/samba
+$ sudo e2fsck -f /dev/vg_data/web
 
-# resumo                                                                                                                                                           
-#   - desmontar                                                                                                                                                    
-#   - lvresize - refazer o tamanho do LV                                                                                                                           
-#   - e2fsck - checar a integridade                                                                                                                                
-#   - resize2fs - redimensionar o LV                                                                                                                               
-#   - montar                                                                                                                                                       
-#                                                                                                                                                                  
-$ sudo umount /mnt/samba                                                                                                                                           
-$ sudo lvresize -L 30GB /dev/vg_data/samba                                                                                                                         
-$ sudo e2fsck -f /dev/vg_data/samba                                                                                                                                
-$ sudo resize2fs /dev/vg_data/samba                                                                                                                                
-$ sudo lvscan                                                                                                                                                      
-$ sudo mount /mnt/samba                                  
+$ sudo resize2fs /dev/vg_data/samba
+$ sudo resize2fs /dev/vg_data/web
 
-6. Reducao do LV
+$ sudo mount /mnt/samba/
+$ sudo mount /mnt/web/
 
-# resumo                                                                                                                                                           
-#   - desmontar                                                                                                                                                    
-#   - e2fsck - checar a integridade                                                                                                                                
-#   - resize2fs - redimensionar o LV                                                                                                                               
-#   - lvreduce - reducao do tamanho do LV                                                                                                                          
-#   - lvresize - ALTERNATIVA AO COMANDO LVREDUCE                                                                                                                   
-#   - montar                                                                                                                                                       
-#                                                                                                                                                                  
-$ sudo umount /mnt/samba                                                                                                                                           
-$ sudo e2fsck -f /dev/vg_data/samba                                                                                                                                
-$ sudo resize2fs /dev/vg_data/samba 10G                                                                                                                            
-$ sudo lvreduce --size -10G /dev/vg_data/samba  ; reduzir em 10GB                                                                                                  
-$ sudo lvreduce --size 20G /dev/vg_data/samba  ; reduzir para 20GB                                                                                                 
-$ sudo lvresize -L 10GB /dev/vg_data/samba                                                                                                                         
-$ sudo lvscan                                                                                                                                                      
-$ sudo mount /mnt/samba                     
+##
+# REDUCAO
+#
+# neste caso, o sistema de arquivo FOI formatado e
+# foi montado
+#
+# samba - de 15GB para 9GB
+# web - de 25GB para 16GB
+#
+$ sudo umount /mnt/samba/
+$ sudo umount /mnt/web/
+
+$ sudo e2fsck -f /dev/vg_data/samba
+$ sudo e2fsck -f /dev/vg_data/web
+
+$ sudo resize2fs /dev/vg_data/samba 9216M
+$ sudo resize2fs /dev/vg_data/web 16384M
+
+$ sudo lvreduce -L9G /dev/vg_data/samba
+$ sudo lvreduce -L16G /dev/vg_data/web
+
+$ sudo mount /mnt/samba/
+$ sudo mount /mnt/web/
+
+##
+#
+# ADICIONANDO UM DISCO RIGIDO NO LVM
+#
+##
+
+$ sudo pvcreate /dev/sde1
+$ sudo vgextend vg_data /dev/sde1
+
+##
+#
+# REMOVER UM DISCO RIGIDO NO LVM
+#
+##
+
+$ sudo pvmove /dev/sdb1 /dev/sde1
+$ sudo vgreduce vg_data /dev/sdb1
+$ sudo pvremove /dev/sdb1
+
+##
+#
+# REMOVER LVM DO COMPUTADOR
+#
+##
+$ sudo umount /mnt/samba/
+$ sudo umount /mnt/web/
+$ sudo lvremove /dev/vg_data/samba 
+$ sudo lvremove /dev/vg_data/web
+$ sudo vgremove vg_data
+$ sudo pvremove /dev/sd[cde]1
