@@ -1,0 +1,46 @@
+#: Title : nfs + autofs
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalacao e configuracao do NFS e autofs no GNU/Linux Debian Stable
+#: Options : None
+
+#
+# TOPOLOGIA
+#
+# Debian server : 192.168.147.10
+# Debian client : 192.168.147.11
+#
+
+#
+# INSTALACAO (SERVIDOR/CLIENTE)
+#
+
+# server
+#
+$ sudo apt-get install nfs-kernel-server nfs-common
+
+# client
+#
+$ sudo apt-get install nfs-common
+$ sudo apt-get install autofs
+
+#
+# EXPORTAR (SERVER)
+#
+$ sudo mkdir /home/nfs
+$ sudo chown nobody:nogroup /home/nfs/
+$ sudo chmod 755 /home/nfs/
+
+$ sudo vi /etc/exports
+	/home/nfs       192.168.147.11(rw,sync,no_subtree_check)
+
+# reinicializar o servico
+#
+$ sudo systemctl restart nfs-kernel-server.service
+
+#
+# CONFIGURACAO DO AUTOFS (CLIENTE)
+#
+$ sudo vi /etc/auto.master
+	/mnt    /etc/auto.nfs	--timeout=60
+
+
