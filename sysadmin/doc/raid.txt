@@ -43,9 +43,7 @@
 
 # adicionar o raid 0/1 no arquivo de configuracao
 #
-	sudo su
-	mdadm -Es | grep md >> /etc/mdadm/mdadm.conf
-	exit
+	sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 
 # formatar o raid 0/1 no formato ext4
 #

@@ -1,0 +1,278 @@
+#: Title : raid 10 + lvm + mysql + backup
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : raid 10 + lvm + mysql + lvm snapshot
+#: Options : None
+
+###
+#
+# RAID
+#
+###
+
+# dispositivos utilizados no raid 10
+#
+# o raid pode ser aplicado sobre uma particao
+# ou sobre um disco rigido inteiro.
+#
+# se por acaso for aplicado sobre uma particao,
+# necessario formatar a mesma com o tipo 8e.
+#
+# ja se for aplicado sobre o disco rigido inteiro,
+# nao eh necessarrio formatar o disco rgido.
+#
+# /dev/sd[bcde]
+
+# instalacao dos softwares necessarios
+#
+$ sudo apt-get install mdadm -y -d
+
+# identificando os discos rigidos diponiveis
+#
+$ lsblk -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT
+NAME    SIZE FSTYPE TYPE MOUNTPOINT
+sdb      20G        disk
+sdc      20G        disk
+sdd      20G        disk
+sde      20G        disk
+
+# criando o raid 10
+#
+# o coamdno abaixo ira criar o raid do 
+# tipo 10, --level) e com 04 discos rigidos
+# --raid-devices
+#
+$ sudo mdadm --create --verbose /dev/md0 --level=10 --raid-devices=4 /dev/sd[bcde]
+
+# processo de criacao do raid 10
+#
+$ cat /proc/mdstat
+Personalities : [raid10]
+md0 : active raid10 sde[3] sdd[2] sdc[1] sdb[0]
+      41910272 blocks super 1.2 512K chunks 2 near-copies [4/4] [UUUU]
+      [=====>...............]  resync = 25.4% (10665472/41910272) finish=2.5min speed=201024K/sec
+unused devices: <none>
+
+# criar o sistema de arquivo ido tipo
+# ext4
+#
+$ sudo mkfs -t ext4 -F /dev/md0
+
+# montar o raid
+#
+$ sudo mkdir -p /mnt/raid
+$ sudo mount /dev/md0 /mnt/raid
+
+# checagem do espaco disponivel
+#
+$ df -h -x devtmpfs -x tmpfs
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/md0         40G   49M   38G   1% /mnt/raid
+
+# abrescentar o parametros no arquivo de configuracao 
+# do raid.
+#
+$ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
+$ sudo update-initramfs -u
+
+# /etc/fstab
+#
+$ echo '/dev/md0 /mnt/md0 ext4 defaults,nofail,discard 0 0' | sudo tee -a /etc/fstab
+
+# informacao sobre o raid 10
+#
+$ sudo mdadm -D /dev/md0
+$ sudo mdadm -Db /dev/md0
+$ sudo mdadm -Q /dev/sd[bcde]
+$ sudo mdadm -E /dev/sd[bcde]
+
+###
+#
+# LVM
+#
+###
+
+# instalacao dos softwares necessarios
+# para o funcionamento do lvm.
+#
+$ sudo apt-get install lvm2
+
+# verificando se existe algum lvm
+# no servidor.
+#
+$ sudo lvmdiskscan
+
+# criando um PV (phisycal volume)
+#
+$ sudo pvcreate /dev/md0
+
+# informacao sobre o pv
+#
+$ sudo pvs
+  PV         VG Fmt  Attr PSize  PFree
+  /dev/md0      lvm2 ---  39.97g 39.97g
+
+# adicionar um vg (volume group) sobre 
+# um pv
+#
+$ sudo vgcreate lvmvolgroup /dev/md0
+  Volume group "lvmvolgroup" successfully created
+
+# informacao sobre o vg
+#
+$ sudo vgs
+  VG          #PV #LV #SN Attr   VSize  VFree
+  lvmvolgroup   1   0   0 wz--n- 39.96g 39.96g
+
+# criacao do lv (logical volume)
+#
+# db - 15 gb
+#
+$ sudo lvcreate -L 15G -n db lvmvolgroup
+
+# criacao do lv com opcoes avancadas
+#
+# --type: especifica o tipo de volume logico.
+# 	linear: tipo padrao. 
+# 	striped: similar ao raid 0
+#	raid1: similar oa raid 1. trabalha junto com a opcao -m
+#	raid5: similar ao raid 5. requer no minimo tres PV
+#	raid6: similar oa raid 6. requer no minimo quatro PV
+#	-m: especifica o numero de copias adicionais dos dados. o valor 1
+#	especifica que sera feito mais uma copia alem das outras duas.
+#	-i: especifica o numero de stripes que sera mantido.
+#	-s: criacao do snapshot.
+#
+# EXEMPLOS
+#
+$ sudo lvcreate --type striped -i 2 -L 10G -n striped_vol LVMVolGroup
+$ sudo lvcreate --type raid1 -m 2 -L 20G -n mirrored_vol LVMVolGroup
+$ sudo lvcreate -s -L 10G -n snap_test LVMVolGroup/test
+
+# reverter um snapshot
+#
+$ sudo lvconvert --merge LVMVolGroup/snap_test
+
+# informacao sobre os lv criados
+#
+$ sudo vgs -o +lv_size,lv_name
+  VG          #PV #LV #SN Attr   VSize  VFree  LSize  LV
+  lvmvolgroup   1   2   0 wz--n- 39.96g 14.96g 15.00g db
+
+# formatar o lv
+#
+$ sudo mkfs -t ext4 /dev/lvmvolgroup/db
+
+# montar
+#
+$ sudo mkdir -p /mnt/db
+$ sudo mount /dev/lvmvolgroup/db /mnt/db
+
+# /etc/fstab
+#
+$ cat /etc/fstab
+/dev/lvmvolgroup/db	/mnt/db	ext4	default,nofail	0	0
+
+###
+#
+# MYSQL
+#
+###
+
+# instalacao do mysql
+#
+# o gnu/linux debian esta em processo de substituicao
+# do banco de dados mysql pelo banco de dados mariadb.
+# por esse motivo eh que eh necessario adicionar o
+# repositorio do mysql no sources.list.
+#
+$ sudo vi /etc/apt/sources.list.d/mysql.list
+deb http://repo.mysql.com/apt/debian/ stretch mysql-5.7
+$ wget -O /tmp/RPM-GPG-KEY-mysql http://repo.mysql.com/RPM-GPG-KEY-mysql
+$ sudo apt-key add /tmp/RPM-GPG-KEY-mysql
+$ sudo apt-get update
+$ sudo apt-get install mysql-server
+
+# acessar o banco de dados e identificar qual eh o diretorio
+# a onde esta armazenado a base de dados do mysql.
+#
+$ mysql -u root -p
+> select @@datadir;
+
+# para fazer a transferencia da base de dados so MySQL, eh
+# necessario primeiramente que o servico do mysql esteja parado.
+#
+$ sudo systemctl stop mysql.service
+
+# fazenda a transferencia dos dados do mysql do diretorio
+# /var/lib/mysql para o diretorio /mnt/db que eh um lv
+# do lvm.
+#
+$ sudo rsync -av /var/lib/mysql /mnt/db
+
+# fazendo um backup local da base de dados do
+# mysql.
+#
+$ sudo mv /var/lib/mysql /var/lib/mysql.bak
+
+# apontar o mysql para o novo diretorio
+#
+#
+$ sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+(...)
+datadir         = /mnt/db/mysql
+(...)
+$ sudo systemctl start mysql
+$ sudo systemctl status mysql
+
+# verificar se por acaso o redirecionamento
+# esta funcionando corretamente.
+#
+$ mysql -u root -p
+select @@datadir;
+
+# backup da base de dados do MySQL através
+# da tecnologia de snapshot do lvm
+#
+
+# para que possa ser feito o backup da base de dados,
+# eh necessario colocar as bases de dados do MySQL em modo
+# de leitura para que nao haja nenhum tipo de corrompimento
+# das informacoes.
+#
+$ sudo mysql -u root -p
+> FLUSH TABLES WITH READ LOCK;
+
+# a partir deste ponto, eh necessario que o
+# terminal do MySQL continue aberto, pois
+# se ele for encerrado, os bancos de dados
+# se tornarao LEITURA/ESCRITA
+
+# em outro terminal
+#
+# o objetivo inical era criar o snapshot em outro LV,
+# mas aparentemente o snpshot do lvm nao permite
+# a criacao do snapshot em outro diretorio que nao
+# o diretorio a onde se encontra o diretorio de origem.
+# desta forma, o snapshot eh criado dentro do proprio
+# lv
+#
+$ sudo lvcreate -L 5G -s -n mysql_data_snap /dev/lvmvolgroup/db
+
+# depois de criado o snapshot LV db, eh necessario tornar
+# o baco de dados do MySQL em modo leitura/escrita, para
+# isso, basta executar o comando dentro do termianl MySQL.
+#
+> UNLOCK TABLES;
+
+# agora eh necessario montar o snapshot para ter o acesso
+# aos dados do backup. Para isso, executar o comando abaixo.
+#
+$ sudo mount /dev/lvmvolgroup/mysql_data_snap /mnt/dbbackup/
+
+# a partir deste momento, o diretorio /mnt/dbbackup pode ser
+# compactado e ser enviado para uma area de backup.
+
+# o snapshot pode ser removidor.
+#
+$ sudo umount /mnt/dbbackup/
+$ sudo lvremove /dev/lvmvolgroup/mysql_data_snap
