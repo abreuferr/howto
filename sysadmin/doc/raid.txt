@@ -16,26 +16,33 @@
 
 # criar as partcoes e formatar os discos rigidos sdb e sdc no formato fd
 #
+# existe a possibilidade de utilizar o disco rigido em vez da particao.
+# Nesse caso, nao eh necessario formatar o disco rigido com o fdisk, basta
+# indicar o disco rigido, /dev/sdX
+#
 	sudo fdisk /dev/sdb
 	sudo fdisk /dev/sdc
 
 # criacao do raid 0 com dois discos rigidos
 #
 # o parametro --level indica o tipo de raid que deseja ser construido, neste caso
-# sera o raid 0
+# sera o raid 0. Ja o parametro --raid-devices indica a quantidade de discos rigidos
+# que serao utilizados no raid.
 #
 	sudo mdadm --create /dev/md0 --verbose --level=0 --raid-device=2 /dev/sd[bc]1
 
 # criacao do raid 1 com dois discos rigidos
 #
 # o parametro --level indica o tipo de raid que deseja ser construido, neste caso
-# sera o raid 1
+# sera o raid 1. Ja o parametro --raid-devices indica a quantidade de discos rigidos
+# que serao utilizados no raid.
 #
 	sudo mdadm --create /dev/md0 --verbose --level=1 --raid-device=2 /dev/sd[bc]1
 
 # informacoes sobre o raid 0/1
 #
 	sudo mdadm --detail /dev/md0
+	cat /proc/mdstat
 
 # arquivo de configuracao do raid 0/1
 #
@@ -61,6 +68,7 @@
 # verificar o status do raid 0/1
 #
 	sudo mdadm --detail /dev/md0
+	cat /proc/mdstat
 
 # fstab
 #
@@ -77,7 +85,7 @@
 #
 # simular falha no raid 1 (sdc1)
 #
-	sudo mdadm --manage --set-faulty /dev/md0 /dev/sdc1
+	sudo mdadm --set-faulty /dev/md0 /dev/sdc1
 
 # remover o disco com defeito
 #
