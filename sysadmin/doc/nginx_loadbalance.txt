@@ -6,7 +6,28 @@
 INSTALACAO
 # instalacao do nginx no debian
 #
+$ sudo vi /etc/apt/sources.list.d/nginx.list
+        deb http://nginx.org/packages/mainline/debian/ stretch nginx
+$ wget http://nginx.org/keys/nginx_signing.key
+$ sudo apt-key add nginx_signing.key
+$ sudo apt-get update
 $ sudo apt-get install nginx -y -d
+
+# instalacao do nginx no redhat/centos
+#
+$ sudo vi /etc/yum.repos.d/nginx.repo
+        [nginx]
+        name=nginx repo
+
+        baseurl=http://nginx.org/packages/mainline/rhel/6/$basearch/
+        baseurl=http://nginx.org/packages/mainline/rhel/7/$basearch/
+
+        baseurl=http://nginx.org/packages/mainline/centos/6/$basearch/
+        baseurl=http://nginx.org/packages/mainline/centos/7/$basearch/
+
+        gpgcheck=0
+        enabled=1
+$ yum install nginx -y
 
 SYSTEMD
 # start/stop/restart
@@ -31,27 +52,34 @@ $ netstat -tulpn | grep :80
 	tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      -               
 	tcp6       0      0 :::80                   :::*                    LISTEN      -               
 
-CONFIGURACAO PADRAO
+CONFIGURACAO
 #
 # configuracao do nginx
 #
 $ sudo vi /etc/nginx/sites-available/particula.local
 $ sudo ln -s /etc/nginx/sites-available/particula.local /etc/nginx/sites-enabled/particula.local
-server {
-        listen 80;
-        server_name particula.local nginxlb.particula.local;
 
-        location / {
-                proxy_pass  http://nginxlb;
-                include /etc/nginx/proxy_params;
-        }
+	# define quais serao os hosts que faram parte do load balance
+	upstream nginxlb {
+        	server web1.particula.local:80;
+		server web2.particula.local:80;
+		
+		# sem nenhum tipo de parametro, sera selecionado o algoritmo round robin
+		#
+		# algoritmo que seleciona o servidor que possui a menor quantidade de conexoe
+		least_conn;
+	}
 
-}
+	server {
+        	listen 80;
+        	server_name particula.local nginxlb.particula.local;
 
-upstream nginxlb {
-        server web1.particula.local:80;
-        server web2.particula.local:80;
-}
+        	location / {
+			proxy_set_header Host $host;
+                	proxy_pass  http://nginxlb;
+        	}
+
+	}		
 
 #
 # testando o arquivo de configuacao e

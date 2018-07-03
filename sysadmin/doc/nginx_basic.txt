@@ -1,14 +1,34 @@
 #: Title : nginx web server
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Configuracao do Varnish Cache 
+#: Description : configuracao basica
 #: Options : None
 #: Reference :  
 
 INSTALACAO
 # instalacao do nginx no debian
 #
+$ sudo vi /etc/apt/sources.list.d/nginx.list
+	deb http://nginx.org/packages/mainline/debian/ stretch nginx
+$ wget http://nginx.org/keys/nginx_signing.key
+$ sudo apt-key add nginx_signing.key
 $ sudo apt-get update
 $ sudo apt-get install nginx -y -d
+
+# instalacao do nginx no redhat/centos
+#
+$ sudo vi /etc/yum.repos.d/nginx.repo
+	[nginx]
+	name=nginx repo
+
+	baseurl=http://nginx.org/packages/mainline/rhel/6/$basearch/
+	baseurl=http://nginx.org/packages/mainline/rhel/7/$basearch/
+
+	baseurl=http://nginx.org/packages/mainline/centos/6/$basearch/
+	baseurl=http://nginx.org/packages/mainline/centos/7/$basearch/
+
+	gpgcheck=0
+	enabled=1
+$ yum install nginx -y
 
 SYSTEMD
 # start/stop/restart
@@ -33,9 +53,11 @@ $ netstat -tulpn | grep :80
 	tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      -               
 	tcp6       0      0 :::80                   :::*                    LISTEN      -               
 
+$ nginx -v
+
 CONFIGURACAO PADRAO
 #
-# configuracao do nginx
+# arquivo de configuracao basico do nginx
 #
 $ sudo vi /etc/nginx/nginx.conf
 
@@ -56,16 +78,24 @@ $ sudo mkdir /var/www/www.particula.local
 #
 $ sudo vi /etc/nginx/sites-available/www.particula.local.conf
 	server {
+		# parametro utilizado para definir a porta a ser utilizada pelo nginx.
 	        listen 80;
-	        listen [::]:80;
 
+		# parametro utilizado para especificar o hostname ou virtual server.
 	        server_name www.particula.local;
 
+		# parametro utilizado para definir o diretorio a onde sera arazenado
+		# os arquivos do site.
         	root /var/www/www.particula.local;
 	        index index.html;
 
-        	location / {
-                	try_files $uri $uri/ =404;
+        	location /i/ {
+			# parametro utilizado para definir o diretorio a onde sera arazenado
+			# os arquivos do site.
+        		root /var/www/www.particula.local;
+
+			# parametro utilizado para definir qual eh o nome do arquivo indice
+	        	index index.html index.htm;
 	        }
 	}
 
@@ -105,69 +135,3 @@ $ sudo vi /var/www/www.particula.local/index.html
 	<h1>www.particula.local</h1>
 	</body>
 	</html>
-
-SEGURANCA
-#
-# a primeira dica de seguranca para o nginx eh a de salvar os
-# dados em uma outra particao e montar essa nova particao com
-# as opcoes nosuid,noexec,nodev no arquivo /etc/fstab. Desta
-# forma, nenhum executavel podera ser executado nessa particao.
-#
-$ vi /etc/fstab
-	/dev/sdb1       /mnt/www        ext4    defaults,nosuid,noexec,nodev    1       2
-
-#
-# sera necessario alterar os arquivos de configuracao do nginx
-#
-$ sudo vi /etc/nginx/sites-available/default
-	(...)
-	root /mnt/www/html;
-	(...)
-
-#
-# www.particula.local
-#
-$ sudo vi /etc/nginx/sites-available/www.particula.local.conf
-	(...)
-	root /mnt/www/html;
-	(...)
-
-#
-# prevenindo ataque do tipo Buffer Overflow
-#
-$ sudo vi /etc/nginx/nginx.conf
-	http {
-	(...)
-
-		##
-		# Buffer Overflow Attacks
-		##
-		client_body_buffer_size  1K;
-		client_header_buffer_size 1k;
-		client_max_body_size 1k;
-		large_client_header_buffers 2 1k;
-
-		##
-		# Timeouts
-		##
-		client_body_timeout   10;
-		client_header_timeout 10;
-		send_timeout          10;
-
-	(...)
-	}
-
-#
-# HTTPS
-#
-
-$ sudo vi /etc/nginx/sites-available/default
-
-	server {
-	        # SSL configuration
-	        #
-	        listen 443 ssl default_server;
-	        listen [::]:443 ssl default_server;
-		(...)
-	}
-
