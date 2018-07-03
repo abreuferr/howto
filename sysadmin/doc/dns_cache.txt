@@ -1,0 +1,39 @@
+#: Title : DNS Cache
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Configuracao do dns reverso/cache
+#: Options : None
+
+INSTALACAO
+#
+# instalacao do bind
+#
+$ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
+
+# alterando a permissao do diretorio do Bind
+#
+$ sudo chown -R bind:bind /etc/bind (master)
+
+DNS Reverso (NSCACHE)
+#
+# NSCACHE
+#
+$ sudo vi /etc/bind/named.conf.options
+    options {
+        (...)
+
+        forwarders {
+            192.168.0.10    # ns1
+            192.168.0.11    # ns2
+        };
+
+        (...)
+    };
+
+$ sudo vi /etc/bind/named.conf.local
+    zone "particula.local" IN {
+        type forward;
+        forwarders {
+            192.168.0.10;
+            192.168.0.11;
+        };
+    };

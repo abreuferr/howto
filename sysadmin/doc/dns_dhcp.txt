@@ -1,0 +1,176 @@
+#: Title : dns dhcp
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : integracao entre o dns e o dhcp
+#: Options : None
+
+INSTALACAO
+#
+# instalacao do bind
+#
+$ sudo apt-get install bind9 dnsutils bind9 bind9utils bind9-doc
+
+# alterando a permissao do diretorio do Bind
+#
+$ sudo chown -R bind:bind /etc/bind (master)
+
+DNS + DHCP
+#
+#: Technical information
+    servidor DNS primario		192.168.0.5
+    servidor DNS secundario		192.168.0.6
+    servidor DHCP server        192.168.0.7
+
+# dnssec-keygen -a hmac-md5 -b 128 -n USER dhcpupdate (dns master)
+
+# cat Kdhcpupdate.+157+62711.key (master)
+    dhcpupdate. IN KEY 0 3 157 xOxhRZXVrtaDjbZs5f9mgg==
+
+# named.conf.local (master)
+    // Master zones
+    zone "particula.local" {
+        	type master;
+        	file "/etc/bind/db.particula.local";
+        	allow-transfer { 192.168.0.6; };
+   	 allow-update { key dhcpupdate; };
+   	 notify yes;
+    };
+
+    zone "0.168.192.in-addr.arpa" {
+        	type master;
+        	file "/etc/bind/db.0.168.192.in-addr.arpa";
+   		 allow-update { key dhcpupdate; };
+   		 notify yes;
+    };
+
+    key "dhcpupdate" {
+   		 algorithm hmac-md5;
+        	secret "xOxhRZXVrtaDjbZs5f9mgg==";
+    };
+
+# db.particula.local (dns master)
+    ; Start of Authority (SOA) record
+    $TTL   900
+    @ IN SOA ns1.particula.local. root.particula.local. (
+                3600;     serial
+                3600;     refresh, seconds
+                3600;     retry, seconds
+                3600;     expire, seconds
+                900 );     minimum, seconds
+
+    ; Name Server (NS) records.
+   		        IN NS ns1.particula.local.
+   		        IN NS ns2.particula.local.
+
+    ; Mail Exchange (MX) records.
+   		        IN MX 10 server.particula.local.
+
+    ; Address (A) records. (real-names of machines)
+   		        IN A 192.168.0.5
+    ns1		    IN A 192.168.0.5
+    ns2   	    IN A 192.168.0.6
+    server  	IN A 192.168.0.7
+
+    ; Aliases in Canonical Name (CNAME) records...
+    www		    IN CNAME server
+    ftp		    IN CNAME server
+    proxy	    IN CNAME server
+
+# db.0.168.192.in-addr.arpa (dns master)
+    ; Start of Authority (SOA) record
+    $TTL   900
+    @ IN SOA ns1.particula.local. root.particula.local. (
+               	3600;     serial
+                3600;     refresh, seconds
+   	       	    3600;     retry, seconds
+   	       	    3600;     expire, seconds
+   	       	    900 );     minimum, seconds
+
+    ; Name Server (NS) records.
+   		        IN NS ns1.particula.local.
+   		        IN NS ns2.particula.local.
+
+    ; Addresses point to canonical names (PTR) for reverse lookups
+    5		    IN PTR	ns1.particula.local.
+    6 		    IN PTR	ns2.particula.local.
+    7       	IN PTR	server.particula.local.
+
+# named.conf.local (dns slave)
+    // Slave zones
+    //
+    zone "particula.local" {
+        type slave;
+        file "/etc/bind/db.particula.local";
+        masters { 192.168.0.5; };
+        allow-notify { 192.168.0.5; };
+    };
+
+# aptitude install dhcp3-server (dhcp server)
+
+# /etc/dhcp3/dhcpd.conf (dhcp server)
+    option domain-name "particula.local";
+    option domain-name-servers 192.168.0.5, 192.168.0.6;
+
+    default-lease-time 600;
+    max-lease-time 7200;
+
+    authoritative;
+
+    ddns-update-style interim;
+    update-static-leases on;
+
+    log-facility local7;
+
+    key dhcpupdate {
+        	algorithm hmac-md5;
+   	 secret xOxhRZXVrtaDjbZs5f9mgg==;
+    }
+
+    zone 0.168.192.in-addr.arpa. {
+        	primary 192.168.0.5;
+        	key dhcpupdate;
+    }
+
+    zone particula.local. {
+        	primary 192.168.0.5;
+        	key dhcpupdate;
+    }
+
+    subnet 192.168.0.0 netmask 255.255.255.0 {
+        	range 192.168.0.100 192.168.0.200;
+        	option routers 192.168.0.2;
+    }
+
+# /root/test_ddns (ns1)
+    server 192.168.0.5
+    zone particula.local
+    update delete teste.particula.local. A
+    update add teste.particula.local. 86400 A 192.168.0.123
+    send
+    zone 0.168.192.in-addr.arpa
+    update delete 123.0.168.192.in-addr.arpa PTR
+    update add 123.0.168.192.in-addr.arpa 86400 PTR teste.particula.local.
+
+# nsupdate -y dhcpupdate:xOxhRZXVrtaDjbZs5f9mgg== test_ddns (ns1)
+
+# host teste.particula.local (ns1)
+    teste.particula.local has address 192.168.0.123
+
+# /root/test_ddns (dhcp server)
+    server 192.168.0.5
+    zone particula.local
+    update delete teste.particula.local. A
+    update add teste.particula.local. 86400 A 192.168.0.123
+    send
+    zone 0.168.192.in-addr.arpa
+    update delete 123.0.168.192.in-addr.arpa PTR
+    update add 123.0.168.192.in-addr.arpa 86400 PTR teste.particula.local.
+
+# nsupdate -y dhcpupdate:xOxhRZXVrtaDjbZs5f9mgg== test_ddns (dhcp server)
+
+# aptitude install dnsutils (dhcp server)
+
+# host teste.particula.local (dhcp server)
+teste.particula.local has address 192.168.0.123
+
+# /etc/dhcp3/dhclient.conf (client)
+    send host-name "client";
