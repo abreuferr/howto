@@ -1,0 +1,44 @@
+definir variavel de ambiente
+	cat /etc/environment
+		LC_ALL=en_US.UTF-8
+		LANG=en_US.UTF-8
+
+desativar o swap nos tres nos
+	swapoff -a
+	vi /etc/fstab
+		comentar a linha referente ao swap
+
+instalar o docker nos tres nos
+	sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y -d
+	curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+	sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+	sudo apt-get update
+	sudo apt-get install docker-ce -y -d
+
+instalar o kubernetes nos tres nos
+	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+	sudo vi /etc/apt/sources.list.d/kubernetes.list 
+		deb http://apt.kubernetes.io/ kubernetes-xenial main
+	sudo apt-get update
+	sudo apt-get install kubelet kubeadm kubectl -y -d
+
+executar os comandos abaixo no master
+	kubeadm init
+	mkdir -p $HOME/.kube
+	cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	chown $(id -u):$(id -g) $HOME/.kube/config
+	kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+	kubectl get nodes
+	kubectl get pod --all-namespaces -o wide
+	kubectl get nodes
+
+executar os comando nos nodes
+	kubeadm join 192.168.0.134:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
+
+executar no master
+	echo "source <(kubectl completion bash)" >> .bashrc
+	kubeadm token create --print-join-command
+	kubectl get pods -o wide --all-namespaces 
+	kubectl get pods
+	kubectl get nodes
+	kubectl describe node <nos>
