@@ -94,3 +94,7 @@ $ sudo kubectl get pod --all-namespaces -o wide
 	kube-system   weave-net-276cf              2/2       Running   3          3d        192.168.10.50   k0
 	kube-system   weave-net-7zmwj              2/2       Running   3          3d        192.168.10.51   k1
 	kube-system   weave-net-8lb9v              2/2       Running   3          3d        192.168.10.52   k2
+
+# descricao dos nodes do kubernetes
+#
+$ sudo kubectl describe node <NODE_NAME>
