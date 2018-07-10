@@ -68,11 +68,29 @@ $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl
 # 
 $ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
 
-# exibir quais sao os integrantes do kubernetes
-#
-$ sudo kubectl get nodes
-
 # comando utilizado para exibir a linha de comando
 # utilizada para adicionar um no no kubernetes.
 #
 $ sudo kubeadm token create --print-join-command
+
+# exibir quais sao os integrantes do kubernetes
+#
+$ sudo kubectl get nodes
+
+# comando utilizado para exibir todos os namespaces que estao presentes
+# no kubernetes e em quais hosts do kubernetes eles estao localizados.
+#
+$ sudo kubectl get pod --all-namespaces -o wide
+	NAMESPACE     NAME                         READY     STATUS    RESTARTS   AGE       IP              NODE
+	kube-system   coredns-78fcdf6894-9m9hn     1/1       Running   1          3d        10.32.0.4       k0
+	kube-system   coredns-78fcdf6894-hdgdr     1/1       Running   1          3d        10.32.0.5       k0
+	kube-system   etcd-k0                      1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-apiserver-k0            1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-controller-manager-k0   1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-proxy-7hpvh             1/1       Running   1          3d        192.168.10.52   k2
+	kube-system   kube-proxy-87n8w             1/1       Running   1          3d        192.168.10.51   k1
+	kube-system   kube-proxy-h25bg             1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-scheduler-k0            1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   weave-net-276cf              2/2       Running   3          3d        192.168.10.50   k0
+	kube-system   weave-net-7zmwj              2/2       Running   3          3d        192.168.10.51   k1
+	kube-system   weave-net-8lb9v              2/2       Running   3          3d        192.168.10.52   k2
