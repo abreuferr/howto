@@ -52,6 +52,8 @@ $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # conectar os multiplos containers que estao localizados nos nos do kubernetes. Alem de conectar
 # os containers, essa ferramenta permite que os mesmos sejam descobertos.
 #
+# essa ferramenta eh um plug-in para o kubernetes
+#
 $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
 # adicionando os nos no kubernetes
