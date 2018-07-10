@@ -1,0 +1,12 @@
+#: Title : Descomplicando o Kubernetes
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Descomplicando o Kubernetes - treinamento jeferson fernando noronha 
+#: Options : None
+
+# topologia
+#
+# k0 - master - 192.168.10.50
+# k1 - no1 - 192.168.10.51
+# k2 - no2 - 192.168.2.52
+
+
