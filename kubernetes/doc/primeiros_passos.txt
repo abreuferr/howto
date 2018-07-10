@@ -9,6 +9,62 @@
 # k1 - no1 - 192.168.10.51
 # k2 - no2 - 192.168.2.52
 
-# descricao dos nodes do kubernetes
+# INFORMACAO
+
+# primeiro exemplo da utilizacao do kubernetes com um container
+# nesse exemplo sera utilizado o nginx
 #
-$ sudo kubectl describe node <NODE_NAME>
+# kubectl run <NOME_POD> --image <IMAGEM_NOME>
+#
+$ sudo kubectl run nginx --image nginx
+	deployment.apps/nginx created
+
+# comando utilizado para visualizar os deployments que foram
+# criados.
+#
+$ sudo kubectl get deployment
+	NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+	nginx     1         1         1            1           1m
+
+# comando utilizado para visualizar os pods que foram criados
+#
+$ sudo kubectl get pods
+	NAME                     READY     STATUS    RESTARTS   AGE
+	nginx-64f497f8fd-tm7k8   1/1       Running   0          2m
+
+# comando utilizado para obter mais informacoes sobre um determinado pod.
+#
+$ sudo kubectl describe pod nginx-64f497f8fd-tm7k8
+
+# comando utilizado para obter mais informacoes sobre os deployments
+#
+$ sudo kubectl describe deployment  nginx
+
+# YAML
+
+# informacao no formato yaml
+#
+$ sudo kubectl get pod nginx-64f497f8fd-tm7k8 -o yaml
+
+# criando um deployment atraves de um arquivo yalm e nao mais
+# de forma manual.
+#
+$ sudo kubectl create -f meu_primeiro_deployment.yaml
+	deployment.extensions/meu-primeiro.yalm created
+
+# exibir os deployments que estao ativos
+#
+$ sudo kubectl get deployment
+	NAME                DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+	meu-primeiro.yalm   1         1         1            1           34s
+	nginx               1         1         1            1           1h
+
+# apagando um deployment
+#
+$ sudo kubectl delete deployment nginx
+	deployment.extensions "nginx" deleted
+
+# apagando um deployment atraves do arquivos que foi utilizado para cria-lo
+#
+$ sudo kubectl delete -f meu_primeiro_deployment.yaml
+	deployment.extensions "meu-primeiro.yalm" deleted
