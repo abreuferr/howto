@@ -68,3 +68,25 @@ $ sudo kubectl delete deployment nginx
 #
 $ sudo kubectl delete -f meu_primeiro_deployment.yaml
 	deployment.extensions "meu-primeiro.yalm" deleted
+
+# segundo yaml com alguma alteracoes, porta
+#
+$ sudo kubectl create -f meu_segundo_deployment.yaml
+	deployment.extensions/meu-segundo-yalm created
+
+# exportar esse segundo deployment
+#
+$ sudo kubectl expose deployment meu-segundo-yalm
+service/meu-segundo-yalm exposed
+
+# exibir os servicos ativos
+#
+$ sudo kubectl get services
+	NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+	meu-segundo-yalm   ClusterIP   10.104.100.138   <none>        80/TCP    1m
+
+# obtendo informacoes sobre os end point ativos
+#
+$ sudo kubectl get ep
+	NAME               ENDPOINTS                                AGE
+	meu-segundo-yalm   10.36.0.1:80,10.44.0.1:80,10.44.0.2:80   3m
