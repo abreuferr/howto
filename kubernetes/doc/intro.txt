@@ -1,0 +1,68 @@
+#: Title : Descomplicando o Kubernetes
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Descomplicando o Kubernetes - treinamento jeferson fernando noronha 
+#: Options : None
+
+# topologia
+#
+# k0 - master - 192.168.10.50
+# k1 - no1 - 192.168.10.51
+# k2 - no2 - 192.168.2.52
+
+# variavel de ambiente
+#
+# definir variavel de ambiente
+#
+$ cat /etc/environment
+	LC_ALL=en_US.UTF-8
+	LANG=en_US.UTF-8
+
+# desativar o swap nos tres hosts
+#
+$ sudo swapoff -a
+$ sudo vi /etc/fstab
+	comentar a linha referente ao swap
+
+# instalar o docker nos tres hosts
+#
+$ sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y -d
+$ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+$ sudo apt-get update
+$ sudo apt-get install docker-ce -y -d
+
+# instalar o kubernetes nos tres hosts
+#
+$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+$ sudo vi /etc/apt/sources.list.d/kubernetes.list 
+	deb http://apt.kubernetes.io/ kubernetes-xenial main
+$ sudo apt-get update
+$ sudo apt-get install kubelet kubeadm kubectl -y -d
+
+# ativando o kubernetes no master
+#
+$ sudo kubeadm init
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# criacao do podnetwork
+#
+$ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+# adicionando os nos no kubernetes
+#
+# o comando abaixo deve ser executado em todos os
+# nos do kubernetes. O comando tem por objetivo o
+# de adicionar o no no kubernetes
+# 
+$ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
+
+# exibir quais sao os integrantes do kubernetes
+#
+$ sudo kubectl get nodes
+
+# comando utilizado para exibir a linha de comando
+# utilizada para adicionar um no no kubernetes.
+#
+$ sudo kubeadm token create --print-join-command
