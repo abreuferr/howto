@@ -80,7 +80,11 @@ $ sudo kubectl get nodes
 # comando utilizado para exibir todos os namespaces que estao presentes
 # no kubernetes e em quais hosts do kubernetes eles estao localizados.
 #
-$ sudo kubectl get pod --all-namespaces -o wide
+# o comando abaixo eira mostrar todos os namespaces e seus componentes
+# se por acaso for necessario criar um filtro para um determinado namespace,
+# basta alterar o parametro "--all-namespaces" pelo parametro "-n NAMESPACE"
+#
+$ sudo kubectl get pod -o wide --all-namespaces
 	NAMESPACE     NAME                         READY     STATUS    RESTARTS   AGE       IP              NODE
 	kube-system   coredns-78fcdf6894-9m9hn     1/1       Running   1          3d        10.32.0.4       k0
 	kube-system   coredns-78fcdf6894-hdgdr     1/1       Running   1          3d        10.32.0.5       k0
@@ -94,6 +98,14 @@ $ sudo kubectl get pod --all-namespaces -o wide
 	kube-system   weave-net-276cf              2/2       Running   3          3d        192.168.10.50   k0
 	kube-system   weave-net-7zmwj              2/2       Running   3          3d        192.168.10.51   k1
 	kube-system   weave-net-8lb9v              2/2       Running   3          3d        192.168.10.52   k2
+
+# como obter o nome de todos os namespaces.
+#
+$ sudo kubectl get namespaces
+	NAME          STATUS    AGE
+	default       Active    4d
+	kube-public   Active    4d
+	kube-system   Active    4d
 
 # descricao dos nodes do kubernetes
 #
