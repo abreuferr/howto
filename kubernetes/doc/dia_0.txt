@@ -11,8 +11,6 @@
 
 # variavel de ambiente
 #
-# definir variavel de ambiente
-#
 $ cat /etc/environment
 	LC_ALL=en_US.UTF-8
 	LANG=en_US.UTF-8
@@ -30,10 +28,6 @@ $ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
 $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
 $ sudo apt-get update
 $ sudo apt-get install docker-ce -y -d
-#
-# ou
-#
-$ sudo curl -fsSL https://get.docker.com/ | sh
 
 # instalar o kubernetes nos tres hosts
 #
@@ -110,3 +104,85 @@ $ sudo kubectl get namespaces
 # descricao dos nodes do kubernetes
 #
 $ sudo kubectl describe node <NODE_NAME>
+
+# INFORMACAO
+
+# primeiro exemplo da utilizacao do kubernetes com um container
+# nesse exemplo sera utilizado o nginx
+#
+# kubectl run <NOME_POD> --image <IMAGEM_NOME>
+#
+$ sudo kubectl run nginx --image nginx
+	deployment.apps/nginx created
+
+# comando utilizado para visualizar os deployments que foram
+# criados.
+#
+$ sudo kubectl get deployment
+	NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+	nginx     1         1         1            1           1m
+
+# comando utilizado para visualizar os pods que foram criados
+#
+$ sudo kubectl get pods
+	NAME                     READY     STATUS    RESTARTS   AGE
+	nginx-64f497f8fd-tm7k8   1/1       Running   0          2m
+
+# comando utilizado para obter mais informacoes sobre um determinado pod.
+#
+$ sudo kubectl describe pod nginx-64f497f8fd-tm7k8
+
+# comando utilizado para obter mais informacoes sobre os deployments
+#
+$ sudo kubectl describe deployment  nginx
+
+# YAML
+
+# informacao no formato yaml
+#
+$ sudo kubectl get pod nginx-64f497f8fd-tm7k8 -o yaml
+
+# criando um deployment atraves de um arquivo yalm e nao mais
+# de forma manual.
+#
+$ sudo kubectl create -f meu_primeiro_deployment.yaml
+	deployment.extensions/meu-primeiro.yalm created
+
+# exibir os deployments que estao ativos
+#
+$ sudo kubectl get deployment
+	NAME                DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+	meu-primeiro.yalm   1         1         1            1           34s
+	nginx               1         1         1            1           1h
+
+# apagando um deployment
+#
+$ sudo kubectl delete deployment nginx
+	deployment.extensions "nginx" deleted
+
+# apagando um deployment atraves do arquivos que foi utilizado para cria-lo
+#
+$ sudo kubectl delete -f meu_primeiro_deployment.yaml
+	deployment.extensions "meu-primeiro.yalm" deleted
+
+# segundo yaml com alguma alteracoes, porta
+#
+$ sudo kubectl create -f meu_segundo_deployment.yaml
+	deployment.extensions/meu-segundo-yalm created
+
+# exportar esse segundo deployment
+#
+$ sudo kubectl expose deployment meu-segundo-yalm
+service/meu-segundo-yalm exposed
+
+# exibir os servicos ativos
+#
+$ sudo kubectl get services
+	NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+	meu-segundo-yalm   ClusterIP   10.104.100.138   <none>        80/TCP    1m
+
+# obtendo informacoes sobre os end point ativos
+#
+$ sudo kubectl get ep
+	NAME               ENDPOINTS                                AGE
+	meu-segundo-yalm   10.36.0.1:80,10.44.0.1:80,10.44.0.2:80   3m
