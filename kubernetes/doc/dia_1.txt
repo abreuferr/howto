@@ -34,19 +34,14 @@ $ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc
 $ sudo apt-get update
 $ sudo apt-get install kubelet kubeadm kubectl -y -d
 
-# ATIVACAO
+# INICIALIZACAO
 #
-# ativando o kubernetes no master
+# inicalizando o cluster kubernetes no master
 #
 $ sudo kubeadm init
 $ mkdir -p $HOME/.kube
 $ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-# AUTOCOMPLETION
-#
-$ sudo apt-get install bash-completion
-$ echo "source <(kubectl completion bash)" >> ~/.bashrc
 
 # PODNETWORK
 #
@@ -60,11 +55,13 @@ $ echo "source <(kubectl completion bash)" >> ~/.bashrc
 #
 $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
-# adicionando os nodes no cluster do kubernetes
+# ADICIONAR NODES
+#
+# adicionando os nodes no cluster kubernetes
 #
 # o comando abaixo deve ser executado em todos os
-# nos do kubernetes. O comando tem por objetivo o
-# de adicionar o no no kubernetes
+# nodes do kubernetes. O comando tem por objetivo o
+# de adicionar os nodes no cluster kubernetes.
 # 
 $ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
 
@@ -78,17 +75,22 @@ $ sudo kubeadm token create --print-join-command
 #
 $ sudo kubectl get nodes
 
+# NAMESPACES
+#
 # comando utilizado para exibir todos os namespaces
 # que estao presentes no kubernetes e em quais hosts
 # do kubernetes eles estao localizados.
 #
-# o comando abaixo eira mostrar todos os namespaces 
+# o comando abaixo ira mostrar todos os namespaces 
 # e seus componentes se por acaso for necessario 
 # criar um filtro para um determinado namespace, 
 # basta alterar o parametro "--all-namespaces" 
 # pelo parametro "-n NAMESPACE"
 #
-$ sudo kubectl get pod -o wide --all-namespaces
+# a opcao "-o wide" ira exibir em quais nodes do
+# cluster esse namespace esta sendo executado.
+#
+$ sudo kubectl get pod --all-namespaces -o wide
 	NAMESPACE     NAME                         READY     STATUS    RESTARTS   AGE       IP              NODE
 	kube-system   coredns-78fcdf6894-9m9hn     1/1       Running   1          3d        10.32.0.4       k0
 	kube-system   coredns-78fcdf6894-hdgdr     1/1       Running   1          3d        10.32.0.5       k0
