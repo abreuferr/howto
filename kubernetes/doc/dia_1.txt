@@ -3,11 +3,117 @@
 #: Description : Descomplicando o Kubernetes - treinamento jeferson fernando noronha 
 #: Options : None
 
-# topologia
+# TOPOLOGIA
 #
 # k0 - master - 192.168.10.50
 # k1 - no1 - 192.168.10.51
 # k2 - no2 - 192.168.2.52
+
+# SWAP
+#
+# desativar o swap nos tres hosts
+#
+$ sudo swapoff -a
+$ sudo vi /etc/fstab
+	comentar a linha referente ao swap
+
+# INSTALCAO
+#
+# instalar o docker nos tres hosts
+#
+$ sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y -d
+$ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+$ sudo apt-get update
+$ sudo apt-get install docker-ce -y -d
+
+# instalar o kubernetes nos tres hosts
+#
+$ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+$ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+$ sudo apt-get update
+$ sudo apt-get install kubelet kubeadm kubectl -y -d
+
+# ATIVACAO
+#
+# ativando o kubernetes no master
+#
+$ sudo kubeadm init
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+# AUTOCOMPLETION
+#
+$ sudo apt-get install bash-completion
+$ echo "source <(kubectl completion bash)" >> ~/.bashrc
+
+# PODNETWORK
+#
+# criacao do podnetwork
+#
+# weave net eh um networking toolkit. essa ferramenta cria 
+# uma rede virtual que tem por objetivo o de conectar os 
+# multiplos containers que estao localizados nos nodes do 
+# kubernetes. Alem de conectar os containers, essa 
+# ferramenta permite que os mesmos sejam descobertos.
+#
+$ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+# adicionando os nodes no cluster do kubernetes
+#
+# o comando abaixo deve ser executado em todos os
+# nos do kubernetes. O comando tem por objetivo o
+# de adicionar o no no kubernetes
+# 
+$ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
+
+# comando utilizado para exibir a linha de comando
+# utilizada para adicionar um no no kubernetes.
+#
+$ sudo kubeadm token create --print-join-command
+
+# exibir quais sao os integrantes do cluster do 
+# kubernetes
+#
+$ sudo kubectl get nodes
+
+# comando utilizado para exibir todos os namespaces
+# que estao presentes no kubernetes e em quais hosts
+# do kubernetes eles estao localizados.
+#
+# o comando abaixo eira mostrar todos os namespaces 
+# e seus componentes se por acaso for necessario 
+# criar um filtro para um determinado namespace, 
+# basta alterar o parametro "--all-namespaces" 
+# pelo parametro "-n NAMESPACE"
+#
+$ sudo kubectl get pod -o wide --all-namespaces
+	NAMESPACE     NAME                         READY     STATUS    RESTARTS   AGE       IP              NODE
+	kube-system   coredns-78fcdf6894-9m9hn     1/1       Running   1          3d        10.32.0.4       k0
+	kube-system   coredns-78fcdf6894-hdgdr     1/1       Running   1          3d        10.32.0.5       k0
+	kube-system   etcd-k0                      1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-apiserver-k0            1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-controller-manager-k0   1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-proxy-7hpvh             1/1       Running   1          3d        192.168.10.52   k2
+	kube-system   kube-proxy-87n8w             1/1       Running   1          3d        192.168.10.51   k1
+	kube-system   kube-proxy-h25bg             1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   kube-scheduler-k0            1/1       Running   1          3d        192.168.10.50   k0
+	kube-system   weave-net-276cf              2/2       Running   3          3d        192.168.10.50   k0
+	kube-system   weave-net-7zmwj              2/2       Running   3          3d        192.168.10.51   k1
+	kube-system   weave-net-8lb9v              2/2       Running   3          3d        192.168.10.52   k2
+
+# como obter o nome de todos os namespaces.
+#
+$ sudo kubectl get namespaces
+	NAME          STATUS    AGE
+	default       Active    4d
+	kube-public   Active    4d
+	kube-system   Active    4d
+
+# descricao dos nodes do kubernetes
+#
+$ sudo kubectl describe node <NODE_NAME>
 
 # INFORMACAO
 
