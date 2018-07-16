@@ -3,90 +3,109 @@
 #: Description : Descomplicando o Kubernetes - treinamento jeferson fernando noronha 
 #: Options : None
 
-# topologia
+# TOPOLOGIA
 #
 # k0 - master - 192.168.10.50
 # k1 - no1 - 192.168.10.51
 # k2 - no2 - 192.168.2.52
 
-# INFORMACAO
+##
+# SERVICE
+##
 
-# primeiro exemplo da utilizacao do kubernetes com um container
-# nesse exemplo sera utilizado o nginx
+# CRIACAO
 #
-# kubectl run <NOME_POD> --image <IMAGEM_NOME>
-#
-$ sudo kubectl run nginx --image nginx
-	deployment.apps/nginx created
+$ sudo kubectl create -f [FILE.YAML]
 
-# comando utilizado para visualizar os deployments que foram
-# criados.
+# EXIBIR
 #
-$ sudo kubectl get deployment
-	NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-	nginx     1         1         1            1           1m
+$ sudo kubectl get service
 
-# comando utilizado para visualizar os pods que foram criados
+# DESCRICAO
 #
-$ sudo kubectl get pods
-	NAME                     READY     STATUS    RESTARTS   AGE
-	nginx-64f497f8fd-tm7k8   1/1       Running   0          2m
+$ sudo kubectl describe service [SERVICE_NAME]
 
-# comando utilizado para obter mais informacoes sobre um determinado pod.
+# APAGAR
 #
-$ sudo kubectl describe pod nginx-64f497f8fd-tm7k8
+$ sudo kubectl delete service [SERVICE_NAME]
+$ sudo kubectl delete -f [FILE.YAML]
 
-# comando utilizado para obter mais informacoes sobre os deployments
+##
+# ENDPOINT
+##
+
+# DESCRICAO
 #
-$ sudo kubectl describe deployment  nginx
+$ sudo kubectl describe [SERVICE_NAME]
+$ sudo kubectl describe [SERVICE_NAME] -o yaml
 
-# YAML
+##
+# CONTAINER
+##
 
-# informacao no formato yaml
+# ACESSAR O CONTAINET
 #
-$ sudo kubectl get pod nginx-64f497f8fd-tm7k8 -o yaml
+$ sudo kubectl exec -ti [POD_NAME] -- /bin/bash
 
-# criando um deployment atraves de um arquivo yalm e nao mais
-# de forma manual.
-#
-$ sudo kubectl create -f meu_primeiro_deployment.yaml
-	deployment.extensions/meu-primeiro.yalm created
+##
+# NAMESPACES
+##
 
-# exibir os deployments que estao ativos
+# CRIACAO
 #
-$ sudo kubectl get deployment
-	NAME                DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-	meu-primeiro.yalm   1         1         1            1           34s
-	nginx               1         1         1            1           1h
+$ sudo kubectl create namespace [NAMESPACE_NAME]
+$ sudo kubectl create -f [FILE.YAML] -n [NAMESPACE_NAME]
 
-# apagando um deployment
+# DESCRICAO
 #
-$ sudo kubectl delete deployment nginx
-	deployment.extensions "nginx" deleted
+$ sudo kubectl describe namespace [NAMESPACE_NAME]
+$ sudo kubectl describe limitranges [NAMESPACE_NAME] -n [NAMESPACE_NAME]
 
-# apagando um deployment atraves do arquivos que foi utilizado para cria-lo
+# EXIBIR
 #
-$ sudo kubectl delete -f meu_primeiro_deployment.yaml
-	deployment.extensions "meu-primeiro.yalm" deleted
+$ sudo kubectl get limitranges -n [NAMESPACE_NAME]
+$ sudo kubectl get --all-namespaces
 
-# segundo yaml com alguma alteracoes, porta
-#
-$ sudo kubectl create -f meu_segundo_deployment.yaml
-	deployment.extensions/meu-segundo-yalm created
+##
+# POD
+##
 
-# exportar esse segundo deployment
+# CRIACAO
 #
-$ sudo kubectl expose deployment meu-segundo-yalm
-service/meu-segundo-yalm exposed
+$ sudo kubectl create -f [FILE.YAML] -n [NAMESPACE_NAME]
 
-# exibir os servicos ativos
+# EXIBIR
 #
-$ sudo kubectl get services
-	NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-	meu-segundo-yalm   ClusterIP   10.104.100.138   <none>        80/TCP    1m
+$ sudo kubectl get pods -o wide
+$ sudo kubectl get pods -o wide -n [NAMESPACE_NAME]
 
-# obtendo informacoes sobre os end point ativos
+# DESCRICAO
 #
-$ sudo kubectl get ep
-	NAME               ENDPOINTS                                AGE
-	meu-segundo-yalm   10.36.0.1:80,10.44.0.1:80,10.44.0.2:80   3m
+$ sudo kubectl describe pod [POD_NAME] -n [NAMESPACE_NAME]
+
+# APAGAR
+#
+$ kubectl delete pod [POD_NAME]
+$ kubectl delete pod [POD_NAME] -n [NAMESPACE_NAME]
+
+##
+# TAINT (MANUTENCAO)
+##
+
+# DESCRICAO
+#
+$ kubectl describe nodes [NODE_NAME]
+
+# ADICIONAR
+#
+$ sudo kubectl taint node [NODE_NAME] key1=value:NoSchedule
+$ sudo kubectl taint node --all key1=value:NoSchedule
+
+# REMOVER
+#
+$ sudo kubectl taint node [NODE_NAME] key1:NoSchedule-
+
+# MATAR
+#
+$ sudo kubectl taint node [NODE_NAME] key1=value:NoExecute
+$ sudo kubectl taint node --all key1=value:NoExecute

@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     run: nginx
-  name: nginx-loadbalance
+  name: nginx-loadbalancer
   namespace: default
 spec:
   externalTrafficPolicy: Cluster
@@ -15,4 +15,4 @@ spec:
   selector:
     run: nginx
   sessionAffinity: None
-  type: LoadBalance
+  type: LoadBalancer
