@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     run: nginx
-  name: meu-primeiro_yalm
+  name: meu-primeiro-deployment
   namespace: default
 spec:
   progressDeadlineSeconds: 600

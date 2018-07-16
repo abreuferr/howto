@@ -3,23 +3,26 @@
 #: Description : Descomplicando o Kubernetes - treinamento jeferson fernando noronha 
 #: Options : None
 
+#
 # TOPOLOGIA
 #
 # k0 - master - 192.168.10.50
 # k1 - no1 - 192.168.10.51
 # k2 - no2 - 192.168.2.52
 
-# SWAP
 #
-# desativar o swap nos tres hosts
+# SWAP (todos os hosts do cluster)
 #
 $ sudo swapoff -a
 $ sudo vi /etc/fstab
 	comentar a linha referente ao swap
 
-# INSTALCAO
-#
-# instalar o docker nos tres hosts
+##
+# INSTALACAO
+##
+
+# 
+# DOCKER (todos os hosts do cluster)
 #
 $ sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y -d
 $ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -27,42 +30,36 @@ $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/de
 $ sudo apt-get update
 $ sudo apt-get install docker-ce -y -d
 
-# instalar o kubernetes nos tres hosts
+#
+# KUBERNETES (todos os hosts do cluster)
 #
 $ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 $ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
 $ sudo apt-get update
 $ sudo apt-get install kubelet kubeadm kubectl -y -d
 
-# INICIALIZACAO
 #
-# inicalizando o cluster kubernetes no master
+# INICIALIZACAO (master)
 #
 $ sudo kubeadm init
 $ mkdir -p $HOME/.kube
 $ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
+##
 # PODNETWORK
-#
-# criacao do podnetwork
-#
-# weave net eh um networking toolkit. essa ferramenta cria 
-# uma rede virtual que tem por objetivo o de conectar os 
-# multiplos containers que estao localizados nos nodes do 
-# kubernetes. Alem de conectar os containers, essa 
-# ferramenta permite que os mesmos sejam descobertos.
+##
+
+# CRIAR
 #
 $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 
-# ADICIONAR NODES
+##
+# NODES
+##
+
+# ADICIONAR
 #
-# adicionando os nodes no cluster kubernetes
-#
-# o comando abaixo deve ser executado em todos os
-# nodes do kubernetes. O comando tem por objetivo o
-# de adicionar os nodes no cluster kubernetes.
-# 
 $ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discovery-token-ca-cert-hash sha256:092882b60b53b1381b71ba156292f30b5ab9c4636cc55327bb7731dcf5780304
 
 # comando utilizado para exibir a linha de comando
@@ -70,131 +67,86 @@ $ sudo kubeadm join 192.168.10.50:6443 --token ffu2hd.iz683v47xmbuc0tc --discove
 #
 $ sudo kubeadm token create --print-join-command
 
-# exibir quais sao os integrantes do cluster do 
-# kubernetes
+# EXIBIR
 #
 $ sudo kubectl get nodes
+$ sudo kubectl get nodes -o wide
 
-# NAMESPACES
+# DESCRICAO
 #
-# comando utilizado para exibir todos os namespaces
-# que estao presentes no kubernetes e em quais hosts
-# do kubernetes eles estao localizados.
-#
-# o comando abaixo ira mostrar todos os namespaces 
-# e seus componentes se por acaso for necessario 
-# criar um filtro para um determinado namespace, 
-# basta alterar o parametro "--all-namespaces" 
-# pelo parametro "-n NAMESPACE"
-#
-# a opcao "-o wide" ira exibir em quais nodes do
-# cluster esse namespace esta sendo executado.
-#
-$ sudo kubectl get pod --all-namespaces -o wide
-	NAMESPACE     NAME                         READY     STATUS    RESTARTS   AGE       IP              NODE
-	kube-system   coredns-78fcdf6894-9m9hn     1/1       Running   1          3d        10.32.0.4       k0
-	kube-system   coredns-78fcdf6894-hdgdr     1/1       Running   1          3d        10.32.0.5       k0
-	kube-system   etcd-k0                      1/1       Running   1          3d        192.168.10.50   k0
-	kube-system   kube-apiserver-k0            1/1       Running   1          3d        192.168.10.50   k0
-	kube-system   kube-controller-manager-k0   1/1       Running   1          3d        192.168.10.50   k0
-	kube-system   kube-proxy-7hpvh             1/1       Running   1          3d        192.168.10.52   k2
-	kube-system   kube-proxy-87n8w             1/1       Running   1          3d        192.168.10.51   k1
-	kube-system   kube-proxy-h25bg             1/1       Running   1          3d        192.168.10.50   k0
-	kube-system   kube-scheduler-k0            1/1       Running   1          3d        192.168.10.50   k0
-	kube-system   weave-net-276cf              2/2       Running   3          3d        192.168.10.50   k0
-	kube-system   weave-net-7zmwj              2/2       Running   3          3d        192.168.10.51   k1
-	kube-system   weave-net-8lb9v              2/2       Running   3          3d        192.168.10.52   k2
+$ sudo kubectl describe [NODE_NAME]
 
-# como obter o nome de todos os namespaces.
-#
-$ sudo kubectl get namespaces
-	NAME          STATUS    AGE
-	default       Active    4d
-	kube-public   Active    4d
-	kube-system   Active    4d
+##
+# PODS
+##
 
-# descricao dos nodes do kubernetes
-#
-$ sudo kubectl describe node <NODE_NAME>
-
-# INFORMACAO
-
-# primeiro exemplo da utilizacao do kubernetes com um container
-# nesse exemplo sera utilizado o nginx
-#
-# kubectl run <NOME_POD> --image <IMAGEM_NOME>
-#
-$ sudo kubectl run nginx --image nginx
-	deployment.apps/nginx created
-
-# comando utilizado para visualizar os deployments que foram
-# criados.
-#
-$ sudo kubectl get deployment
-	NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-	nginx     1         1         1            1           1m
-
-# comando utilizado para visualizar os pods que foram criados
+# EXIBIR
 #
 $ sudo kubectl get pods
-	NAME                     READY     STATUS    RESTARTS   AGE
-	nginx-64f497f8fd-tm7k8   1/1       Running   0          2m
+$ sudo kubectl get pods -o wide
+$ sudo kubectl get pods -o wide --all-namespaces
+$ sudo kubectl get pods -o wide -n [NAMESPACE_NAME]
+$ sudo kubectl get pods [POD_NAME] -o yaml
 
-# comando utilizado para obter mais informacoes sobre um determinado pod.
+# DESCRICAO
 #
-$ sudo kubectl describe pod nginx-64f497f8fd-tm7k8
+$ sudo kubectl describe pods [POD]
+$ sudo kubectl describe pods -n [NAMESPACE_NAME]
 
-# comando utilizado para obter mais informacoes sobre os deployments
+##
+# NAMESPACES
+##
+
+# EXIBIR
 #
-$ sudo kubectl describe deployment  nginx
+$ sudo kubectl get namespaces
+$ sudo kubectl get pod --all-namespaces -o wide
 
-# YAML
-
-# informacao no formato yaml
+# DESCRICAO
 #
-$ sudo kubectl get pod nginx-64f497f8fd-tm7k8 -o yaml
+$ sudo kubectl describe namespaces [NAMESPACE_NAME]
 
-# criando um deployment atraves de um arquivo yalm e nao mais
-# de forma manual.
-#
-$ sudo kubectl create -f meu_primeiro_deployment.yaml
-	deployment.extensions/meu-primeiro.yalm created
+##
+# DEPLOYMENT
+##
 
-# exibir os deployments que estao ativos
+# CRIACAO
 #
-$ sudo kubectl get deployment
-	NAME                DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-	meu-primeiro.yalm   1         1         1            1           34s
-	nginx               1         1         1            1           1h
+$ sudo kubectl run [DEPLOYMENT_NAME] --image [IMAGEM_NAME]
+$ sudo kubectl create -f [FILE.YAML]
 
-# apagando um deployment
+# EXIBIR
 #
-$ sudo kubectl delete deployment nginx
-	deployment.extensions "nginx" deleted
+$ sudo kubectl get deployment [DEPLOYMENT_NAME]
+$ sudo kubectl get deployment [DEPLOYMENT_NAME] -o yaml
+$ sudo kubectl get deployment [DEPLOYMENT_NAME] -o yaml >> [FILE.YAML]
 
-# apagando um deployment atraves do arquivos que foi utilizado para cria-lo
+# DESCRICAO
 #
-$ sudo kubectl delete -f meu_primeiro_deployment.yaml
-	deployment.extensions "meu-primeiro.yalm" deleted
+$ sudo kubectl describe deployment [DEPLOYMENT_NAME]
 
-# segundo yaml com alguma alteracoes, porta
+# EXPOSE
 #
-$ sudo kubectl create -f meu_segundo_deployment.yaml
-	deployment.extensions/meu-segundo-yalm created
+$ sudo kubectl expose deployment [DEPLOYMENT_NAME]
 
-# exportar esse segundo deployment
+# APAGAR
 #
-$ sudo kubectl expose deployment meu-segundo-yalm
-service/meu-segundo-yalm exposed
+$ sudo kubectl delete deployment [DEPLOYMENT_NAME]
+$ sudo kubectl delete -f [FILE.YAML]
 
-# exibir os servicos ativos
-#
-$ sudo kubectl get services
-	NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-	meu-segundo-yalm   ClusterIP   10.104.100.138   <none>        80/TCP    1m
+##
+# SERVICE
+##
 
-# obtendo informacoes sobre os end point ativos
+# EXIBIR
 #
-$ sudo kubectl get ep
-	NAME               ENDPOINTS                                AGE
-	meu-segundo-yalm   10.36.0.1:80,10.44.0.1:80,10.44.0.2:80   3m
+$ sudo kubectl get service
+$ sudo kubectl get [SERVICE]
+
+##
+# ENDPOINT
+##
+
+# EXIBIR
+#
+$ sudo jubectl get endpoints
