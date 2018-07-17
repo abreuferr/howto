@@ -4,7 +4,7 @@ metadata:
   labels:
     run: nginx
     app: appName
-  name: segundo-deployment
+  name: quinto-deployment
   namespace: default
 spec:
   replicas: 1
@@ -32,3 +32,8 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 20%
+      maxUnavailable: 50%

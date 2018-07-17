@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     run: nginx
-  name: meu-primeiro-deployment
+  name: primeiro-deployment
   namespace: default
 spec:
   progressDeadlineSeconds: 600
