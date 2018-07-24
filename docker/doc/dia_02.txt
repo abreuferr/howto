@@ -7,3 +7,19 @@
 # VOLUME
 ##
 
+# CRIAR UM VOLUME
+#
+$ docker volume create [VOLUME_NAME] ; criar um volume
+
+# VIZUALIZAR O VOLUME
+#
+$ docker volume ls ; listar os volumes
+
+# APAGAR VOLUME
+#
+$ docker volume rm [VOLUME_NAME] ; apagar um volume
+$ docker volume rm -f [VOLUME_NAME] ; forcar a remocao do volume
+
+# ANEXAR VOLUME
+#
+$ docker container run -v [VOLUME_NAME] --name [CONTAINER_NAME] [IMAGE_NAME] ; anexar o container ao volume criado anteriormente. Diretorio do host /var/lib/docker/volumes/[VOLUME_NAME]
