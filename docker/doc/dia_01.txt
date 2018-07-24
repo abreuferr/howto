@@ -1,0 +1,109 @@
+#: Title : Dia 01
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : treinamento do dia 01
+#: Options : distribuicao utilizada - gnu/linux debian
+
+# INSTALACAO 01 (AUTOMATICA)
+#
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install curl
+$ sudo curl -sSL https://get.docker.com/ | sh
+$ sudo usermod -aG docker [USUARIO]
+
+# INSTALACAO 02 (MANUAL)
+#
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
+$ curl -fsSL "https://download.docker.com/linux/debian/gpg" | sudo apt-key add -qq
+$ sudo echo "deb [arch=amd64] https://download.docker.com/linux/debian stretch edge" > /etc/apt/sources.list.d/docker.list
+$ sudo apt-get update
+$ sudo apt install docker-ce
+$ sudo usermod -aG docker [USUARIO]
+
+##
+# GERAL
+##
+
+$ docker [OPCAO] [COMANDO] [ARGUMENTO]
+$ docker --help
+$ docker [SUB-COMANDO] --help
+
+##
+# IMAGEM
+##
+
+$ docker images ; exibir as imagens que estao armazenados no computador
+
+$ docker search [IMAGE] ; procura por uma imagem
+
+$ docker pull [IMAGE_NAME] ; somente faz o download da imagem
+
+$ docker image ; listagem das imagens que estao armazenadas no computador
+$ docker image ls ; listagem das imagens que estao armazenadas no computador
+
+$ docker image inspect [IMAGE_NAME] ; informacao sobre a imagem
+
+$ docker image rm [IMAGE_NAME] ; apagar uma imagem
+
+##
+# CONTAINER
+##
+
+$ docker run [IMAGE_NAME] ; download de uma imagem e criacao de um container
+
+$ docker container create -it [IMAGE_NAME] --name [CONTAINER_NAME] ; download da imagem e criacao do container
+
+$ docekr contaienr run -it [CONTAINER_NAME] ; executar o container e acessar o container
+$ docker container run -it --name [CONTAINER_NAME] -d [IMAGE_NAME] ; executar o container
+
+$ Ctrl+p + Ctrl + q ; sair sem finalizar o container
+
+$ docker container attach [CONTAINER_ID]
+
+$ docker container rename [CONTAINER_NAME_OLD] [CONTAINER_NAME_NEW] ; renomear o container
+
+$ docker container ps ; visualizar os containers que estao ativos
+$ docker container ps -a ; visualizar os containers que estao ativos e inativos
+
+$ docker container start [CONTAINER_ID] ; inicializar o container
+$ docker container ps
+
+$ docker container pause [CONTAINER_ID] ; pausar a execucao do container
+
+$ docker containet unpause [CONTAINER_ID] ; despausar a execucao do container
+
+$ docker contaienr stop [CONTAINER_ID] ; finalizar o container
+$ docker container stop $(docker ps -a -q) ; parar todos os containers
+$ docker container ps
+
+$ docker container rm [CONTAINER_ID] ; apagar o container
+$ docker container rm -f [CONTAINER_ID] ; apaga o container de forma forcada
+$ docker container rm $(docker ps -a -q) ; apagar todos os containers
+$ docker container ps
+
+$ docker container stats ; estatistica dos containers em execucao
+
+$ docker container inspect [CONTAINER_ID] ; informacoes sobre o container em execucao
+
+$ docker container run -ti --memory [QTDADEm] --name [CONTAINER_NAME] [IMAGE_NAME] ; limitar a quantidade de memoria de um container
+$ docker container update --memory [QTDADEm] [CONTAINER_ID] ; atualizacao da configuracao de um container em execucao em relacao a cpu
+
+$ docker container run -ti --cpus=[QTDADE] --name [CONTAINER_NAME] [IMAGE_NAME] ; limitar a quantidade de cpu de um container
+$ docker container update --cpus=[QTDADE] [CONTAINER_ID] ; atualizacao da configuracao de um container em execucao em relacao a cpu
+
+# CUSTOMIZACAO NA CRIACAO DO CONTAINER
+#
+$ docker run -it [IMAGE_NAME]
+root@[CONTAINER_ID]:/# [COMANDOS DENTRO DO CONTAINER]
+root@[CONTAINER_ID]:/# exit
+$ docker container commit -m "[TEXTO]" -a "[USERNAME]" [CONTAINDER_ID] [USERNAME]/[CONTAINER_NAME] ; enviar a imagem customizada BASEADA em um container para o Docker Hub
+
+##
+# DOCKER HUB
+##
+
+$ docker login -u [USERNAME] ; fazer o login no DockerHub
+
+$ docker push [USERNAME]/[IMAGE_NAME] ; fazer o upload da imagem para o DockerHub
