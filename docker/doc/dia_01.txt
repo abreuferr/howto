@@ -104,6 +104,6 @@ $ docker container commit -m "[TEXTO]" -a "[USERNAME]" [CONTAINDER_ID] [USERNAME
 # DOCKER HUB
 ##
 
-$ docker login -u [USERNAME] ; fazer o login no DockerHub
+$ docker login -u [USERNAME] ; fazer o login no Docker Hub
 
-$ docker push [USERNAME]/[IMAGE_NAME] ; fazer o upload da imagem para o DockerHub
+$ docker push [USERNAME]/[IMAGE_NAME] ; fazer o upload da imagem para o Docker Hub
