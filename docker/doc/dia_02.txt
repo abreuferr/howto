@@ -1,0 +1,9 @@
+#: Title : Dia 02
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : treinamento do dia 02
+#: Options : distribuicao utilizada - gnu/linux debian
+
+##
+# VOLUME
+##
+

@@ -3,6 +3,10 @@
 #: Description : treinamento do dia 01
 #: Options : distribuicao utilizada - gnu/linux debian
 
+##
+# INSTALACAO
+##
+
 # INSTALACAO 01 (AUTOMATICA)
 #
 $ sudo apt-get update
