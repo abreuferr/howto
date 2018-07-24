@@ -118,3 +118,16 @@ $ docker container update --memory [QTDADEm] [CONTAINER_ID] ; atualizacao da con
 #
 $ docker container run -ti --cpus=[QTDADE] --name [CONTAINER_NAME] [IMAGE_NAME] ; limitar a quantidade de cpu de um container
 $ docker container update --cpus=[QTDADE] [CONTAINER_ID] ; atualizacao da configuracao de um container em execucao em relacao a cpu
+
+##
+# DOCKER HUB
+##
+
+# LOGIN
+#
+$ docker login -u [USERNAME_DOCKERHUB] ; login no dockerhub
+$ docker image pull [IMAGE_NAME] ; fazer o download de uma imagem
+$ docker container run -ti [CONTAINER_NAME] [IMAGE_NAME] ; criar um container baseado em uma imagem e faco qualquer tipo de alteracao no container
+EXIT ; sair do container
+$ docker commit -m "[COMENTARIO]" -a "[AUTOR]" [IMAGE_NAME] [USUARIO_DOCKERHUB]/[IMAGE_NAME]:[VERSAO] ; comentar o container
+$ docker push [USUARIO_DOCKERHUB]/[IMAGE_NAME]:[VERSAO] ; enviar a imagem para o DockerHub
