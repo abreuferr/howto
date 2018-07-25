@@ -40,3 +40,8 @@ $ docekr container run -ti -v -v /[HOST_DIR_NAME]:/[CONTAINER_DIR_NAME] --name [
 # - container - [CONTAINER_DIR_NAME]
 #
 $ docker container run -v [HOST_VOLUME_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
+
+# ANEXAR VOLUME E COMPARTILHAR VOLUME DE UM CONTAINER COM OUTRO CONTAINER- 04
+#
+$ docker container run -ti -v [HOST_VOLUME_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER1_NAME] [IMAGE_NAME]
+$ docker container run -ti --volumes-from [CONTAINER1_NAME] --name [CONTAINER2_NAME] [IMAGE_NAME]
