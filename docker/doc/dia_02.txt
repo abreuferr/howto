@@ -7,19 +7,36 @@
 # VOLUME
 ##
 
-# CRIAR UM VOLUME
+# CRIAR UM VOLUME - CASO 3
 #
-$ docker volume create [VOLUME_NAME] ; criar um volume
+$ docker volume create [HOST_VOLUME_NAME] ; criar um volume
 
-# VIZUALIZAR O VOLUME
+# VIZUALIZAR O VOLUME - CASO 3
 #
 $ docker volume ls ; listar os volumes
 
-# APAGAR VOLUME
+# APAGAR VOLUME - CASO 3
 #
-$ docker volume rm [VOLUME_NAME] ; apagar um volume
-$ docker volume rm -f [VOLUME_NAME] ; forcar a remocao do volume
+$ docker volume rm [HOST_VOLUME_NAME] ; apagar um volume
+$ docker volume rm -f [HOST_VOLUME_NAME] ; forcar a remocao do volume
 
-# ANEXAR VOLUME
+# CRIAR UM CONTAINER COM UM VOLUME - 01
 #
-$ docker container run -v [VOLUME_NAME] --name [CONTAINER_NAME] [IMAGE_NAME] ; anexar o container ao volume criado anteriormente. Diretorio do host /var/lib/docker/volumes/[VOLUME_NAME]
+# - host - /var/lib/docker/volumes/[VOLUME_ID]/_data/
+# - container - /[VOLUME_NAME]
+#
+$ docker container run -ti -v [/DIR_VOLUME_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
+
+# CRIAR UM CONTAINER COM UM VOLUME - 02
+#
+# - host - [HOST_DIR_NAME]
+# - container - [CONTAINER_DIR_NAME]
+#
+$ docekr container run -ti -v -v /[HOST_DIR_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IAMGEM_NAME]
+
+# ANEXAR VOLUME - 03
+#
+# - host volume - [HOST_VOLUME_NAME]
+# - container - [CONTAINER_DIR_NAME]
+#
+$ docker container run -v [HOST_VOLUME_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
