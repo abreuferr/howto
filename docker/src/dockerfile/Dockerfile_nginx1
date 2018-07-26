@@ -9,10 +9,12 @@ FROM debian:latest
 MAINTAINER caio abreu ferreira - abreuferr@gmail.com
 
 # Atualizar o repositorio e atualizar a distribuicao
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && \
+    apt-get upgrade -y
 
 # Instalacao do nginx
-RUN apt-get install -y nginx -y &&  rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y nginx -y &&  \
+    rm -rf /var/lib/apt/lists/*
 
 # expor a porta 80 do container
 EXPOSE 80

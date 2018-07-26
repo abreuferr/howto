@@ -1,7 +1,3 @@
-# criacao - docker build -t [IMAGE-NAME]:[VERSAO] .
-#
-# execucao - docker container run -d -p [PORTA-HOST]:[PORTA-CONTAINER] --name [CONTAINER-NAME] [IMAGE-NAME]:[VERSAO]
-
 # imagem - ultima versao estavel do debian
 FROM debian:latest
 
@@ -9,10 +5,16 @@ FROM debian:latest
 MAINTAINER caio abreu ferreira - abreuferr@gmail.com
 
 # Atualizar o repositorio e atualizar a distribuicao
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && \
+    apt-get upgrade -y
 
 # Instalacao do nginx
-RUN apt-get install -y nginx -y &&  rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y nginx -y &&  \
+    rm -rf /var/lib/apt/lists/*
+
+# copiar o arquivo index.html do host para a imagem
+RUN rm /usr/share/nginx/html/index.html
+COPY index.html /usr/share/nginx/html/
 
 # expor a porta 80 do container
 EXPOSE 80

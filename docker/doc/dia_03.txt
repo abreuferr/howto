@@ -1,6 +1,6 @@
-#: Title : Dockerfile
+#: Title : Dockerfile e DockerHub
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : treinamento do dia 03 - Dockerfile
+#: Description : treinamento do dia 03 - Dockerfile e DockerHub
 #: Options : distribuicao utilizada - gnu/linux debian
 
 ##
@@ -15,7 +15,8 @@
 # MAINTAINER - mantenedor da imagem
 # RUN - executa um comando durante a criacao da imagem
 # CMD - executa um comando durante a execucao da imagem
-# ADD - comando utilizado para copiar arquivo(s) do host para a nova imagem
+# ADD -  copia novos arquivos, diretorios ou arquivos remotos da <origem> para o <destino> na imagem
+# COPY -  copia novos arquivos diretorios da <origem> para o <destino> no container
 # ENV - define uma variavel de ambiente
 # ENTRYPOINT - permite executar um comando ou executavel enquanto o container estiver em execucao
 # WORKDIR - responsavel por mudar do diretorio / (raiz) para o especificado nele
@@ -30,4 +31,14 @@
 # ler do dockerfile com outro nome.
 #
 
-$ docker build -t [IMAGE_NAME]:[VERSAO] .
+$ docker build -t [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO.X] .
+$ docker image ls
+
+###
+# DOCKERHUB
+###
+
+$ docker login -u [DOCKERHUB-USERNAME] ; login no dockerhub
+$ docker image push [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO] ; enviar a imagem para o dockerhub
+$ docker container run -d -p 80:80 abreuferr/exemploX:1.0 ; fazer o download do dockerhub
+$ docker image pull [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO] ; fazer o download da imagem no dockerhub
