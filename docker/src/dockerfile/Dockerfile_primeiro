@@ -1,0 +1,17 @@
+############################################################
+# Dockerfile que ira atualizar a imagem do Debian
+#
+# Baseado na imagem Debian Stretch
+#############################################################
+
+# imagem padrao
+FROM debian:stretch
+
+# mantenedor do Dockerfile
+MAINTAINER caio abreu ferreira - abreuferr@gmail.com
+
+# Exibir mensadem de atualicao do debian
+CMD "echo" "Atualizando o GNU/Linux Debian"
+
+# Atualizar o repositorio e atualizar a distribuicao
+RUN apt-get update && apt-get upgrade && apt-get clean
