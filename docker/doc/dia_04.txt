@@ -14,7 +14,7 @@ $ curl -L https://github.com/docker/machine/releases/download/v0.13.0/docker-mac
 ###
 # COMANDO
 ###
-#
+
 $ docker-machine [OPCAO] COMANDO [ARGUMENTO]
 
 OPCAO
@@ -30,7 +30,7 @@ OPCAO
   --help, -h						show help
   --version, -v						print the version
   
-COAMNDO
+COMANDO
   active		Print which machine is active
   config		Print the connection config for machine
   create		Create a machine
@@ -53,82 +53,47 @@ COAMNDO
   url			Get the URL of a machine
   version		Show the Docker Machine version or a machine docker version
   help			Shows a list of commands or help for one command
+
+###
+# DOCKER MACHINE
+###
   
-# CRIACAO
-#
-$ docker-machine create --drive [DRIVER-NAME] [MACHINE-NAME]
-
-# EXIBIR
-#
+$ docker-machine create --drive [DRIVER-NAME] [MACHINE-NAME] ; criar os hosts
 $ docker-machine ls ; exibir os hosts
-
-# IP
-#
-$ docker-machine ip [MACHINE-NAME]
-
-# SSH
-#
-$ docker-machine ssh [MACHINE-NAME]
+$ docker-machine ip [MACHINE-NAME] ; exibir o ip dos nodes do swarm
+$ docker-machine ssh [MACHINE-NAME] ; acessar o node via ssh
 
 ###
-#
 # SWARM
-#
 ###
 
-# INICIALIZAR
-#
-$ docker-machine ssh [MACHINE-MANAGER]
-$ docker swarm init --advertise-addr [MANAGER-IP]
+$ docker swarm init --advertise-addr [MANAGER-IP] ; inicalizar o cluster swarm
+$ docker swarm join-token manager ; comando utilizado para exibir o comando utilizado para adicionar master no swarm
+$ docker swarm join-token worker ; comando utilizado para exibir o comando utilizado para adicionar worker no swarm
+$ docker swarm leave ; comando utilizado para remover o node do cluster swarm
 
-# LS
-#
-# dentro do manager
-#
-$ docker node ls ; comando utilizado para listar os nodes que estao no swarm
+###
+# NODE
+###
 
-# TOKEN
-#
-$ docker swarm join-token worker ; comando utilizado para exibir o token para adicionar os outros hosts no swarm
+$ docker node ls ; listar o nodes do cluster
+$ docker node ps ; listar as tarefas que estao sendo executadas nos nodes
+$ docker node rm [NODE-NAME]; 
+$ docker node inspect [NODE-NAME] ; obter informacao sobre um determinado node do cluster swarm
+$ docker node update [NODE-NAME] ; atualizar as configuracoes do node
+$ docker node --role worker [NODE-NAME] ; torna o node um worker
+$ docker node --role manager [NODE-NAME] ; torna o node um manager
+$ docker node update --availability drain [NODE-NAME] ; desativar determinado node do cluster swarm
+$ docker node update --availability active [NODE-NAME] ; ativar determinado node do cluster swarm
+$ docker node update --availability pause [NODE-NAME] ; pausar determinado node do cluster swarm
 
 ##
 # SERVICO
 ##
 
-# CRIACAO
-#
-$ docker service create --replicas [REPLICA-NUMBER] [.....] --name [SERVICE-NAME] [IMAGE-NAME]:[VERSION] ; criacao de um servico
-
-# LISTAR
-#
+$ docker service create [OPCAO]--replicas [REPLICA-NUMBER] --name [SERVICE-NAME] [IMAGE-NAME]:[VERSION] ; criacao de um servico
 $ docker service ls ; listar os servicos que estao ativos
-
-# INFORMACAO
-#
 $ docker service ps [SERVICE-NAME] ; obter informacao sobre o servico
-
-# SCALE
-#
-$ docker service scape [SERVICE-NAME]=[REPLICA-NUMBER] ; replicar o servico para N nodes do cluster swarm
-
-# INSPECT
-#
-$ docker node inspect [NODE-NAME] ; obter informacao sobre um determinado node do cluster swarm
-
-# DESATIVAR/ATIVAR/PAUSAR NODE
-#
-$ docker node update --availability drain [NODE-NAME] ; desativar determinado node do cluster swarm
-$ docker node update --availability active [NODE-NAME] ; ativar determinado node do cluster swarm
-$ docker node update --availability pause [NODE-NAME] ; pausar determinado node do cluster swarm
-
-# APAGAR
-#
-$ docker service rm [SERVICE-NAME] ; apagar um determinado servico
-
-###
-# ROLLING UPDATE
-###
-
-# APPLY
-#
+$ docker service scale [SERVICE-NAME]=[REPLICA-NUMBER] ; replicar o servico para N nodes do cluster swarm
 $ docker service update --image [IMAGE-NAME]:[VERSAO] [SERVICE-NAME] ; upgrade/downgrade de uma imagem em um servico
+$ docker service rm [SERVICE-NAME] ; apagar um determinado servico
