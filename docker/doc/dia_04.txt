@@ -1,6 +1,6 @@
-#: Title : Docker Machine
+#: Title : Docker Machine e Swarm
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : treinamento dia 04 - Doher Machine
+#: Description : treinamento dia 04 - Dcoker Machine e Swarm
 #: Options : distribuicao utilizada - gnu/linux debian
 
 ##
