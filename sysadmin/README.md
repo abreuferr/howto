@@ -1,0 +1,2 @@
+# sysadmin
+- tmux.conf
