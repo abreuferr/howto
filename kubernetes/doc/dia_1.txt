@@ -50,9 +50,13 @@ $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # PODNETWORK
 ##
 
-# CRIAR
+# CRIAR - WEAVE
 #
 $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+# CRIAR - CALICO
+#
+$ sudo kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
 
 ##
 # NODES
