@@ -25,7 +25,14 @@
 - Textos sobre o K8S
 
 # openstack
-- Textos sobre o sistema de cloud Openstack
+- 0_intro.txt - definicao dos componentes do Openstack
+- 1_install_host.txt - instalacao do Openstack
+- 2_network_host.txt - configuracao da interface de rede do host
+- 3_user.txt - criacao e gerenciamento de usuarios no Openstack
+- 4_project.txt - Projeto/Project inicial do Openstack
+- 5_network.txt - Network do Openstack
+- 6_vm.txt - Maquina Virtual no Openstack
+
 
 # sysadmin
 - btrfs.txt - estudo e implementacao do BTRFS
