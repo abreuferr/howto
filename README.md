@@ -19,10 +19,15 @@
 - volume.txt - estudo de volume no Docker
 
 # git
-- Textos sobre o gerenciador de versão Git
+- git.txt - introducao e conceitos basicos do Git
 
 # kubernetes
-- Textos sobre o K8S
+- dia_0.txt - teoria, componentes do k8s
+- dia_1.txt - instalacao/inicializacao/podnetwork/nodes/pods/namspaces/deployment/service
+- dia_2.txt - service/endpoint/container/namespaces/pod/taint
+- dia_3.txt - deployment/rollout/rollback/replicaset/pod/nodes/daemonset/
+- dia_4.txt - services/service account/deployment/endpoints/namespaces/config map/ingress
+- dia_5.txt - pod/nfs/persistent volume/persistent volume claim/cron/secret
 
 # openstack
 - 0_intro.txt - definicao dos componentes do Openstack
@@ -32,7 +37,6 @@
 - 4_project.txt - Projeto/Project inicial do Openstack
 - 5_network.txt - Network do Openstack
 - 6_vm.txt - Maquina Virtual no Openstack
-
 
 # sysadmin
 - btrfs.txt - estudo e implementacao do BTRFS
