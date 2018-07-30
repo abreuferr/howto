@@ -11,15 +11,15 @@
 #
 # comando do Dockerfile
 #
-# FROM - imagem base que sera utilizado para criar a nova imagem
-# MAINTAINER - mantenedor da imagem
-# RUN - executa um comando durante a criacao da imagem
-# CMD - executa um comando durante a execucao da imagem
+# FROM - imagem base que sera utilizado para criar a nova imagem ; FROM <image name>
+# MAINTAINER - mantenedor da imagem ; MAINTAINER <author name>
+# RUN - executa um comando durante a criacao da imagem ; RUN <command>
+# CMD - executa um comando durante a execucao da imagem ; CMD ["executable","param1","param2"]
 # ADD -  copia novos arquivos, diretorios ou arquivos remotos da <origem> para o <destino> na imagem
 # COPY -  copia novos arquivos diretorios da <origem> para o <destino> no container
 # ENV - define uma variavel de ambiente
-# ENTRYPOINT - permite executar um comando ou executavel enquanto o container estiver em execucao
-# WORKDIR - responsavel por mudar do diretorio / (raiz) para o especificado nele
+# ENTRYPOINT - permite executar um comando ou executavel enquanto o container estiver em execucao ; EXPOSE <port>
+# WORKDIR - responsavel por mudar do diretorio / (raiz) para o especificado nele - WORKDIR /path/to/workdir
 # USER - define o username ou UID que sera criado com a imagem, o padrao eh o usuario root
 # VOLUME - ativa o link/diretorio entre o container e o computador host
 # LABEL - adiciona metadados a imagem
@@ -42,3 +42,4 @@ $ docker login -u [DOCKERHUB-USERNAME] ; login no dockerhub
 $ docker image push [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO] ; enviar a imagem para o dockerhub
 $ docker container run -d -p 80:80 abreuferr/exemploX:1.0 ; fazer o download do dockerhub
 $ docker image pull [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO] ; fazer o download da imagem no dockerhub
+$ docker logoun ; logout no dockerhub

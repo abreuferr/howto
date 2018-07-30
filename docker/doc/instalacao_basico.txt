@@ -75,6 +75,7 @@ $ docker [COMANDO] [SUBCOMANDO]
 $ docker search [IMAGE_NAME] ; procura por uma imagem no DockerHub
 $ docker image ls ; exibir as imagens que estao armazenados no computador
 $ docker image pull [IMAGE_NAME] ; somente faz o download da imagem do DockerHub
+$ docker image history [IMAGE-NAME] ; exibi o historico da imagem
 
 ##
 # CONTAINER
@@ -90,7 +91,7 @@ $ docker container rename [CONTAINER_NAME_OLD] [CONTAINER_NAME_NEW] ; renomear o
 $ docker container run [IMAGE_NAME] ; download de a imagem, cria o container e executa
 $ docker contaienr run -it [IMAGE_NAME] ; download da image, cria o container e acessar o container
 $ docker container run -it --name [CONTAINER_NAME] [IMAGE_NAME] ; executa o container - Ctrl+p + Ctrl + q ; sair sem finalizar o container
-$ docker container attach [CONTAINER_ID]
+$ docker container attach [CONTAINER_ID] ; acessar o container
 $ docker container run -it --name [CONTAINER_NAME] -d [IMAGE_NAME] ; executa o container e detach
 $ docker container ls ; visualizar os containers que estao ativos
 $ docker container ls -a ; visualizar os containers que estao ativos e inativos
@@ -117,6 +118,7 @@ $ docker container rm $(docker ps -a -q) ; apagar todos os containers
 #
 $ docker container stats ; estatistica dos containers em execucao
 $ docker container inspect [CONTAINER_ID] ; informacoes sobre o container em execucao
+$ docker container logs -f [CONATEINER-NAME] ; log do container
 
 # CUSTOMIZACAO - MEMORIA
 #

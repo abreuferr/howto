@@ -52,3 +52,10 @@ $ docker network rm [NETWORK-NAME]
 $ docker network create -d macvlan --subnet=[NETWORK/CIDR] --gateway=[GATEWAY-IP] -o parent=[HOST-NETWORK-INTERFACE] [NETWORK-NAME] ; criar um rede do tipo overlay, definindo a subnet, endereco do gateway e interface de rede 
 
 $ docker container run [OPCAO] --network [NETWORK-NAME] --name [CONTAINER-NAME] [IMAGE-NAME]:[VERSAO] ; criar um container e adicionando ele na rede criada acima
+
+# GERAL
+#
+$ docker network connect [NETWORK-NAME] [CONTAINER-NAME] ; conectar um container a uma rede.
+$ docker network disconnect [NETWORK-NAME] [CONTAINER-NAME] ; desconectar um container a uma rede.
+$ docker container run [OPCAO] --network=[NETWORK-NAME] [CONTAINER-NAME] ; conectar um container a uma rede durante a inicializacao do mesmo.
+$ docker run -p [HOST-PORT]:[CONTAINER-PORT] --name [CONTAINER-NAME] -t [IMAGE-NAME] ; exportar uma porta
