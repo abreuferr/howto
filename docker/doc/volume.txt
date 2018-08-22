@@ -1,47 +1,22 @@
-#: Title : Dia 02
+#: Title : volume
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : treinamento do dia 02
+#: Description : volume
 #: Options : distribuicao utilizada - gnu/linux debian
 
-##
 # VOLUME
-##
-
-# CRIAR UM VOLUME - CASO 3
 #
-$ docker volume create [HOST_VOLUME_NAME] ; criar um volume
+$ docker volume create [HOST_VOLUME_NAME] ; criar um volume local
 
-# VIZUALIZAR O VOLUME - CASO 3
-#
 $ docker volume ls ; listar os volumes
-
-# APAGAR VOLUME - CASO 3
-#
 $ docker volume rm [HOST_VOLUME_NAME] ; apagar um volume
 $ docker volume rm -f [HOST_VOLUME_NAME] ; forcar a remocao do volume
 
-# CRIAR UM CONTAINER COM UM VOLUME - 01
+# ASSOCIAR HOST_VOLUME_NAME/CONTAINER_DIR_NAME
 #
-# - host - /var/lib/docker/volumes/[VOLUME_ID]/_data/
-# - container - /[VOLUME_NAME]
-#
-$ docker container run -ti -v [/DIR_VOLUME_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
+$ docker container run -ti --mount type=volume,src=[HOST_VOLUME_NAME],dst=/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
 
-# CRIAR UM CONTAINER COM UM VOLUME - 02
+# ASSOCIAR HOST_DIR_NAME/DOCKER_DIR_NAME
 #
-# - host - [HOST_DIR_NAME]
-# - container - [CONTAINER_DIR_NAME]
-#
-$ docekr container run -ti -v -v /[HOST_DIR_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IAMGEM_NAME]
-
-# ANEXAR VOLUME - 03
-#
-# - host volume - [HOST_VOLUME_NAME]
-# - container - [CONTAINER_DIR_NAME]
-#
-$ docker container run -v [HOST_VOLUME_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IMAGE_NAME]
-
-# ANEXAR VOLUME E COMPARTILHAR VOLUME DE UM CONTAINER COM OUTRO CONTAINER- 04
-#
-$ docker container run -ti -v [HOST_VOLUME_NAME]:/[CONTAINER_DIR_NAME] --name [CONTAINER1_NAME] [IMAGE_NAME]
-$ docker container run -ti --volumes-from [CONTAINER1_NAME] --name [CONTAINER2_NAME] [IMAGE_NAME]
+$ docker container run -ti --mount type=bind,src=[HOST_VOLUME_NAME],dst=/[CONTAINER_DIR_NAME] --name [CONTAINER_NAME] [IMAGE_NAME] ; 
+$ docker container run -ti --mount type=bind,src=[HOST_VOLUME_NAME],dst=/[CONTAINER_DIR_NAME],rw --name [CONTAINER_NAME] [IMAGE_NAME] ; ro
+$ docker container run -ti --mount type=bind,src=[HOST_VOLUME_NAME],dst=/[CONTAINER_DIR_NAME],ro --name [CONTAINER_NAME] [IMAGE_NAME] ; rw
