@@ -1,6 +1,6 @@
-#: Title : Dia 01
+#: Title : instalacao e basico
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : treinamento do dia 01
+#: Description : instalacao e comandos basicos do docker
 #: Options : distribuicao utilizada - gnu/linux debian
 
 ##
@@ -87,11 +87,11 @@ $ docker container rename [CONTAINER_NAME_OLD] [CONTAINER_NAME_NEW] ; renomear o
 
 # RUN
 #
-$ docker container run [IMAGE_NAME] ; download de a imagem, cria o container e executa
-$ docker contaienr run -it [IMAGE_NAME] ; download da image, cria o container e acessar o container
-$ docker container run -it --name [CONTAINER_NAME] [IMAGE_NAME] ; executa o container - Ctrl+p + Ctrl + q ; sair sem finalizar o container
+$ docker container run [IMAGE_NAME] ; download da imagem, cria o container e executa
+$ docker contaienr run -ti [IMAGE_NAME] ; download da image, cria o container e acessar o container (modo interativo)
+$ docker container run -ti --name [CONTAINER_NAME] [IMAGE_NAME] ; executa o container - Ctrl+p + Ctrl + q ; sair sem finalizar o container
 $ docker container attach [CONTAINER_ID] ; acessar o container
-$ docker container run -it --name [CONTAINER_NAME] -d [IMAGE_NAME] ; executa o container e detach
+$ docker container run -ti --name [CONTAINER_NAME] -d [IMAGE_NAME] ; executa o container e detach
 $ docker container ls ; visualizar os containers que estao ativos
 $ docker container ls -a ; visualizar os containers que estao ativos e inativos
 
@@ -117,7 +117,7 @@ $ docker container rm $(docker ps -a -q) ; apagar todos os containers
 #
 $ docker container stats ; estatistica dos containers em execucao
 $ docker container inspect [CONTAINER_ID] ; informacoes sobre o container em execucao
-$ docker container logs -f [CONATEINER-NAME] ; log do container
+$ docker container logs -f [CONTAINER-ID] ; log do container
 
 # CUSTOMIZACAO - MEMORIA
 #
