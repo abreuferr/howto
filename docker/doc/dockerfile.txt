@@ -3,10 +3,6 @@
 #: Description : treinamento do dia 03 - Dockerfile e DockerHub
 #: Options : distribuicao utilizada - gnu/linux debian
 
-##
-# DOCKERFILE
-##
-
 # TEORIA
 #
 # comando do Dockerfile
@@ -14,12 +10,12 @@
 # FROM - imagem base que sera utilizado para criar a nova imagem ; FROM <image name>
 # MAINTAINER - mantenedor da imagem ; MAINTAINER <author name>
 # RUN - executa um comando durante a criacao da imagem ; RUN <command>
-# CMD - executa um comando durante a execucao da imagem ; CMD ["executable","param1","param2"]
-# ADD -  copia novos arquivos, diretorios ou arquivos remotos da <origem> para o <destino> na imagem
-# COPY -  copia novos arquivos diretorios da <origem> para o <destino> no container
-# ENV - define uma variavel de ambiente
-# ENTRYPOINT - permite executar um comando ou executavel enquanto o container estiver em execucao ; EXPOSE <port>
-# WORKDIR - responsavel por mudar do diretorio / (raiz) para o especificado nele - WORKDIR /path/to/workdir
+# CMD - executa um comando durante a execucao do container ; CMD ["executable","param1","param2"] ou CMD executable param1 param2
+# ADD -  copia novos arquivos, diretorios ou arquivos remotos da <origem> para o <destino> na imagem ; ADD $VARIAVEL_NOME
+# COPY - copia novos arquivos diretorios da <origem> para o <destino> no container
+# ENV - define uma variavel de ambiente ; ENV [VARIAVEL_NOME] [VARIAVEL_CONTEUDO]
+# ENTRYPOINT - permite executar um comando ou executavel enquanto o container estiver em execucao ; ENTRYPOINT ["EXECUTAVEL","PARAMETRO"] ou ENTRYPOINT EXECUTAVEL PARAMETRO
+# WORKDIR - responsavel por mudar do diretorio / (raiz) para o especificado nele - WORKDIR /path/to/workdir ou WORKDIR ${VARIAVEL_NOME}
 # USER - define o username ou UID que sera criado com a imagem, o padrao eh o usuario root
 # VOLUME - ativa o link/diretorio entre o container e o computador host
 # LABEL - adiciona metadados a imagem
@@ -32,6 +28,7 @@
 #
 
 $ docker build -t [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO.X] .
+$ docker build --no-cache -f [DOCKERFILE_NAME] -t [DOCKERHUB-USERNAME]/[IMAGE_NAME]:[VERSAO] . 
 $ docker image ls
 
 ###
