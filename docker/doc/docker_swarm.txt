@@ -54,3 +54,10 @@ $ docker service ps [SERVICE-NAME] ; obter informacao sobre o servico
 $ docker service scale [SERVICE-NAME]=[REPLICA-NUMBER] ; replicar o servico para N nodes do cluster swarm
 $ docker service update --image [IMAGE-NAME]:[VERSAO] [SERVICE-NAME] ; upgrade/downgrade de uma imagem em um servico
 $ docker service rm [SERVICE-NAME] ; apagar um determinado servico
+
+##
+# SERVICO + VOLUME
+##
+
+$ docker volume create [VOLUME-NAME]
+$ docker service create --name [SERVICE-NAME] --replicas [QTDADE-REPLICA] -p 8080:80 --mount type=volume,src=[VOLUME-NAME],dst=/[DIR-VOLUNE-NAME] [IMAGE-NAME]:[VERSION]
