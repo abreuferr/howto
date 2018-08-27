@@ -52,12 +52,27 @@ $ docker service create [OPCAO]--replicas [REPLICA-NUMBER] --name [SERVICE-NAME]
 $ docker service ls ; listar os servicos que estao ativos
 $ docker service ps [SERVICE-NAME] ; obter informacao sobre o servico
 $ docker service scale [SERVICE-NAME]=[REPLICA-NUMBER] ; replicar o servico para N nodes do cluster swarm
-$ docker service update --image [IMAGE-NAME]:[VERSAO] [SERVICE-NAME] ; upgrade/downgrade de uma imagem em um servico
 $ docker service rm [SERVICE-NAME] ; apagar um determinado servico
 
-##
-# SERVICO + VOLUME
-##
+# SERVICO [REPLICATED] + VOLUME
+#
+$ docker volume create [VOLUME-NAME] ; criacao de um volume
+$ docker service create --name [SERVICE-NAME] --replicas [QTDADE-REPLICA] -p 8080:80 --mount type=volume,src=[VOLUME-NAME],dst=/[DIR-VOLUNE-NAME] [IMAGE-NAME]:[VERSION] ; criacao de um servico com um determinado servico
+$ docker service update --mount-add type=volume,src=[VOLUME-NAME],dst=[CONTAINER-DIR] [SERVICE-NAME] ; adicionar um volume a um servico
 
+# SERVICO + REDE
+#
+$ docker network create --driver overlay [NETWORK-NAME] ; criacao de uma rede do tipo overlay
+$ docker service create --name [SERVICE-NAME] --network [NETWORK-NAME] --replicas [QTDADE-REPLICA] [IMAGE-NAME]:[VERSION] ; criar e adicionar um servico em uma determinada rede
+$ docker service create --name [SERVICE-NAME] --network [NETWORK-NAME] -p 8080:80 --mode global [IMAGE-NAME]:[VERSION] ; servico do tipo globa implica que esse servico sera replicato para todos os nodes do cluster
+$ docker service create --name [SERVICE-NAME] --network-rm [NETWORK-NAME] --network-add [NETWORK-NAME] --replicas [QTDADE-REPLICA] [IMAGE-NAME]:[VERSION] ; criar e adicionar um servico em uma determinada rede e remover de outra rede
+
+# SERICE + IMAGEM
+#
+$ docker service update --image [IMAGE-NAME]:[VERSAO] [SERVICE-NAME] ; upgrade/downgrade de uma imagem em um servico
+
+# SERVICO + REDE + VOLUME
+#
+$ docker network create --driver overlay [NETWORK-NAME] ; criacao de uma rede do tipo overlay
 $ docker volume create [VOLUME-NAME]
-$ docker service create --name [SERVICE-NAME] --replicas [QTDADE-REPLICA] -p 8080:80 --mount type=volume,src=[VOLUME-NAME],dst=/[DIR-VOLUNE-NAME] [IMAGE-NAME]:[VERSION]
+$ docker service create --name [SERICE-NAME] --network [NETWORK-NAME] --mount type=volume,src=[VOLUME-NAME],dst=/[CONTAINER-DIR] -p 8080:80 --replicas [QTDATE-REPLICA] --mode replicated --hostname [HOST-NAME] --dns [DNS] --limit-memory [QTDADE-MEMORY]M --limit-cpu 0.5 --restart-condition any [IMAGE-NAME]:[VERSION]
