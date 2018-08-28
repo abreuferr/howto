@@ -13,6 +13,6 @@ services:
     ports:
     - "8080:80"
     networks:
-    - webserver
+    - network 
 networks:
-  webserver:
+  network:
