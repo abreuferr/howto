@@ -3,44 +3,55 @@
 #: Description : Instalacao e configuracao do NFS e autofs no GNU/Linux Debian Stable
 #: Options : None
 
+# TEORIA
 #
+# software utilizado para montar um dispositivo de armazenamento,
+# como por exemplo, um pendrive de forma automatica. Basta inserir
+# o dispositivo para que o mesmo seja montado de forma automatica.
+#
+# para estudar o autofs, sera utilizado o a tecnologia NFS para poder
+# simular a utilizacao de um servidor remoto NFS.
+
 # TOPOLOGIA
 #
-# Debian server : 192.168.147.10
-# Debian client : 192.168.147.11
+# Debian server : 192.168.10.40
+# Debian client : 192.168.10.xyz
 #
 
-#
-# INSTALACAO (SERVIDOR/CLIENTE)
-#
+###
+# NFS
+###
 
-# server
+# NFS_SERVER
 #
-$ sudo apt-get install nfs-kernel-server nfs-common
+$ sudo apt install nfs-kernel-server nfs-common ; instalacao dos componetnes necessarios para o NFS Server
+$ sudo mkdir -p /mnt/nfs ; diretorio do usuario que sera exportado
+$ sudo chown root:users -R /mnt/nfs ; propriedades do diretorio
+$ sudo chmod 775 -R /mnt/nfs ; propriedades do diretorio
+$ sudo vi /etc/exports ; configuracao do nfs server
+	/mnt/nfs       192.168.10.0/24(rw,sync,no_subtree_check)
+$ sudo systemctl restart nfs-kernel-server.service ; reinicializado o servico
 
-# client
+# NFS_CLIENT
 #
-$ sudo apt-get install nfs-common
-$ sudo apt-get install autofs
+$ sudo apt-get install nfs-common ; instalacao dos componentes necessarios para o NFS Client
+$ sudo mkdir -p /mnt/server/nfs ; somente para teste
+$ sudo mount 192.168.10.40:/mnt/nfs /mnt/server/nfs ; somente para teste
+$ sudo umount /mnt/server/nfs ; somente para teste
+$ sudo rm -rf /mnt/server/nfs ; somente para teste
 
+###
+# AUTOFS
+###
+
+# MASTER MAP/ MAPA MESTRE
 #
-# EXPORTAR (SERVER)
+$ sudo apt-get install autofs udev ; instalacao do autofs no cliente
+$ sudo cat /etc/auto.master ; configuracao do mapa mestre
+	/mnt/server	/etc/auto.nfs --timeout=10
+
+# AUTO.NFS
 #
-$ sudo mkdir /home/nfs
-$ sudo chown nobody:nogroup /home/nfs/
-$ sudo chmod 755 /home/nfs/
-
-$ sudo vi /etc/exports
-	/home/nfs       192.168.147.11(rw,sync,no_subtree_check)
-
-# reinicializar o servico
-#
-$ sudo systemctl restart nfs-kernel-server.service
-
-#
-# CONFIGURACAO DO AUTOFS (CLIENTE)
-#
-$ sudo vi /etc/auto.master
-	/mnt    /etc/auto.nfs	--timeout=60
-
-
+$ sudo cat /etc/auto.nfs
+	nfs  -fstype=nfs     192.168.10.40:/mnt/nfs
+$ sudo systemctl restart autofs.service

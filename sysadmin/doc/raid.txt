@@ -1,3 +1,9 @@
+#: Title : Setup RAID Server
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Setup RAID Server
+#: Options : None
+
+
 # TEORIA
 #
 # raid 0 - striping;
@@ -45,7 +51,7 @@ $ sudo cat /proc/mdstat
 
 # CONFIGURACAO
 #
-$ mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
+$ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 
 # FORMATACAO
 #
