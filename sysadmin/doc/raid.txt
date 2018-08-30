@@ -1,149 +1,80 @@
-#: Title : RAID
-#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Instalacao e configuracao de RAID no GNU/Linux Debian Stable
-#: Options : None
+# TEORIA
+#
+# raid 0 - striping;
+#        - velocidade;
+#        - os dados sao dividos entre os discos rigidos
+#        - parte dos dados sao gravados em um disco rigido enquanto a outra parte eh gravada no outro disco rigido;
+#        - minimo de 02 discos rigidos;
+#        - todos os discos sao visualizados como um unico volume;
+#
+# raid 1 - mirroring;
+#        - redundancia;
+#        - o mesmo dado eh espelhado no segundo disco rigido;
+#        - velocidade na leitura pois parte dos dados sao lidos em um disco rigido e a outra parte no outro discos rigidos;
+#
+# raid 5 - (p)arity and (s)triping
+#	 - velocidade + redundancia;
+#        - minimo de 03 discos rigidos;
+#
 
-1. Instalacao
-	sudo apt-get install mdadm
+# DISCOS
+#
+# /dev/sd[bc] ; discos que serao utilizados para contruir o raid 0/1
 
-2. RAID
-2.1 RAID 0/1
+# FORMATACAO
+#
+$ sudo fdisk /dev/sd[bc] ; criando o particionamento do formato "fd"
 
-# discos que serao utilizados para testar o raid 0/1
+# INSTALACAO
 #
-	/dev/sdb
-	/dev/sdc
+$ sudo apt-get install mdadm -y -d
 
-# criar as partcoes e formatar os discos rigidos sdb e sdc no formato fd
+# CRIACAO RAID
 #
-# existe a possibilidade de utilizar o disco rigido em vez da particao.
-# Nesse caso, nao eh necessario formatar o disco rigido com o fdisk, basta
-# indicar o disco rigido, /dev/sdX
+# mdadm [modo] [nome_raid] [opcao] [componentes_raid]
+# mdadm --create md-device --chunk=X --level=Y --raid-devices=Z devices
 #
-	sudo fdisk /dev/sdb
-	sudo fdisk /dev/sdc
+$ sudo mdadm --create /dev/md0 --level=0 --raid-devices=2 /dev/sd[bc]1 ; raid 0
+$ sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sd[bc]1 ; raid 1
+$ sudo mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/sd[bcd]1 ; raid 5
 
-# criacao do raid 0 com dois discos rigidos
+# INFORMACAO
 #
-# o parametro --level indica o tipo de raid que deseja ser construido, neste caso
-# sera o raid 0. Ja o parametro --raid-devices indica a quantidade de discos rigidos
-# que serao utilizados no raid.
-#
-	sudo mdadm --create /dev/md0 --verbose --level=0 --raid-device=2 /dev/sd[bc]1
+$ sudo mdadm --detail /dev/md0
+$ sudo cat /proc/mdstat
 
-# criacao do raid 1 com dois discos rigidos
+# CONFIGURACAO
 #
-# o parametro --level indica o tipo de raid que deseja ser construido, neste caso
-# sera o raid 1. Ja o parametro --raid-devices indica a quantidade de discos rigidos
-# que serao utilizados no raid.
-#
-	sudo mdadm --create /dev/md0 --verbose --level=1 --raid-device=2 /dev/sd[bc]1
+$ mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 
-# informacoes sobre o raid 0/1
+# FORMATACAO
 #
-	sudo mdadm --detail /dev/md0
-	cat /proc/mdstat
+$ sudo mkfs -t ext4 /dev/md0 ; formatacao do raid no sistema de arquivos ext4
 
-# arquivo de configuracao do raid 0/1
+# MOUNT
 #
-	/etc/mdadm/mdadm.conf
+$ sudo mkdir /mnt/raid ; criacao do diretorio ponto de montagem
+$ sudo mount -t ext4 /dev/md0 /mnt/raid/ ; processo de montagem propriamente dito
 
-# adicionar o raid 0/1 no arquivo de configuracao
+# FSTAB
 #
-	sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
+$ sudo blkid ; comando utilizado para obter o UUID do raid
+$ sudo vi /etc/fstab
 
-# formatar o raid 0/1 no formato ext4
+# SIMULACAO DE PROBLEMA
 #
-	sudo mkfs -t ext4 /dev/md0
+$ sudo mdadm --manage /dev/md0 --fail /dev/sdc1 ; simulacao da falha em um dos discos rigidos
 
-# montar o raid 0/1
-#
-	sudo mkdir /mnt/raid
-	sudo mount -t ext4 /dev/md0 /mnt/raid/
+$ sudo mdadm /dev/md0 -r /dev/sdc1 ; remocao do disco rigido com falha
 
-# verificar o ponto de montagem do raid 0/1
-#
-	sudo df -h
+$ sudo mdadm /dev/md0 -a /dev/sdc1 ; adicao de um novo disco rigido no raid
 
-# verificar o status do raid 0/1
+# EXCLUSAO DO RAID
 #
-	sudo mdadm --detail /dev/md0
-	cat /proc/mdstat
+$ sudo umount /dev/md0 ; desmontando o raid
 
-# fstab
-#
-	sudo blkid
-		/dev/md0: UUID="6fa1e03f-d958-46db-9b36-e19b344715b5" TYPE="ext4"
-	sudo vi /etc/fstab
-		UUID=6fa1e03f-d958-46db-9b36-e19b344715b5	/mnt/raid1	ext4	defaults	0    0
+$ sudo mdadm --stop /dev/md0 ; parar o raid
 
-# TESTE
-#
-# nao existe a possibilidade de simular uma falha em um disco rigido
-# do tipo raid 0, pois se por acaso houver uma falha em um dos discos
-# rigidos do raid 0, o raid sera destruido.
-#
-# simular falha no raid 1 (sdc1)
-#
-	sudo mdadm --set-faulty /dev/md0 /dev/sdc1
+$ sudo mdadm --remove /dev/md0 ; remover o raid
 
-# remover o disco com defeito
-#
-	sudo mdadm /dev/md0 -r /dev/sdc1
-
-# adicionar o disco no raid 1
-#
-	sudo mdadm /dev/md0 -a /dev/sdc1
-
-# EXCLUIR O RAID
-#
-# desmontar
-#
-	sudo umount /dev/md0
-
-# parar o raid
-#
-	sudo mdadm --stop /dev/md0
-
-# remover
-#
-	sudo mdadm --remove /dev/md0
-
-# excluir o superbloco
-#
-	sudo mdadm --zero-superblock /dev/sd[bc]1
-
-2.2 RAID 5
-
-# discos
-#
-	/dev/sdb
-	/dev/sdc
-	/dev/sdd
-
-# criar o raid
-#
-# os parametros --force --assume-clean sao utilizados para apagar
-# as configuracoes dos discos rigidos dos discos rigidos que ja
-# foram utilizados para montar um raid.
-#
-    sudo mdadm --create --force --assume-clean /dev/md0 --verbose --level=5 --raid-device=3 /dev/sd[bcd]1
-
-# adicionar o raid ao arquivo de configuracao
-#
-    sudo su
-	mdadm -Es | grep md >> /etc/mdadm/mdadm.conf
-    exit
-
-# formatar o sistema de arquivo do raid 5 no formato ext4
-#
-	sudo mkfs -t ext4 /dev/md0
-
-# montar o raid 5
-#
-	sudo mount -t ext4 /dev/md0 /mnt/raid/
-
-# fstab
-#
-	blkid
-		UUID=664b53e1-d87a-4dbb-a25e-08d9bada14eb       /mnt/raid       ext4    defaults        0       0
+$ sudo mdadm --zero-superblock /dev/sd[bc]1 ; limpara os superblocos dos discos rigidos
