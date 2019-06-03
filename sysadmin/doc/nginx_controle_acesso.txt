@@ -77,6 +77,13 @@ $ sudo vi /etc/nginx/sites-available/particula.local.conf
 	        index index.html;
 
         	location / {
+			# satisfazer qualquer tipo de condicao abaixo.
+			satisfy any;
+
+			# somente hosts da rede 192.168.0.0/24 podem acessar.
+			allow 192.168.0.0/24; 
+			deny all;
+
 			# titulo da jane pop-up
 			auth_basic "Private site";
 			# arquivo com o usuario e a senha de acesso. 
