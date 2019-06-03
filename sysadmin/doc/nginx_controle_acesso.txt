@@ -1,12 +1,14 @@
 #: Title : nginx web server
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : configuracao controle de acesso
+#: Description : configuracao controle de acesso basico
 #: Options : None
 #: Reference :  
 
-INSTALACAO
-# instalacao do nginx no debian
 #
+# INSTALACAO
+#
+
+# adicionar o repositorio do Nginx no debian.
 $ sudo vi /etc/apt/sources.list.d/nginx.list
 	deb http://nginx.org/packages/mainline/debian/ stretch nginx
 $ wget http://nginx.org/keys/nginx_signing.key
@@ -14,69 +16,54 @@ $ sudo apt-key add nginx_signing.key
 $ sudo apt-get update
 $ sudo apt-get install nginx -y -d
 
-# instalacao do nginx no redhat/centos
 #
-$ sudo vi /etc/yum.repos.d/nginx.repo
-	[nginx]
-	name=nginx repo
-
-	baseurl=http://nginx.org/packages/mainline/rhel/6/$basearch/
-	baseurl=http://nginx.org/packages/mainline/rhel/7/$basearch/
-
-	baseurl=http://nginx.org/packages/mainline/centos/6/$basearch/
-	baseurl=http://nginx.org/packages/mainline/centos/7/$basearch/
-
-	gpgcheck=0
-	enabled=1
-$ yum install nginx -y
-
-SYSTEMD
-# start/stop/restart
+# CONFIGURACAO
 #
-$ sudo systemctl stop nginx	; parar o nginx
-$ sudo systemctl start nginx	; inicializar o nginx
-$ sudo systemctl restart nginx	; reinicializar o nginx
-$ sudo systemctl reload nginx	; re-ler a configuracao
-$ sudo systemctl enable nginx	; ativar o nginx no boot
-$ sudo systemctl status nginx	; status do nginx
 
-# VERIFICACAO
+# SYSTEMD
+# parar o nginx
+$ sudo systemctl stop nginx
+# inicializar o nginx
+$ sudo systemctl start nginx
+# reinicializar o nginx
+$ sudo systemctl restart nginx
+# re-ler a configuracao
+$ sudo systemctl reload nginx
+# ativar o nginx no boot
+$ sudo systemctl enable nginx
+# status do nginx
+
+# STATUS
 $ ps aux | grep nginx
 	root       1385  0.0  1.3  91188  3052 ?        Ss   09:03   0:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
 	www-data   1386  0.0  1.5  91556  3740 ?        S    09:03   0:00 nginx: worker process                           
 	www-data   1388  0.0  1.5  91556  3740 ?        S    09:03   0:00 nginx: worker process                           
 	www-data   1389  0.0  1.5  91556  3740 ?        S    09:03   0:00 nginx: worker process                           
 	www-data   1390  0.0  1.5  91556  3740 ?        S    09:03   0:00 nginx: worker process                           
-
 $ netstat -tulpn | grep :80
 	(No info could be read for "-p": geteuid()=1000 but you should be root.)
 	tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      -               
 	tcp6       0      0 :::80                   :::*                    LISTEN      -               
 
-$ nginx -v
+#
+# CONFIGURACAO
+#
 
-CONFIGURACAO PADRAO
-#
-# arquivo de configuracao basico do nginx
-#
-$ sudo vi /etc/nginx/nginx.conf
+# criando a senha de acesso do usuario.
+$ sudo openssl passwd [SENHA]
 
-#
-# configuracao do site padrao armazenados no servidor
-#
-$ sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-$ sudo vi /etc/nginx/sites-available/default
+# arquivo com os usuarios e senhas.
+$ sudo vi /var/www/particula.local/passwd
+	# comment
+	usuario1:senha1
+	usuario2:senha2:comentario
+	usuario3:senha3
 
-WWW.PARTICULA.LOCAL
-#
 # criacao do diretorio de trabalho
-#
-$ sudo mkdir /var/www/www.particula.local
+$ sudo mkdir /var/www/particula.local/html
 
-#
-# configuracao do site www.particula.local
-#
-$ sudo vi /etc/nginx/sites-available/www.particula.local.conf
+# configuracao do site particula.local
+$ sudo vi /etc/nginx/sites-available/particula.local.conf
 	server {
 		# parametro utilizado para definir a porta a ser utilizada pelo nginx.
 	        listen 80;
@@ -86,16 +73,14 @@ $ sudo vi /etc/nginx/sites-available/www.particula.local.conf
 
 		# parametro utilizado para definir o diretorio a onde sera arazenado
 		# os arquivos do site.
-        	root /var/www/www.particula.local;
+        	root /var/www/particula.local;
 	        index index.html;
 
-        	location /i/ {
-			# parametro utilizado para definir o diretorio a onde sera arazenado
-			# os arquivos do site.
-        		root /var/www/www.particula.local;
-
-			# parametro utilizado para definir qual eh o nome do arquivo indice
-	        	index index.html index.htm;
+        	location / {
+			# titulo da jane pop-up
+			auth_basic "Private site";
+			# arquivo com o usuario e a senha de acesso. 
+			auth_basic_user_file /var/www/particula.local/passwd;
 	        }
 	}
 
