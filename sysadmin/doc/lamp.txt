@@ -28,7 +28,7 @@ $ sudo apt-get install mysql-server -y -d
 #
 # instalacao do php
 #
-$ sudo apt-get install php5 php5-mysql libapache2-mod-php5 -y -d
+$ sudo apt-get install php7.0 libapache2-mod-php7.0 php7.0-mysql -y -d
 
 MYSQL
 
