@@ -3,33 +3,25 @@
 #: Description : Configuracao da interface de rede do redhat
 #: Options : None
 
-# interface de rede eth0
-#
 # ip fixo e ipv4
 #
-$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eth0
-	DEVICE=eth0
-	HWADDR=00:16:76:02:BA:DB
-	ONBOOT=yes
-	IPADDR=192.168.0.10
-	BROADCAST=192.168.0.255
-	NETMASK=255.255.255.0
-	NETWORK=192.168.0.0
-	SEARCH="particula.local"
-	BOOTPROTO=static
-	GATEWAY=192.168.0.1
-	DNS1=192.168.0.1
-	DNS2=8.8.8.8
-	TYPE=Ethernet
-	USERCTL=no
-	IPV6INIT=no
+# /etc/sysconfig/network-scripts/ifcfg-(interface-name)
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
+	TYPE="Ethernet"
+	BOOTPROTO="none"
+	NAME="enp0s3"
+	IPADDR="192.168.20.150"
+	NETMASK="255.255.255.0"
+	GATEWAY="192.168.20.1"
+	DEVICE="enp0s3"
+	ONBOOT="yes"
 
 
 # interface de rede eth0
 #
 # ip dhcp e ipv4
 #
-$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eth0
+$ sudo vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 	TYPE=Ethernet
 	BOOTPROTO=dhcp
 	DEFROUTE=yes
