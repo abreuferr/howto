@@ -1,0 +1,14 @@
+#: Title : subscription
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : subscription no redhat
+#: Options : None
+
+# como registrar o rh-8
+$ sudo subscription-manager register
+$ sudo subscription-manager attach --auto
+$ sudo subscription-manager register --username [username] --password [password] --auto-attach
+
+# como desaverbar
+$ sudo subscription-manager remove --all
+$ sudo subscription-manager unregister
+$ subscription-manager clean
