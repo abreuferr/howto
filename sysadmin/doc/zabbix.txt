@@ -1,4 +1,4 @@
-#: Title : Zabbiudo dpkg -i zabbix-release_3.2-1+jessie_all.deb
+#: Title : Zabbiudo
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Zabbix and Debian Stable
 #: Options : None
