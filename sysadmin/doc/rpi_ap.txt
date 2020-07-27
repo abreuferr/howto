@@ -38,6 +38,11 @@ $ sudo cat /etc/default/isc-dhcp-server
 	# Separate multiple interfaces with spaces, e.g. "eth0 eth1".
 	INTERFACESv4="wlan0"
 
+# Systemd
+$ sudo systemctl restart isc-dhcp-server
+$ sudo systemctl status isc-dhcp-server
+$ sudo systemctl enable isc-dhcp-server
+
 # Configuração das interfaces de rede.
 $ sudo cat /etc/network/interfaces
 	# interfaces(5) file used by ifup(8) and ifdown(8)
@@ -92,6 +97,11 @@ sudo cat /etc/hostapd/hostapd.conf
 
 $ sudo cat /etc/default/hostapd
         DAEMON_CONF="/etc/hostapd/hostapd.conf"
+
+# Systemd
+$ sudo systemctl restart hostapd
+$ sudo systemctl status hostapd
+$ sudo systemctl enable hostapd
 
 # SCRIPT DE FIREWALL
 #
