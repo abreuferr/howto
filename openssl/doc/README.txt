@@ -255,11 +255,11 @@ vi ca/sub-ca/sub-ca.conf
 
 	[ policy_strict ]
 	countryName             = supplied
-	stateOrProvinceName     =  supplied
+	stateOrProvinceName     = supplied
 	organizationName        = match
-	organizationalUnitName  =  optional
-	commonName              =  supplied
-	emailAddress            =  optional
+	organizationalUnitName  = optional
+	commonName              = supplied
+	emailAddress            = optional
 
 	[ policy_loose ]
 	countryName         	= optional
