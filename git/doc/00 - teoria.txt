@@ -1,0 +1,8 @@
+#: Title : git - teoria
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Teoria sobre o software Git
+#: Options :	None
+#: Reference :	
+
+TEORIA
+[working directory]-(git add)->[staging area]-(git commit)->[local repository]-(git push)->[remote repository]
