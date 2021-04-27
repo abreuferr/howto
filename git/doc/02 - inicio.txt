@@ -4,7 +4,7 @@
 #: Options :	None
 #: Reference :	
 
-# inicializar um repositorio Git
+# Inicializando um repositorio git
 #
 # sera criado um diretorio de nome .git dentro do diretorio de trabalho que
 # sera utilizado pela ferramenta Git para fazer todo o versionamento
@@ -13,29 +13,34 @@ $ mkdir meuprojeto
 $ cd meuprojeto
 $ git init
 
-# clonar um projeto
+# Clonando um repositorio git
+#
+# outra possiblidade de trabalhar com o git eh atraves do clone de um projeto.
+#
 $ git clone https://remote.com/repo.git
 $ git clone ssh://git@remote.com:/repo.git
 
-STATUS
+# para o inicio do projeto, serao criados alguns arquivos
+#
+$ touch src/01-capa.txt
+$ touch src/02-corpo.txt
+$ touch src/03-conclusao.txt
+$ touch src/04-referencia.txt
+
 # visualizar o status dos arquivos do projeto
 #
 $ git status	, versao completa
 $ git status -s	, versao resumida
 
-DIFF
-# visualizar as diferencas entre os arquivos
-#
-$ git diff
+On branch master
+Your branch is up to date with 'origin/master'.
 
-# visualizar as diferencas entre dois commits
-#
-$ git diff commit1 commit2
-
-BLAME
-# visualizar as datas das mudancas e os autores das mudancas
-#
-$ git blame <file>
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	src/01-capa.txt
+	src/02-corpo.txt
+	src/03-conclusao.txt
+	src/04-referencia.txt
 
 LOG
 # visualizar o log ou historico do projeto
@@ -50,246 +55,4 @@ $ git log --all		; visualizar todas as informacoes
 $ git log --before <date>	; antes de de uma determinada data
 $ git log --after <date>	; depois de uma determinada data
 $ git log --after <date> --before <date>	; range de datas
-
-BRANCH
-# O branch consiste em uma ramificacao da arvore principal do repositorio.
-# o branch eh utilizado para criar uma ramificacao na arvore principal cujo
-# objetivo eh o de permitir a criacao de uma espécide de fork de arquivo(s)
-# do projeto ou de todo o projeto.
-#
-# a principal funcao do branch eh a de permitir que seja feito alteracoes no
-# projeto sem que seja feito essa alteracoes no ramo principal de desenvolvimento.
-#
-# o arquivo pode ser alterado tanto no banch MASTER quanto no novo branch.
-# para que as alteracoes sejam unidas em um unico arquivo, sera utiliza
-# a opcao de merge.
-#
-# a branch principal recebe o nome de MASTER. Ja as outras branch podem ser nomeadas
-# pelo usuario.
-
-# comando utilizado para criar o branch
-#
-$ git branch <NOME_BRANCH>
-
-# por padrao, toda branch que acabou de ser criada sera criada a partir do
-# ultimo commit. Mas existe a possibilidade de criar a branch em um determinado
-# ponto. Para isso basta
-#
-$ git log --oneline --decorate	; comando utilizado para visualizar o historico 
-				  de commits e obter o ponto em que se deseja fazer
-				  a criacao da branch
-$ git branch <NOME_BRANCH> <SHA_COMMIT>
-
-# comando utilizado para visualizar os branchs e em qual branch se encontra (*)
-#
-$ git branch			; visualizacao normal do resultado
-$ git branch -a --color		; visualiza o resultado de forma colorida
-
-# comando utilizado para renomear uma branch
-#
-$ git branch -m <NOME_ATUAL> <NOVO_NOME>	; renomear a branch
-$ git branch -M <NOME_ATUAL> <NOVO_NOME>	; forcar a renomeacao a branch
-
-# visualizar o ultimo commit em cada branch
-#
-$ git branch -v				; visualizacao de forma resumida
-$ git branch -v --no-abbrev		; visualizacao de forma extendida
-$ git branch -v --contains <BRANCH>	; mais informacoes sobre uma branch
-
-# comando utilizado para acessar uma branch
-#
-$ git checkout <NOME_BRANCH>
-
-# comando utilizado para criar uma branch e acessar a branch que acabou de ser
-# criada
-#
-$ git checkout -b <NOME_BRANCH>
-
-# comando utilizado para apagar a branch
-#
-$ git branch -d <NOME_BRANCH>					; apagando uma branch
-$ git branch -d <NOME_BRANCH1> <NOME_BRANCH2> <NOME_BRANCH3>	; varias branch
-
-MERGE
-# depois de executar todas as alteracoes nos arquivos nos diversos branchs,
-# realizar o "git add" e o "git commit", sera necessario unir todos o BRANCH no 
-# branch MASTER.
-#
-$ git checkout master
-	Switched to branch 'master'
-$ git merge <NOME_BRANCH>
-$ git merge -X ours <branch>	,Faz merge da <branch> especificada com a master,
-				força modificações da master para o caso de ter
-				erros na branch
-
-# depois de executar o MERGE, eh possivel remover as branch existentes
-# para isso basta executar o comando BRANCH com o parametro -d
-#
-$ git branch -d <NOME_BRANCH>	, remove uma branch de cada vez
-$ git branch | grep -v "master" | xargs git branch -D	, remove todas as branch de uma unica vez
-
-# visualizar quais as branch que foram "merged" e quais nao foram
-#
-$ git branch --merged
-$ git branch --no-merged
-
-REBASING
-# alem da utilizacao do comando MERGE, existe outra forma de unir os varios
-# branchs no banch MASTER. Essa outra forma eh atraves do comando REBASE
-# Para isso, deve-se
-#
-# 1 - acessar a branch onde foram alterados os arquivos
-# 2 - executar o comando "git rebase master"
-#
-$ git rebase master
-
-TAG
-# Existe a possibilidade de colocar tags em pontos especificos no historico do
-# versionamento. tags podem ser utilizadas para versionar o software, v1.0/v 1.1)
-
-# visualizar as tags existentes
-#
-$ git tag
-
-# procurar por determinadas tags
-#
-$ git tag -l 'v1.*'
-
-# adicionando tag com comentario
-#
-$ git tag -a v1.0 -m 'versao 1.0'
-
-ADD
-# adicionar arquivoi(s) ao staging area.
-# a partir deste ponto, os arquivos adicionados serão monitorados pelo Git.
-#
-$ git add <arquivo>	, adiciona somente um arquivo ao repositorio
-$ git add *.txt		, adiciona todos os arquivos TXT ao repositorio
-$ git add --all		, adiciona todos os arquivos ao repositorio
-$ git add doc/*.txt	, adicionar todos os arquivos TXT localizados no diretorio doc
-
-REMOVER ARQUIVO
-# existe a possibilidade de remover um arquivo previamente gerenciado pelo Git.
-#
-$ rm <ARQUIVO>		; remover o arquivo do computador
-$ git rm <ARQUIVO>	; remover o arquivo do Git
-
-MOVER ARQUIVO
-# existe a possibilidade de mover ou renomear um arquivo previamente gerenciado
-# pelo Git.
-#
-$ mv <ARQUIVO1>	<ARQUIVO2>	; remover o arquivo do computador
-$ git mv <ARQUIVO1> <ARQUIVO2>	; remover o arquivo do Git
-
-COMMIT
-# a funcao do comando COMMIT eh o de transferir o arquivo que acabou de ser
-# alterado para a area de versionamento. A partir deste ponto, o arquivo fica
-# armazenado no repositorio.
-#
-# depois de executar o comando "git add ..." eh necessario
-# executar o comando "git commit" para adicionar um comentario
-# em relacao a acao tomada que foi a de adicionar um arquivo.
-#
-# o comando COMMIT tambem serve para inserir um comentario e identificando
-# o que foi feito no arquivo.
-#
-$ git commit -m "Adicionar o comentario"	;	adiciona um comentario a alteracao
-$ git commit --allow-empty-message -m   ; adicionar um commit com mensagem em branco
-
-COMMIT + ADD
-# o comando abaixo equivale aos comandos
-# git add ... + git commit ...
-# o comando abaixo nao funciona para novos arquivos
-#
-$ git commit -am "Comentario"
-
-UNDO
-# Refazer o ultimo comentario do commit
-#
-$ git commit --amend -m "msg"	; altera o comentário do último commit
-
-# Remover um arquivo que foi adicionado erroneamente.
-#
-# por exemplo, foram alteados dois aquivos, foi executado o comando "git add *"
-# mas foi detectado que eh necessario adicionar um comentario para cada arquivo
-# adicionado.
-#
-$ git reset HEAD <ARQUIVO>
-
-# reverter a ultima alteracao/commit aplicado sobre um arquivo
-#
-$git checkout -- <ARQUIVO>
-
-SERVIDOR REMOTO (GITHUB)
-# visualizar os servidores remotos
-#
-$ git remote -v
-	origin	https://github.com/abreuferr/git.git (fetch)
-	origin	https://github.com/abreuferr/git.git (push)
-
-# Fazer o clone/download do PROJETO do servidor REMOTO (GitHub)
-#
-$ git clone https://github.com/abreuferr/howto.git
-
-# adicionar um repositorio remoto.
-#
-# git remote add [NOME_CURTO] [URL]
-#
-# utilizando a opcao de [NOME_CURTO], nao sera necessario utilizar a URL, basta
-# utilizar o NOME_CURTO, que no exemplo abaixo se chama ORIGIN.
-#
-$ git remote add origin https://github.com/abreuferr/MeuProjeto.git
-
-# o comando FETCH permite fazer o download somente dos arquivos que ainda nao
-# existem no repositorio local. (REMOTO -> LOCAL)
-#
-# git fetch [NOME_CURTO]
-#
-$ git fetch origin
-
-# o comando PUSH ira enviar os arquivo do repositorio local para o repositorio
-# remoto (LOCAL -> REMOTO)
-#
-# git push [NOME_CURTO] [BRANCH]
-#
-$ git push origin master
-
-# O comando PULL ira sincronizar o projeto que esta localizado no servidor remoto
-# com o servidor local.
-#
-# o objetivo deste comando eh o sincronizar as alteracoes que foram
-# feitas no servidor remoto com o servidor local e em seguida executar o merge
-# entre as versoes dos arquivos.
-#
-$ git pull origin master
-
-SERVER
-# criar um servidor git particular 
-
-# local
-#
-$ mkdir ~/myProject
-$ cd ~/myProject
-$ git init
-$ echo "Projeto" > README.md
-$ git add .
-$ git commit
-
-# server
-#
-$ ssh cosmo@gitserver.local
-$ mkdir gitServer
-$ cd gitServer
-$ mkdir myProject
-$ git init --bare
-$ logout
-
-# local
-#
-$ git remote add origin cosmo@gitserver.local:gitServer/myProject
-$ git push --set-upstream origin master
-
-# local
-#
-$ rm -rf myProject
-$ git clone cosmo@gitserver.local:gitServer/myProject
+$ git log --graph --decorate ; visualizar o log de uma forma mais amigavel
