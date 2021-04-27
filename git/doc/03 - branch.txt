@@ -24,15 +24,6 @@ BRANCH
 #
 $ git branch <NOME_BRANCH>
 
-# por padrao, toda branch que acabou de ser criada sera criada a partir do
-# ultimo commit. Mas existe a possibilidade de criar a branch em um determinado
-# ponto. Para isso basta
-#
-$ git log --oneline --decorate	; comando utilizado para visualizar o historico 
-				  de commits e obter o ponto em que se deseja fazer
-				  a criacao da branch
-$ git branch <NOME_BRANCH> <SHA_COMMIT>
-
 # comando utilizado para visualizar os branchs e em qual branch se encontra (*)
 #
 $ git branch			; visualizacao normal do resultado
