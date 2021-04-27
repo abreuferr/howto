@@ -4,7 +4,10 @@
 #: Options :	None
 #: Reference :	
 
-BRANCH
+#
+# BRANCH
+#
+
 # O branch consiste em uma ramificacao da arvore principal do repositorio.
 # o branch eh utilizado para criar uma ramificacao na arvore principal cujo
 # objetivo eh o de permitir a criacao de uma espécide de fork de arquivo(s)
@@ -54,7 +57,10 @@ $ git checkout -b <NOME_BRANCH>
 $ git branch -d <NOME_BRANCH>					; apagando uma branch
 $ git branch -d <NOME_BRANCH1> <NOME_BRANCH2> <NOME_BRANCH3>	; varias branch
 
-MERGE
+#
+# MERGE
+#
+
 # depois de executar todas as alteracoes nos arquivos nos diversos branchs,
 # realizar o "git add" e o "git commit", sera necessario unir todos o BRANCH no 
 # branch MASTER.
