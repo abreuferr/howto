@@ -58,6 +58,21 @@ $ git branch -d <NOME_BRANCH>					; apagando uma branch
 $ git branch -d <NOME_BRANCH1> <NOME_BRANCH2> <NOME_BRANCH3>	; varias branch
 
 #
+# PUSH
+#
+
+# o comando PUSH eh utilizado para enviar os dados do repositorio local
+# para o servidor Git remoto.
+
+# comando utilizado para enviar os dados
+#
+$ git push origin <NOME_BRANCH>
+
+# renomear a branch remota
+#
+$ git push origin <BRANCH_ANTIGA> <BRANCH_NOVA>
+
+#
 # MERGE
 #
 

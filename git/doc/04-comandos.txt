@@ -24,7 +24,7 @@ $ git tag -l 'v1.*'
 $ git tag -a v1.0 -m 'versao 1.0'
 
 #
-# ADD
+# Adicionar ARQUIVO
 #
 
 # adicionar arquivoi(s) ao staging area.
