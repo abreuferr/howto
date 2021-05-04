@@ -23,11 +23,14 @@ $ git config --global user.name "caio ferreria" ; nome do usuario
 $ git config --global user.email "abreuferr@gmail.com"  ; e-mail do usuario
 $ git config --global color.ui true ; ativar cor
 $ git config --global core.excludesfile ~/.gitignore    ; arquivos a serem ignorados
-$ git config --global help.autocorrect 1    ; let git automatically correct typos such as "comit" and "pussh." 
+$ git config --global help.autocorrect 1    ; let git automatically correct typos such as "comit" and "pussh."
+$ git config --global core.editor vim ; editor utilizado para exibir mensagens durante uma acao de commit
+$ git config --global diff.tool vimdiff ; aplicativo utilizado para visualizar as diferencas dos arquivos
 
 # Visualizar as configuracoes
 #
 $ git config --list --global
+$ git config -l 
 
 # IGNORAR ARQUIVO
 # existe a possibilidade de excluir arquivos que estao dentro do diretorio do
