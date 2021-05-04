@@ -91,6 +91,10 @@ $ git commit --amend -m "msg"	; altera o comentário do último commit
 # adicionado.
 #
 $ git reset HEAD <ARQUIVO>
+$ git reset --hard HEAD ; Descartar todas as mudanças locais em seu diretório de trabalho
+$ git reset HEAD ; Tirar todos os arquivos da área de preparação (ou seja, desfazer o último git add)
+$ git revert <commit> ; Reverter um commit (produzindo um novo commit com alterações contrárias)
+$ git checkout HEAD <arquivo> ; Descartar as alterações locais em um arquivo específico
 
 # reverter a ultima alteracao/commit aplicado sobre um arquivo
 #

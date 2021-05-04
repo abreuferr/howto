@@ -48,7 +48,7 @@ $ git push origin master
 # feitas no servidor remoto com o servidor local e em seguida executar o merge
 # entre as versoes dos arquivos.
 #
-$ git pull origin master
+$ git pull origin master ; Obter todas as alterações do HEAD para o repositório local
 
 #
 # SERVER
