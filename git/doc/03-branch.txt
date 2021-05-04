@@ -110,3 +110,13 @@ $ git branch --no-merged
 # 2 - executar o comando "git rebase master"
 #
 $ git rebase master
+
+#
+# Resumo
+#
+
+$ git checkout -b 20210331
+$ git add .
+$ git commit -am "comentario""
+$ git checkout master
+$ git merge 20210331
