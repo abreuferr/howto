@@ -55,4 +55,8 @@ $ git log --all		; visualizar todas as informacoes
 $ git log --before <date>	; antes de de uma determinada data
 $ git log --after <date>	; depois de uma determinada data
 $ git log --after <date> --before <date>	; range de datas
+
 $ git log --graph --decorate ; visualizar o log de uma forma mais amigavel
+$ git log --graph --pretty=oneline --abbrev-commit 
+$ git log --graph --pretty=short --abbrev-commit --since=April
+$ git log --graph --pretty=fuller --abbrev-commit --since=April --author="Caio Ferreira"
