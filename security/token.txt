@@ -321,3 +321,27 @@ $ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object filename.der --ty
 # OPENSSH
 #
 #################################################################
+
+#
+# cliente
+#
+
+# configuração do cliente ssh
+$ cat /etc/ssh/ssh_config
+  PKCS11Provider /usr/lib/libeToken.so
+
+# obter a chave pública armazenada no eToken
+#
+# PS. utilizar chave de criptografia do tipo EC pois
+# é um algoritmo de criptografia mais rápid no processo
+# de criptografia/descriptografia
+$ ssh-keygen -D /usr/lib/libeToken.so
+
+# copiar a chave pública para o arquivo authorized_keys e
+# esse arquivo deve ser copiado para o servidor ssh e
+# deve ser copiado para o diretório .ssh
+
+#
+# servidor
+#
+
