@@ -244,3 +244,48 @@ Certificate Object; type = X.509 cert
   label:      cferreira@senhasegura.com
   subject:    DN: C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura/emailAddress=cferreira@senhasegura.com
   ID:         01
+
+# Apagar o certificado do eToken
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type cert --id 01
+
+
+################################################################
+#
+# OPENVPN
+#
+#################################################################
+
+# Visualizar o certificado que esta armazenados
+# no eToken.
+
+$ openvpn --show-pkcs11-ids /usr/lib/libeToken.so
+
+The following objects are available for use.
+Each object shown below may be used as parameter to
+--pkcs11-id option please remember to use single quote mark.
+
+Certificate
+       DN:             C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura, emailAddress=cferreira@senhasegura.com
+       Serial:         5AD2BF7EDF7A8C4EE36762152C2A944D4DC40957
+       Serialized id:  SafeNet\x2C\x20Inc\x2E/eToken/0271f395/HSM\x20MT4/01
+
+$ cat client.configuração
+
+client
+dev tun
+proto udp
+remote <your.server.com> 2001
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca /etc/openvpn/ca.crt
+ns-cert-type server
+comp-lzo
+verb 3
+script-security 2
+up /etc/openvpn/update-resolv-conf
+down /etc/openvpn/update-resolv-conf
+pkcs11-providers /usr/lib/libeToken.so
+pkcs11-id 'SafeNet\x2C\x20Inc\x2E/eToken/0271f395/HSM\x20MT4/01'
