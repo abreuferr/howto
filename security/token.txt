@@ -10,102 +10,55 @@
 #
 #################################################################
 
-# hardware
 #
-$ lsusb                       
-Bus 002 Device 004: ID 0529:0620 Aladdin Knowledge Systems Token JC
+# Instalação e Inicialização
+#
 
-# pacotes necessários para a utilização do Token
-#
 $ yay -S opensc openct sac-core ccid pcsclite pcsc-tools pcsc-perl
-
-# Inicializando serviços
 $ sudo systemctl enable --now pcscd.service
 $ sudo systemctl enable --now pcscd.socket
 
+#
 # SafeNet eToken 5100
 #
-$ opensc-tool --list-readers
-# Detected readers (pcsc)
-Nr.  Card  Features  Name
-0    Yes             SafeNet eToken 5100 [eToken 5110 SC] 00 00
 
-# listar o nome do eToken
+$ pkcs11-tool --module /usr/lib/libeToken.so --list-slots
+Available slots:
+Slot 0 (0x0): SafeNet eToken 5100 [eToken 5110 SC] 00 00
+  token label        : HSM MT4
+  token manufacturer : SafeNet, Inc.
+  token model        : eToken
+  token flags        : login required, rng, token initialized, PIN initialized, other flags=0x200
+  hardware version   : 15.0
+  firmware version   : 0.0
+  serial num         : 0271f395
+  pin min/max        : 4/20
+
 #
-opensc-tool --reader 0 --name -v
-Connecting to card in reader SafeNet eToken 5100 [eToken 5110 SC] 00 00...
-Using card driver Default driver for unknown cards.
-Card name: Unsupported card
-
-
-# SafeNet eToken 5100
+# Inicializar token
 #
-$ pcsc_scan
-Using reader plug'n play mechanism
-Scanning present readers...
-0: SafeNet eToken 5100 [eToken 5110 SC] 00 00
 
-Thu May 20 10:17:41 2021
- Reader 0: SafeNet eToken 5100 [eToken 5110 SC] 00 00
-  Event number: 0
-  Card state: Card inserted, Shared Mode,
-  ATR: 3B D5 18 00 81 31 FE 7D 80 73 C8 21 10 F4
-
-ATR: 3B D5 18 00 81 31 FE 7D 80 73 C8 21 10 F4
-+ TS = 3B --> Direct Convention
-+ T0 = D5, Y(1): 1101, K: 5 (historical bytes)
-  TA(1) = 18 --> Fi=372, Di=12, 31 cycles/ETU
-    129032 bits/s at 4 MHz, fMax for Fi = 5 MHz => 161290 bits/s
-  TC(1) = 00 --> Extra guard time: 0
-  TD(1) = 81 --> Y(i+1) = 1000, Protocol T = 1
------
-  TD(2) = 31 --> Y(i+1) = 0011, Protocol T = 1
------
-  TA(3) = FE --> IFSC: 254
-  TB(3) = 7D --> Block Waiting Integer: 7 - Character Waiting Integer: 13
-+ Historical bytes: 80 73 C8 21 10
-  Category indicator byte: 80 (compact TLV data object)
-    Tag: 7, len: 3 (card capabilities)
-      Selection methods: C8
-        - DF selection by full DF name
-        - DF selection by partial DF name
-        - Implicit DF selection
-      Data coding byte: 21
-        - Behaviour of write functions: proprietary
-        - Value 'FF' for the first byte of BER-TLV tag fields: invalid
-        - Data unit in quartets: 2
-      Command chaining, length fields and logical channels: 10
-        - Logical channel number assignment: by the card
-        - Maximum number of logical channels: 1
-+ TCK = F4 (correct checksum)
-
-Possibly identified card (using /usr/share/pcsc/smartcard_list.txt):
-3B D5 18 00 81 31 FE 7D 80 73 C8 21 10 F4
-	Bank of Lithuania Identification card
-	Gemalto SafeNet eToken Java Based Cards
-	https://safenet.gemalto.com/multi-factor-authentication/authenticators/pki-usb-authentication/
-
-# Inicializar token e adicionar senha de SO PIN
+# Criando o Security Office (SO) e PIN (PUK)
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --slot 0 --init-token --label 'HSM MT4'
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --slot 0 --init-token --label hsm_mt4
 Using slot with ID 0x0
 Please enter the new SO PIN:
 Please enter the new SO PIN (again):
 Token successfully initialized
 
-#Iniciar um token é "formata-lo" com um novo nome uma nova senhas de "SO" "security officer" denominada SO_PIN
+# Crindo o user PIN
 #
-$ pkcs11-tool -vv --module /usr/lib/libeTPkcs11.so --slot 0 --init-token --label senhasegura_HSM
-
-# Criar senha de login (user)
-#
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --init-pin --slot 0
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --init-pin --login --slot 0
 Using slot with ID 0x0
-Logging in to "HSM MT4".
+Logging in to "hsm_mt4".
 Please enter SO PIN:
 Please enter the new PIN:
 Please enter the new PIN again:
 User PIN successfully initialized
+
+# Alterando o user PIN
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --change-pin
 
 #################################################################
 #
@@ -113,11 +66,11 @@ User PIN successfully initialized
 #
 #################################################################
 
-# Chave 1 - RSA - senha segura
+# Chave - RSA
 #
 $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type RSA:2048 --id 01 --label cferreria@senhasegura.com.br
 Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
+Logging in to "hsm_mt4".
 Please enter User PIN:
 Key pair generated:
 Private Key Object; RSA
@@ -131,29 +84,11 @@ Public Key Object; RSA 2048 bits
 	Usage:      encrypt, verify, wrap
 	Access:     local
 
-# Chave 2 - RSA - particular
-#
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type RSA:2048 --id 02 --label abreuferr@gmail.com
-Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
-Please enter User PIN:
-Key pair generated:
-Private Key Object; RSA
-	label:      abreuferr@gmail.com
-	ID:         02
-	Usage:      decrypt, sign, unwrap
-	Access:     sensitive, always sensitive, never extractable, local
-Public Key Object; RSA 2048 bits
-	label:      abreuferr@gmail.com
-	ID:         02
-	Usage:      encrypt, verify, wrap
-	Access:     local
-
-# Chave 3 - EC - senha segura
+# Chave - EC
 #
 $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:secp384r1 --id 03 --label cferreira@senhasegura.com.br
 Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
+Logging in to "hsm_mt4".
 Please enter User PIN:
 Key pair generated:
 Private Key Object; EC
@@ -169,51 +104,21 @@ Public Key Object; EC  EC_POINT 384 bits
 	Usage:      encrypt, verify, wrap, derive
 	Access:     local
 
-# Chave 4 - EC - particular
-#
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:secp384r1 --id 04 --label abreuferr@gmail.com
-Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
-Please enter User PIN:
-Key pair generated:
-Private Key Object; EC
-	label:      abreuferr@gmail.com
-	ID:         04
-	Usage:      decrypt, sign, unwrap, derive
-	Access:     sensitive, always sensitive, never extractable, local
-Public Key Object; EC  EC_POINT 384 bits
-	EC_POINT:   046104c23e92902ae6c4dfd3904434d8d7e6fb8dbaffb657ee64d70ff6a53e67dc318621dcde4f41d598a7f3275e5d4b84b3933547fcd151e4e4a3faba77b2a32f3a5c18179608d2f557edabe087b03cdaf4b3af20271240dbdd1267927c5db37f062d
-	EC_PARAMS:  06052b81040022
-	label:      abreuferr@gmail.com
-	ID:         04
-	Usage:      encrypt, verify, wrap, derive
-	Access:     local
-
 # Visualizar as chaves que estão armazenadas no token
 #
 $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
 Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
+Logging in to "hsm_mt4".
 Please enter User PIN:
-Private Key Object; RSA
-  label:      cferreria@senhasegura.com.br
-  ID:         01
-  Usage:      decrypt, sign, unwrap
-  Access:     sensitive, always sensitive, never extractable, local
-Public Key Object; RSA 2048 bits
-  label:      cferreria@senhasegura.com.br
-  ID:         01
-  Usage:      encrypt, verify, wrap
-  Access:     local
 
 Private Key Object; RSA
-  label:      abreuferr@gmail.com
-  ID:         02
+  label:      cferreria@senhasegura.com.br
+  ID:         01
   Usage:      decrypt, sign, unwrap
   Access:     sensitive, always sensitive, never extractable, local
 Public Key Object; RSA 2048 bits
-  label:      abreuferr@gmail.com
-  ID:         02
+  label:      cferreria@senhasegura.com.br
+  ID:         01
   Usage:      encrypt, verify, wrap
   Access:     local
 
@@ -230,103 +135,15 @@ Public Key Object; EC  EC_POINT 384 bits
   Usage:      encrypt, verify, wrap, derive
   Access:     local
 
-Private Key Object; EC
-  label:      abreuferr@gmail.com
-  ID:         04
-  Usage:      decrypt, sign, unwrap, derive
-  Access:     sensitive, always sensitive, never extractable, local
-Public Key Object; EC  EC_POINT 384 bits
-  EC_POINT:   046104c23e92902ae6c4dfd3904434d8d7e6fb8dbaffb657ee64d70ff6a53e67dc318621dcde4f41d598a7f3275e5d4b84b3933547fcd151e4e4a3faba77b2a32f3a5c18179608d2f557edabe087b03cdaf4b3af20271240dbdd1267927c5db37f062d
-  EC_PARAMS:  06052b81040022
-  label:      abreuferr@gmail.com
-  ID:         04
-  Usage:      encrypt, verify, wrap, derive
-  Access:     local
-
-# Visualizar as chaves p0úblicas.
+# Visualizar as chaves públicas.
 #
 $ ssh-keygen -D /usr/lib/libeToken.so
+ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzODQAAABhBFy9NKQd7iaNt0xsa6fV4rId/NEsTVyDrBeymr+xfrNSbIhALOXmseIn9duGGLdgYK+A57rox3bom+kgIOMPoN4OcD97aA17mMKm/0kkGJgUsf3MzxsOkHNiw1gTRSJLaA== cferreira@senhasegura.com.br
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1GI3lDTxhBJpq4YFdshGudNSjDA2xwbX5h9R9skUR9LTMjx5nln/mPHKWoEYSp2TXoE2oeMPVhCIDB+buZVbxWLpWN2q5oU84nN3OtQvQ5o5G7NHU6zYkPQA58LwD+Ok3OAZ++MRk5r+veVBxBYLcRogltJxDxCZGXcmT1D0EOSWAXSvkbZkKMumcLSgNuAORMgyzU/IWWSr/0nQio0Wt1U9l1ZHPK99kohrKQ+fMwdW/dr7KInt2CViq69RMfKYn5xEm9ft/iTSbLTnRx2omixhZjb6n/cqpkMEBMDUiIZOibTGhAENg5x/FDdEMLzaBQP0g4jAV0SkIfFD2PgZj cferreria@senhasegura.com.br
 
-################################################################
+# Apagar objetos armazenados no token
 #
-# OPENVPN
-#
-#################################################################
-
-# instalação
-#
-$ yay -S sac-core
-$ sudo pacman -S ccid pcsclite pcsc-tools pcsc-perl openvpn libp11
-
-# inicalizar os serviços
-#
-$ sudo systemctl enable --now pcscd.service
-$ sudo systemctl enable --now pcscd.socket
-
-# constatar que o computador esta reconhecendo o eToken
-#
-$ sudo opensc-tool -l
-# Detected readers (pcsc)
-Nr.  Card  Features  Name
-0    Yes             SafeNet eToken 5100 [eToken 5110 SC] 00 00
-
-# arquivo de configuração
-#
-# cat engine.conf
-openssl_conf = openssl_init
-
-[openssl_init]
-openssl_conf = openssl_init
-
-[openssl_init]
-engines = engine_section
-
-[engine_section]
-pkcs11 = pkcs11_section
-
-[pkcs11_section]
-engine_id = pkcs11
-dynamic_path = /usr/lib/engines-1.1/libpkcs11.so
-MODULE_PATH = /usr/lib/opensc-pkcs11.so
-init = 0
-
-[req]
-distinguished_name = req_distinguished_name
-
-[req_distinguished_name]
-
-# obtendo o ID da chave RSA
-#
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
-Using slot 0 with a present token (0x0)
-Logging in to "HSM MT4".
-Please enter User PIN:
-Private Key Object; RSA
-  label:      cferreria@senhasegura.com.br
-  ID:         01
-  Usage:      decrypt, sign, unwrap
-  Access:     sensitive, always sensitive, never extractable, local
-Public Key Object; RSA 2048 bits
-  label:      cferreria@senhasegura.com.br
-  ID:         01
-  Usage:      encrypt, verify, wrap
-  Access:     local
-
-# criando o arquivo CSR utilizando a chave privada presente no using private key in HSM
-#
-$ openssl req -new -subj '/CN=cferreira/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out filename.csr
-
-# criando um certificado auto-assinado
-#
-$ openssl req -x509 -engine pkcs11 -config engine.conf -keyform engine -new -key 0:0 -sha256 -days 3650 -out filename.pem -subj "/CN=cferreira"
-
-# converter o certificado do formato PEM para DER
-#
-$ openssl x509 -outform der -in filename.pem -out filename.der
-
-# Write self-signed certificate to HSM (use same ID as private key!)
-#
-$ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object filename.der --type cert --id changeme --label "cferreira"
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type pubkey --id 1
 
 ################################################################
 #
@@ -341,7 +158,9 @@ $ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object filename.der --ty
 # configuração do cliente ssh
 #
 $ cat /etc/ssh/ssh_config
-  PKCS11Provider /usr/lib/libeToken.so
+
+(...)
+PKCS11Provider /usr/lib/libeToken.so
 
 # obter a chave pública armazenada no eToken
 #
@@ -356,3 +175,72 @@ $ pkcs11-tool --module /usr/lib/libeTPkcs11.so --slot 0 --login --list-objects
 # deve ser copiado para o diretório .ssh
 #
 $ ssh-keygen -D /usr/lib/libeToken.so >> ~/.ssh/authorized_keys
+
+# login no servidor ssh
+#
+$ ssh -I /usr/lib/libeToken.so cferreira@192.168.X.X
+
+#################################################################
+#
+# Certificado Digital
+#
+#################################################################
+
+# Criando certificado x509
+#
+$ openssl
+
+OpenSSL> engine dynamic -pre SO_PATH:/usr/lib/engines-1.1/libpkcs11.so -pre ID:pkcs11 -pre LIST_ADD:1 -pre LOAD -pre MODULE_PATH:libeToken.so
+
+(dynamic) Dynamic engine loading support
+[Success]: SO_PATH:/usr/lib/engines-1.1/libpkcs11.so
+[Success]: ID:pkcs11
+[Success]: LIST_ADD:1
+[Success]: LOAD
+[Success]: MODULE_PATH:libeToken.so
+Loaded: (pkcs11) pkcs11 engine
+
+OpenSSL> req -engine pkcs11 -new -key slot_0-id_01 -keyform engine -x509 -out my.pem -text
+
+engine "pkcs11" set.
+Enter PKCS#11 token PIN for HSM MT4:
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:br
+State or Province Name (full name) [Some-State]:sao paulo
+Locality Name (eg, city) []:sao paulo
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:senha segura
+Organizational Unit Name (eg, section) []:senha segura
+Common Name (e.g. server FQDN or YOUR name) []:senha segura
+Email Address []:cferreira@senhasegura.com
+
+OpenSSL> x509 -in my.pem -out my.der -outform der
+
+OpenSSL> exit
+
+# Gravando o certificado no token
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object my.der --type cert --id 01 --label "cferreira@senhasegura.com"
+
+Using slot 0 with a present token (0x0)
+Logging in to "HSM MT4".
+Please enter User PIN: 
+Created certificate:
+Certificate Object; type = X.509 cert
+  label:      cferreira@senhasegura.com
+  subject:    DN: C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura/emailAddress=cferreira@senhasegura.com
+  ID:         01
+
+# Exibir o certificado gravado no eToken
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --list-objects
+
+Certificate Object; type = X.509 cert
+  label:      cferreira@senhasegura.com
+  subject:    DN: C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura/emailAddress=cferreira@senhasegura.com
+  ID:         01
