@@ -158,14 +158,13 @@ $ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type pubk
 # configuração do cliente ssh
 #
 $ cat /etc/ssh/ssh_config
-
 (...)
 PKCS11Provider /usr/lib/libeToken.so
 
 # obter a chave pública armazenada no eToken
 #
 # PS. utilizar chave de criptografia do tipo EC pois
-# é um algoritmo de criptografia mais rápid no processo
+# é um algoritmo de criptografia mais rápido no processo
 # de criptografia/descriptografia
 #
 $ pkcs11-tool --module /usr/lib/libeTPkcs11.so --slot 0 --login --list-objects
@@ -186,12 +185,13 @@ $ ssh -I /usr/lib/libeToken.so cferreira@192.168.X.X
 #
 #################################################################
 
-# Criando certificado x509
+# Ativar o OpenSSL
 #
 $ openssl
 
+# Configurar o OpenSSL
+#
 OpenSSL> engine dynamic -pre SO_PATH:/usr/lib/engines-1.1/libpkcs11.so -pre ID:pkcs11 -pre LIST_ADD:1 -pre LOAD -pre MODULE_PATH:libeToken.so
-
 (dynamic) Dynamic engine loading support
 [Success]: SO_PATH:/usr/lib/engines-1.1/libpkcs11.so
 [Success]: ID:pkcs11
@@ -200,8 +200,41 @@ OpenSSL> engine dynamic -pre SO_PATH:/usr/lib/engines-1.1/libpkcs11.so -pre ID:p
 [Success]: MODULE_PATH:libeToken.so
 Loaded: (pkcs11) pkcs11 engine
 
-OpenSSL> req -engine pkcs11 -new -key slot_0-id_01 -keyform engine -x509 -out my.pem -text
+# Arquivo de configuração do OpenSSL
+#
+$ cat engine.conf
+openssl_conf = openssl_init
 
+[openssl_init]
+engines = engine_section
+
+[engine_section]
+pkcs11 = pkcs11_section
+
+[pkcs11_section]
+engine_id = pkcs11
+dynamic_path = /usr/lib/engines-1.1/libpkcs11.so
+MODULE_PATH = libeToken.so
+init = 0
+
+[req]
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+
+$ OPENSSL_CONF=engine.conf openssl engine -t -c pkcs11
+(pkcs11) pkcs11 engine
+ [RSA, rsaEncryption, id-ecPublicKey]
+     [ available ]
+
+# Gerando o CSR utilizando a chave privada que esta armazenada no HSM
+#
+OpenSSL> req -engine pkcs11 -new -key slot_0-id_01 -keyform engine -x509 -subj '/CN=cferreira/' -sha256 -out my_cferreira.csr
+
+# Gerando o certificado auto-assinado
+#
+OpenSSL> req -engine pkcs11 -new -key slot_0-id_01 -keyform engine -x509 -subj '/CN=cferreira/' -sha256 -out my_cferreira.pem
+
+OpenSSL> req -engine pkcs11 -new -key slot_0-id_01 -keyform engine -x509 -out my_cferreira.pem -text
 engine "pkcs11" set.
 Enter PKCS#11 token PIN for HSM MT4:
 You are about to be asked to enter information that will be incorporated
@@ -219,13 +252,15 @@ Organizational Unit Name (eg, section) []:senha segura
 Common Name (e.g. server FQDN or YOUR name) []:senha segura
 Email Address []:cferreira@senhasegura.com
 
-OpenSSL> x509 -in my.pem -out my.der -outform der
+# Converter o arquivo PEM no formato DER
+#
+OpenSSL> x509 -in my_cferreira.pem -out my_cferreira.der -outform der
 
 OpenSSL> exit
 
 # Gravando o certificado no token
 #
-$ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object my.der --type cert --id 01 --label "cferreira@senhasegura.com"
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object my_cferreira.der --type cert --id 01 --label "cferreira@senhasegura.com"
 
 Using slot 0 with a present token (0x0)
 Logging in to "HSM MT4".
@@ -242,13 +277,12 @@ $ pkcs11-tool --module /usr/lib/libeToken.so --login --list-objects
 
 Certificate Object; type = X.509 cert
   label:      cferreira@senhasegura.com
-  subject:    DN: C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura/emailAddress=cferreira@senhasegura.com
+  subject:    DN: CN=cferreira
   ID:         01
 
 # Apagar o certificado do eToken
 #
 $ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type cert --id 01
-
 
 ################################################################
 #
@@ -266,8 +300,8 @@ Each object shown below may be used as parameter to
 --pkcs11-id option please remember to use single quote mark.
 
 Certificate
-       DN:             C=br, ST=sao paulo, L=sao paulo, O=senha segura, OU=senha segura, CN=senha segura, emailAddress=cferreira@senhasegura.com
-       Serial:         5AD2BF7EDF7A8C4EE36762152C2A944D4DC40957
+       DN:             CN=cferreira
+       Serial:         63F4A594B2E2EA977E0757BF21002A00FE6E66DE
        Serialized id:  SafeNet\x2C\x20Inc\x2E/eToken/0271f395/HSM\x20MT4/01
 
 $ cat client.configuração
