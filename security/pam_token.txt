@@ -1,0 +1,39 @@
+#: Title : PAM e Token
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Instalação e configuração da tecnologia PAM para trabalhar com token
+#: Options : None
+#: Reference :  https://opensc.github.io/pam_pkcs11/doc/pam_pkcs11.html
+                https://github.com/OpenSC/pam_p11
+
+#
+# Definição
+#
+
+Cryptographic Token Interface Standard (PKCS#11)
+
+#
+# Instalação
+#
+
+$ cd /tmp
+$ git clone clone https://aur.archlinux.org/pam_pkcs11.git
+$ cd pam_pkcs11
+$ makepkg -si
+
+$ git clone https://aur.archlinux.org/pam_p11.git
+$ cd pam_p11
+$ makepkg -si
+
+#
+# configuração
+#
+
+$ sudo cat /etc/pam.d/system-auth
+#password   required    pam_unix.so sha512 shadow nullok
+password    optional    /usr/lib/security/pam_p11.so  /usr/lib/pkcs11/pensc-pkcs11.so
+
+$ mkdir -p ~/.eid
+$ chmod 0755 ~/.eid
+$ cd .eid
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --list-objects
+$ pkcs11-tool --read-object --type cert --id 01 --module /usr/lib/libeToken.so --output-file cert.cer
