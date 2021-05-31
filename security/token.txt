@@ -11,7 +11,7 @@
 #################################################################
 
 #
-# Instalação e Inicialização
+# Instalação
 #
 
 $ yay -S opensc openct sac-core ccid pcsclite pcsc-tools pcsc-perl
@@ -117,10 +117,6 @@ $ openssl req -new -subj '/CN=abreuferr@gmail.com/' -sha256 -config engine.conf 
 #
 $ openssl req -x509 -engine pkcs11 -config engine.conf -keyform engine -new -key 0:01 -sha256 -days 3650 -out certificado_auto_assinado.pem -subj "/CN=abreuferr@gmail.com"
 
-#
-# Importar certificado para o HSM 
-#
-
 # Converter o arquivo PEM no formato DER
 #
 $ openssl x509 -outform der -in certificado_auto_assinado.pem -out certificado_auto_assinado.der
@@ -131,14 +127,13 @@ $ openssl x509 -outform der -in certificado_auto_assinado.pem -out certificado_a
 #
 $ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object certificado_auto_assinado.der --type cert --id 01 --label "abreuferr_gmail.com"
 
-
 # Exibir o certificado gravado no eToken
 #
 $ pkcs11-tool --module /usr/lib/libeToken.so --login --list-objects
 
 Certificate Object; type = X.509 cert
-  label:      cferreira@senhasegura.com
-  subject:    DN: CN=cferreira
+  label:      abreuferr@gmail.com
+  subject:    DN: CN=abreuferr@gmail.com
   ID:         01
 
 # Apagar o certificado do eToken
@@ -151,9 +146,32 @@ $ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type cert
 #
 #################################################################
 
-# Visualizar o certificado que esta armazenados
-# no eToken.
+# Gerando o CSR utilizando a chave privada RSA que esta armazenada no HSM
+#
+# Utilizando o arquivo "engine.conf" veja o SLOT e o ID da chave privada 
+# a utilizar, no caso, Slot 0 e ID 01 - o CSR deve ser assinado pela infra
+# 
+$ openssl req -new -subj '/CN=abreuferr@gmail.com/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
 
+# o arquivo arquivo_certificado.csr deve ser enviado para o responsavel o qual
+# ira assinar o certificado.
+#
+# o responsavel ira enviar um e-mail com o certificado assinado. O certificado 
+# deve ser salvo em um arquivo com a extensão .PEM, "certificado_assinado.pem"
+
+# Converter de PEM para DER
+#
+$ openssl x509 -outform der -in certificado_assinado.pem -out certificado_assinado.der
+
+# Importar o certificado assinado, DER, no HSM.
+# 
+# IMPORTANTE - o certificado deve ter o mesmo ID da chave pública/privada RSA 
+# gerou o certificado.
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object certificado_assinado.der --type cert --id 01 --label "abreuferr@gmail.com"
+
+# Obtendo o "Serialized id"
+#
 $ openvpn --show-pkcs11-ids /usr/lib/libeToken.so
 
 The following objects are available for use.
@@ -162,29 +180,33 @@ Each object shown below may be used as parameter to
 
 Certificate
        DN:             CN=cferreira
-       Serial:         63F4A594B2E2EA977E0757BF21002A00FE6E66DE
-       Serialized id:  SafeNet\x2C\x20Inc\x2E/eToken/0271f395/HSM\x20MT4/01
+       Serial:         SERIAL
+       Serialized id:  SERIALIZED_ID
 
-$ cat client.configuração
-
+# arquivo de configuração do OpenVPN
+#
+$ cat client.ovpn
 client
 dev tun
-proto udp
-remote <your.server.com> 2001
-resolv-retry infinite
+remote <IP_SERVER> 444 udp4
+keepalive 10 120
 nobind
-persist-key
 persist-tun
-ca /etc/openvpn/ca.crt
-ns-cert-type server
-comp-lzo
-verb 3
-script-security 2
-up /etc/openvpn/update-resolv-conf
-down /etc/openvpn/update-resolv-conf
+persist-key
+auth-nocache
+verify-x509-name "<IP_SERVER>" name
+remote-cert-tls server
+tls-client
+key-direction 1
+route 10.66.0.0 255.255.0.0 172.16.20.1
+<ca>
+-----BEGIN CERTIFICATE-----
+(...))
+-----END CERTIFICATE-----
+</ca>
 pkcs11-providers /usr/lib/libeToken.so
-pkcs11-id 'SafeNet\x2C\x20Inc\x2E/eToken/0271f395/HSM\x20MT4/01'
-
+pkcs11-id 'SERIALIZED_ID'
+tls-version-min 1.1
 ################################################################
 #
 # OPENSSH
