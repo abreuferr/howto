@@ -33,12 +33,6 @@ $ sudo apt-get update
 $ sudo apt-get install libhal1 libhal-storage1
 
 #
-# SafeNet eToken 5100
-#
-
-$ pkcs11-tool -vv  --module /usr/lib/libeToken.so --list-slots
-
-#
 # Inicializar token
 #
 
@@ -64,7 +58,7 @@ $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
 #
 #################################################################
 
-# Chave RSA
+# Chave RSA 2048
 #
 $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type RSA:2048 --id 1 --label abreuferr_rsa
 
@@ -104,8 +98,10 @@ $ pkcs11-tool -vv  --module /usr/lib/libeToken.so --login --delete-object --id 0
 #
 #################################################################
 
+#
 # Arquivo de configuração do OpenSSL
 #
+
 $ cat engine.conf
   openssl_conf = openssl_init
 
@@ -127,13 +123,17 @@ $ cat engine.conf
 # Gerando o CSR utilizando a chave privada RSA que esta armazenada no HSM
 #
 # Utilizando o arquivo "engine.conf" veja o SLOT e o ID da chave privada 
-# a utilizar, no caso, Slot 0 e ID 01 - o CSR deve ser assinado pela infra
+# a utilizar, no caso, Slot 0 e ID 01
 # 
 $ openssl req -new -subj '/CN=abreuferr/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
 
 # Gerando o certificado auto-assinado
 #
 $ openssl req -x509 -engine pkcs11 -config engine.conf -keyform engine -new -key 0:01 -sha256 -days 3650 -out certificado_auto_assinado.pem -subj "/CN=abreuferr"
+
+#
+# Importar certificado para o HSM 
+#
 
 # Converter o arquivo PEM no formato DER
 #
@@ -259,3 +259,69 @@ $ ssh-keygen -D /usr/lib/libeToken.so >> ~/.ssh/authorized_keys
 # login no servidor ssh
 #
 $ ssh -I /usr/lib/libeToken.so cferreira@192.168.X.X
+
+################################################################
+#
+# ASSINATURA
+#
+#################################################################
+
+#
+# Assinar e Verificar um arquivo utilizando chave RSA id 01 
+#
+# A informação a ser criptografada é inserida no HSM > Criptografada 
+# dentro do HSM > exportada para o computador.
+#
+
+# Exportar a chave PUBLICA para VERIFICAR(decrypt) a informação protegida
+#
+$ pkcs11-tool --read-object --pin 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so -o chave_publica.der
+
+# Converter o arquivo do formato DER(binário) para o formato PEM(ascii)
+# 
+$ openssl rsa -inform DER -outform PEM  -in chave_publica.der -pubin -out chave_publica.pem
+
+# Assinar digitalmente o conteúdo de um arquivo com a chave privada RSA e mecanismo RSA-PKCS
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --pin 12345 --login --sign -m RSA-PKCS --id 01 -i 244letras.txt -o 244letras.txt.RSA-PKCS.sign
+
+# Verificar conteudo da assinatura assinado em RSA-PKCS
+#
+$ openssl rsautl -verify -inkey chave_publica.pem -in 244letras.txt.RSA-PKCS.sign -pubin -out 244letras.txt.RSA-PKCS.verificado
+
+# Assinar digitalmente o conteúdo de um arquivo com a chave privada RSA e mecanismo ECDSA-SHA384
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --pin 12345 --login --sign -m ECDSA-SHA384 --id 02 -i 244letras.txt -o 244letras.txt.ECDSA-SHA384.sign
+
+################################################################
+#
+# CRIPTOGRAFIA
+#
+#################################################################
+
+#
+# Criptografar e Descriptografar um arquivo utilizando chave RSA id 01 
+#
+# O arquivo é criptografado fora do HSM pois é utilizado a chave pública
+# para executar o processo. Já o processo de descriptografia ocorre dentro 
+# do dentro do HSM pois a chave privada não pode ser exportada do HSM.
+#
+
+# Exportar a chave PUBLICA
+#
+$ pkcs11-tool --read-object --pin 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so -o chave_publica.der
+
+# Converter o arquivo com a chave pública do formato DER(binário) para o formato PEM(ascii)
+# 
+$ openssl rsa -inform DER -outform PEM  -in chave_publica.der -pubin -out chave_publica.pem
+
+# Criptografando um arquivou tilizando a chave publica
+#
+$ openssl pkeyutl -encrypt -inkey chave_publica.pem -pubin -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 -in 189letras.txt -out 189letras.txt.RSA-AOEP
+
+# Decriptografando um arquivo utilizando a chave privada
+#
+# o processo de descriptografia ocorre dentro do HSM
+#
+$ pkcs11-tool --module /usr/lib/libeToken.so --pin 1234 --login --decrypt --id 01 -m RSA-PKCS-OAEP -i 189letras.txt.RSA-AOEP -o 189letras.txt.RSA-AOEP.verificado
+$ pkcs11-tool --module /usr/lib/libeToken.so --pin 1234 --login --decrypt --id 01 -m RSA-PKCS-OAEP --hash-algorithm=sha256 -i 189letras.txt.RSA-AOEP -o 189letras.txt.RSA-AOEP.verificado
