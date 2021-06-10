@@ -21,6 +21,9 @@
 # git
 - git.txt - introducao e conceitos basicos do Git
 
+# eToken
+- etoken.txt - informações sobre eToken
+
 # kubernetes
 - dia_0.txt - teoria, componentes do k8s
 - dia_1.txt - instalacao/inicializacao/podnetwork/nodes/pods/namspaces/deployment/service
