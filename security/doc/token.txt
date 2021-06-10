@@ -1,6 +1,6 @@
 #: Title : Token
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : Instalação e configuração de algumas ferramentas para trabalhar com token
+#: Description : Uma série de informações de como trabalhar com eToken.
 #: Options : None
 #: Reference :
 
@@ -14,9 +14,23 @@
 # Instalação
 #
 
+# Arch Linux
+#
 $ yay -S opensc openct sac-core ccid pcsclite pcsc-tools pcsc-perl
 $ sudo systemctl enable --now pcscd.service
 $ sudo systemctl enable --now pcscd.socket
+
+# Debian
+#
+$ sudo apt-get install opensc libpcsclite1 pcsc-tools pcscd
+$ sudo apt-get install libengine-pkcs11-openssl 
+$ sudo apt-get install gnupg-pkcs11-scd 
+$ sudo apt-get install gnupg2
+
+$ sudo cat /etc/apt/sources.list.d/mjblenner-ubuntu-ppa-hal-hirsute.list
+  deb http://ppa.launchpad.net/mjblenner/ppa-hal/ubuntu/ xenial main
+$ sudo apt-get update
+$ sudo apt-get install libhal1 libhal-storage1
 
 #
 # SafeNet eToken 5100
@@ -40,31 +54,35 @@ $ pkcs11-tool -vv --module /usr/lib/libeToken.so --init-pin --login --slot 0
 #
 $ pkcs11-tool -vv  --module /usr/lib/libeToken.so --change-pin
 
+# Visualizar o conteúdo do token
+#
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
+
 #################################################################
 #
-# CHAVE
+# CHAVE - Simétrica e Assimétrica
 #
 #################################################################
 
 # Chave RSA
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type RSA:2048 --id 01 --label abreuferr_gmail_rsa
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type RSA:2048 --id 1 --label abreuferr_rsa
 
 # Chave EC SECP r1
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:secp384r1 --id 02 --label abreuferr_gmail_ecsecp
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:secp384r1 --id 2 --label abreuferr_ec1
 
 # Chave EC Koblitz k1
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:prime256v1 --id 03 --label abreuferr_gmail_exkoblitz
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type EC:prime256v1 --id 3 --label abreuferr_k1
 
 # Chave AES 128
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type aes:16 --id 04 --label abreuferr_gmail_aes128 --sensitive
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keygen --id 5 --key-type aes:16 --label abreuferr_aes128 --sensitive
 
 # Chave AES 256
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keypairgen --key-type aes:32 --id 05 --label abreuferr_gmail_aes256 --sensitive
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --keygen --id 4 --key-type aes:32 --label abreuferr_aes256 --sensitive
 
 # Visualizar as chaves que estão armazenadas no token
 #
@@ -111,11 +129,11 @@ $ cat engine.conf
 # Utilizando o arquivo "engine.conf" veja o SLOT e o ID da chave privada 
 # a utilizar, no caso, Slot 0 e ID 01 - o CSR deve ser assinado pela infra
 # 
-$ openssl req -new -subj '/CN=abreuferr@gmail.com/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
+$ openssl req -new -subj '/CN=abreuferr/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
 
 # Gerando o certificado auto-assinado
 #
-$ openssl req -x509 -engine pkcs11 -config engine.conf -keyform engine -new -key 0:01 -sha256 -days 3650 -out certificado_auto_assinado.pem -subj "/CN=abreuferr@gmail.com"
+$ openssl req -x509 -engine pkcs11 -config engine.conf -keyform engine -new -key 0:01 -sha256 -days 3650 -out certificado_auto_assinado.pem -subj "/CN=abreuferr"
 
 # Converter o arquivo PEM no formato DER
 #
@@ -125,15 +143,15 @@ $ openssl x509 -outform der -in certificado_auto_assinado.pem -out certificado_a
 #
 # Subir o certificado, importante que o ID seja o MESMO da chave pública 
 #
-$ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object certificado_auto_assinado.der --type cert --id 01 --label "abreuferr_gmail.com"
+$ pkcs11-tool --module /usr/lib/libeToken.so --login --write-object certificado_auto_assinado.der --type cert --id 01 --label "abreuferr"
 
 # Exibir o certificado gravado no eToken
 #
 $ pkcs11-tool --module /usr/lib/libeToken.so --login --list-objects
 
 Certificate Object; type = X.509 cert
-  label:      abreuferr@gmail.com
-  subject:    DN: CN=abreuferr@gmail.com
+  label:      abreuferr
+  subject:    DN: CN=abreuferr
   ID:         01
 
 # Apagar o certificado do eToken
@@ -151,7 +169,7 @@ $ pkcs11-tool --module /usr/lib/libeToken.so --login --delete-object --type cert
 # Utilizando o arquivo "engine.conf" veja o SLOT e o ID da chave privada 
 # a utilizar, no caso, Slot 0 e ID 01 - o CSR deve ser assinado pela infra
 # 
-$ openssl req -new -subj '/CN=abreuferr@gmail.com/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
+$ openssl req -new -subj '/CN=abreuferr/' -sha256 -config engine.conf -engine pkcs11 -keyform engine -key 0:01 -out arquivo_certificado.csr
 
 # o arquivo arquivo_certificado.csr deve ser enviado para o responsavel o qual
 # ira assinar o certificado.
@@ -168,7 +186,7 @@ $ openssl x509 -outform der -in certificado_assinado.pem -out certificado_assina
 # IMPORTANTE - o certificado deve ter o mesmo ID da chave pública/privada RSA 
 # gerou o certificado.
 #
-$ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object certificado_assinado.der --type cert --id 01 --label "abreuferr@gmail.com"
+$ pkcs11-tool --module /usr/lib/libeToken.so -l --write-object certificado_assinado.der --type cert --id 01 --label "abreuferr"
 
 # Obtendo o "Serialized id"
 #
@@ -207,6 +225,7 @@ route 10.66.0.0 255.255.0.0 172.16.20.1
 pkcs11-providers /usr/lib/libeToken.so
 pkcs11-id 'SERIALIZED_ID'
 tls-version-min 1.1
+
 ################################################################
 #
 # OPENSSH
