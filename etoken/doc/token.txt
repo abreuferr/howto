@@ -273,21 +273,38 @@ $ ssh -I /usr/lib/libeToken.so cferreira@192.168.X.X
 # dentro do HSM > exportada para o computador.
 #
 
-# Exportar a chave PUBLICA para VERIFICAR(decrypt) a informação protegida
+# Arquivo de teste
 #
-$ pkcs11-tool --read-object --pin 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so -o chave_publica.der
-
-# Converter o arquivo do formato DER(binário) para o formato PEM(ascii)
-# 
-$ openssl rsa -inform DER -outform PEM  -in chave_publica.der -pubin -out chave_publica.pem
+$ echo "19d512fc649e1668eb84741284ad95ec03f3225719a83e40389dbade4eabe5ed" > digest.txt
+$ xxd -r -p digest.txt digest.bin
 
 # Assinar digitalmente o conteúdo de um arquivo com a chave privada RSA e mecanismo RSA-PKCS
 #
-$ pkcs11-tool --module /usr/lib/libeToken.so --pin 12345 --login --sign -m RSA-PKCS --id 01 -i 244letras.txt -o 244letras.txt.RSA-PKCS.sign
+$ pkcs11-tool --module /usr/lib/libeToken.so --pin 12345 --login --sign -m RSA-PKCS --id 01 -i digest.bin -o signature.bin
+
+# Exibir o arquivo assinado
+#
+$ base64 digest.bin.RSA-PKCS.sign
+
+# Exportar a chave PUBLICA para VERIFICAR(decrypt) a informação protegida
+#
+$ pkcs11-tool --read-object --pin 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so -o public-key.der
+
+# Converter o arquivo do formato DER(binário) para o formato PEM(ascii)
+# 
+$ openssl rsa -inform DER -outform PEM -in public-key.der -pubin -out public-key.pem
 
 # Verificar conteudo da assinatura assinado em RSA-PKCS
 #
-$ openssl rsautl -verify -inkey chave_publica.pem -in 244letras.txt.RSA-PKCS.sign -pubin -out 244letras.txt.RSA-PKCS.verificado
+$ openssl rsautl -verify -inkey public-key.pem -in signature.bin -pubin -out verified.bin
+
+# Convertendo os arquivos
+#
+$ xxd -p -c32 verified.bin verified.txt
+
+# Comparando os arquivos
+#
+$ cat digest.txt verified.txt
 
 # Assinar digitalmente o conteúdo de um arquivo com a chave privada RSA e mecanismo ECDSA-SHA384
 #

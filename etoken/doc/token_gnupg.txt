@@ -14,15 +14,30 @@
 # Instalação
 #
 
+# Arch Linux
+#
 $ yay -S opensc openct sac-core ccid pcsclite pcsc-tools pcsc-perl
 $ sudo systemctl enable --now pcscd.service
 $ sudo systemctl enable --now pcscd.socket
 
+# Debian
 #
-# SafeNet eToken 5100
+$ sudo apt-get install opensc libpcsclite1 pcsc-tools pcscd
+$ sudo apt-get install libengine-pkcs11-openssl 
+$ sudo apt-get install gnupg-pkcs11-scd 
+$ sudo apt-get install gnupg2
+
+$ sudo cat /etc/apt/sources.list.d/mjblenner-ubuntu-ppa-hal-hirsute.list
+  deb http://ppa.launchpad.net/mjblenner/ppa-hal/ubuntu/ xenial main
+$ sudo apt-get update
+$ sudo apt-get install libhal1 libhal-storage1
+
+#
+# Informação
 #
 
-$ pkcs11-tool -vv  --module /usr/lib/libeToken.so --list-slots
+$ pkcs11-tool --module /usr/lib/libeToken.so --show-info
+$ pkcs11-tool --module /usr/lib/libeToken.so --list-slots
 
 #
 # Inicializar token
