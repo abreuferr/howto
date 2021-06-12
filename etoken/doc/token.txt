@@ -286,13 +286,17 @@ $ pkcs11-tool --module /usr/lib/libeToken.so --pin 12345 --login --sign -m RSA-P
 #
 $ base64 digest.bin.RSA-PKCS.sign
 
-# Exportar a chave PUBLICA para VERIFICAR(decrypt) a informação protegida
+# Exportar a chave PUBLICA
 #
 $ pkcs11-tool --read-object --pin 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so -o public-key.der
 
 # Converter o arquivo do formato DER(binário) para o formato PEM(ascii)
 # 
 $ openssl rsa -inform DER -outform PEM -in public-key.der -pubin -out public-key.pem
+
+#
+# RSA-PKCS
+#
 
 # Verificar conteudo da assinatura assinado em RSA-PKCS
 #

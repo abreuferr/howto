@@ -1,0 +1,142 @@
+# https://github.com/OpenSC/OpenSC/wiki/Using-pkcs11-tool-and-OpenSSL
+
+#
+# Sign/Verify using private key/certificate
+#
+
+# Create a data to sign
+$ echo "data to sign (max 100 bytes)" > data
+
+# Get the certificate from the card
+$ pkcs11-tool -r -p 12345 --id 01 --type cert --module /usr/lib/libeToken.so > certificate.cert
+
+# Convert it to the public key (PEM format)
+$ openssl x509 -inform DER -in certificate.cert -pubkey > certificate.pub
+
+OR
+
+# Get the public key from the card
+$ pkcs11-tool -r -p 12345 --id 01 --type pubkey --module /usr/lib/libeToken.so > certificate.der
+
+# Convert it to PEM format
+$ openssl rsa -inform DER -outform PEM -in certificate.der -pubin > certificate.pub
+
+#
+# RSA-PKCS
+#
+
+# Sign the data on the smartcard using private key
+$ pkcs11-tool --id 01 -s -p 12345 -m RSA-PKCS --module /usr/lib/libeToken.so --input-file data --output-file data.sig
+
+# Verify
+$ openssl rsautl -verify -inkey certificate.pub -in data.sig -pubin
+
+#
+# SHA1-RSA-PKCS
+#
+
+# Sign the data on the smartcard using private key
+$ pkcs11-tool --id 01 -s -p 12345 -m SHA1-RSA-PKCS --module /usr/lib/libeToken.so --input-file data --output-file data.sig
+
+# Verify and parse the returned ASN1 structure
+$ openssl dgst -keyform PEM -verify certificate.pub -sha1 -signature data.sig data
+
+#
+# SHA1-RSA-PKCS-PSS
+#
+
+# Sign the data on the smartcard using private key
+$ pkcs11-tool --id 01 -s -p 12345 -m SHA1-RSA-PKCS-PSS --module /usr/lib/libeToken.so --input-file data --output-file data.sig
+
+# Verify
+$ openssl dgst -keyform DER -verify certificate.pub -sha1 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 -signature data.sig data
+
+#
+# RSA-PKCS-PSS
+#
+
+# Prepare the data for signature
+$ openssl dgst -binary -sha256 data > data.sha256
+
+# Sign
+$ pkcs11-tool --id 01 -s -p 12345 -m RSA-PKCS-PSS --hash-algorithm SHA256 --mgf MGF1-SHA256 --module /usr/lib/libeToken.so --input-file data.sha256 --output-file data.sig
+
+# Verify
+$  openssl dgst -keyform DER -verify certificate.pub -sha256 -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1  -sigopt rsa_mgf1_md:sha256 -signature data.sig data
+
+#
+# RSA-X-509
+# 
+
+# Prepare data with padding
+$ (echo -ne "\x00\x01" && for i in `seq 224`; do echo -ne "\xff"; done && echo -ne "\00" && cat data) > data_pad
+
+# Sign the data on the smartcard using private key
+$ pkcs11-tool --id 01 -s -p $PIN -m RSA-X-509 --module /usr/lib/libeToken.so --input-file data_pad --output-file data_pad.sig
+
+# Verify
+$ openssl rsautl -verify -inkey certificate.pub -in data_pad.sig -pubin -raw
+
+#
+# EdDSA (WIP)
+#
+
+# Sign data using a key on card
+$ pkcs11-tool --sign -m EDDSA --id 01 --slot 1 --pin 12345 --input-file data --output-file data.sig  --module /usr/lib/libeToken.so
+
+# Verify data using OpenSC
+$ openssl pkeyutl -verify -inkey eddsa.pem -in data -sigfile data.sig -pubin -rawin
+
+#
+# Encrypt/Decrypt using private key/certificate
+#
+
+# Create a data to encrypt
+$ echo "data to encrypt should be longer, better, faster and whatever we need to hide" > data
+
+# Get the certificate from the card
+$ pkcs11-tool -r -p 12345 --id 01 --type cert --module /usr/lib/libeToken.so > public_key.cert
+
+# Convert it to the public key
+$ openssl x509 -inform DER -in public_key.cert -pubkey > public_key.pub
+
+#
+# RSA-PKCS
+#
+
+# Encrypt the data locally
+$ openssl rsautl -encrypt -inkey public_key.pub -in data -pubin -out data.crypt
+
+# Decrypt the data on the card
+$ pkcs11-tool --id 01 --decrypt -p 12345 -m RSA-PKCS --module /usr/lib/libeToken.so --input-file data.crypt
+
+#
+# RSA-X-509
+#
+
+# Prepare data with padding
+$ (echo -ne "\x00\x02" && for i in `seq 113`; do echo -ne "\xff"; done && echo -ne "\00" && cat data) > data_pad
+
+# Encrypt the data locally
+$ openssl rsautl -encrypt -inkey public_key.pub -in data_pad -pubin -out data_pad.crypt -raw
+
+# Decrypt the data on the card
+$ pkcs11-tool --id 01 --decrypt -p 12345 -m RSA-X-509 --module /usr/lib/libeToken.so --input-file data_pad.crypt
+
+#
+# RSA-PKCS-OAEP
+#
+
+# Encrypt the data locally
+$ openssl rsautl -encrypt -inkey public_key.pub -in data -pubin -out data.crypt -oaep
+
+OR
+
+$ openssl pkeyutl -encrypt -inkey public_key.pub -pubin -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 -in data -out data.sha256.crypt
+
+# Decrypt the data on the card
+$ pkcs11-tool --id 01 --decrypt -p $PIN -m RSA-PKCS-OAEP --module /usr/lib/libeToken.so --input-file data.crypt
+
+OR
+
+$ pkcs11-tool --id 01 --decrypt -p $PIN -m RSA-PKCS-OAEP --hash-algorithm=sha256 --module /usr/lib/libeToken.so --input-file data.sha256.crypt
