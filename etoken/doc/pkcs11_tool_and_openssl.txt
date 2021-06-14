@@ -1,11 +1,11 @@
 # https://github.com/OpenSC/OpenSC/wiki/Using-pkcs11-tool-and-OpenSSL
 
 #
-# Sign/Verify using private key/certificate
+# Assinatura e Verificação utilizando chave privada e certificado digital
 #
 
-# Create a data to sign
-$ echo "data to sign (max 100 bytes)" > data
+# Dados que serão assinados digitalmente.
+$ echo "dados que serão assinados (max. 100 bytes)" > data
 
 # Get the certificate from the card
 $ pkcs11-tool -r -p 12345 --id 01 --type cert --module /usr/lib/libeToken.so > certificate.cert
