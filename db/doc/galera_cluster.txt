@@ -1,0 +1,6 @@
+#: Title : MariaDB Galera Cluster
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Como construir um cluster MariaDB utilizando a ferramenta Galera Cluster
+#: Options : Cluster multi-master
+#: Reference :
+
