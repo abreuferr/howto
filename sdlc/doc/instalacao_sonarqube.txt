@@ -32,12 +32,19 @@ $ sudo reboot
 # O SonarQube trabalha com as bases de dados
 # Oracle, Microsoft SQL Server e PostgreSQL.
 
+# atualização do sistema operacional
+$ sudo apt update
+$ sudo apt -y upgrade
+$ sudo shutdown -r now
+
 # Instalação do Java
 $ sudo apt-get install openjdk-11-jdk -y
 
 # Instalação do PostgreSQL
-$ wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | sudo apt-key add -
-$ sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+$ sudo apt update
+$ sudo apt -y install gnupg2
+$ echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
+$ sudo apt update
 $ sudo apt install postgresql postgresql-contrib -y
 $ sudo systemctl enable postgresql
 $ sudo systemctl start  postgresql
