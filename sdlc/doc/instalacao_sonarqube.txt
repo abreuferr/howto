@@ -63,22 +63,21 @@ $ psql
 # GRANT ALL PRIVILEGES ON DATABASE sonarqube to sonar;
 # \q
 $ exit
-$ sudo systemctl enable postgresql
-$ sudo systemctl status postgresql
 
 #
 # Instalação do SonarQube
 #
 
 # download do SonarQube
-$ wget https://binaries.sonarsource.com/CommercialDistribution/sonarqube-developer/sonarqube-developer-8.9.0.43852.zip
-$ unzip sonarqube-developer-8.9.0.43852.zip
+$ sudo apt install unzip
+$ wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-8.9.1.44547.zip
+$ unzip sonarqube-8.9.1.44547.zip
 
 #
 # Configuração do SonarQube
 #
 
-$ sudo mv sonarqube-8.9.0.43852/ /opt/sonarqube
+$ sudo mv sonarqube-8.9.1.44547/ /opt/sonarqube
 $ sudo groupadd sonar
 $ sudo useradd -c "SonarQube - User" -d /opt/sonarqube/ -g sonar sonar
 $ sudo chown -R sonar:sonar /opt/sonarqube/
