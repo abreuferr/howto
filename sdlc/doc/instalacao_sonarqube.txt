@@ -156,3 +156,5 @@ $ sudo systemctl restart nginx
 #
 
 # browser - http://<IP_SONARQUBE>:9000
+username - admin
+password - admin
