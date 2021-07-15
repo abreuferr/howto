@@ -58,7 +58,7 @@ $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
 
 # Login
 #
-$ pkcs11-tool -vv --module /usr/lib/libeToken.so --test --login --pin BBbb00--
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --test --login --pin AAaa00--
 
 #################################################################
 #
