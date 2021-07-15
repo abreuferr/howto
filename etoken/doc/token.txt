@@ -48,9 +48,17 @@ $ pkcs11-tool -vv --module /usr/lib/libeToken.so --init-pin --login --slot 0
 #
 $ pkcs11-tool -vv  --module /usr/lib/libeToken.so --change-pin
 
+# Desbloquear o HSM
+#
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --login --login-type so --so-pin=123456 --init-pin --new-pin=AAaa00--
+
 # Visualizar o conteúdo do token
 #
 $ pkcs11-tool -vv --module /usr/lib/libeToken.so --login -O
+
+# Login
+#
+$ pkcs11-tool -vv --module /usr/lib/libeToken.so --test --login --pin BBbb00--
 
 #################################################################
 #
