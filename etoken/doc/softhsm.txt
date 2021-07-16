@@ -1,0 +1,112 @@
+#: Title : softHSM
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Uma série de informações de como trabalhar com software softHSM
+#: Options : None
+#: Reference :
+
+# instalação
+#
+$ sudo apt install opensc softhsm2 -y -d
+
+# adicionar usuario ao grupo
+#
+$ sudo usermod -aG softhsm "$USER"
+
+# arquivo de configuração
+#
+$ sudo cat /etc/softhsm/softhsm2.conf
+# SoftHSM v2 configuration file
+
+directories.tokendir = /var/lib/softhsm/tokens/
+objectstore.backend = file
+
+# ERROR, WARNING, INFO, DEBUG
+log.level = ERROR
+
+# If CKF_REMOVABLE_DEVICE flag should be set
+slots.removable = false
+
+# Enable and disable PKCS#11 mechanisms using slots.mechanisms.
+slots.mechanisms = ALL
+
+# If the library should reset the state on fork
+library.reset_on_fork = false
+
+# algoritmos suportados
+#
+$ sudo pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so -M
+
+# inicializando um token do softHSM
+#
+$ sudo softhsm2-util --init-token --slot 0 --label mt4HSM
+=== SO PIN (4-255 characters) ===
+Please enter SO PIN: ******
+Please reenter SO PIN: ******
+=== User PIN (4-255 characters) ===
+Please enter user PIN: ******
+Please reenter user PIN: ******
+The token has been initialized and is reassigned to slot 1912878247
+
+$ sudo softhsm2-util --init-token --slot 0 --label mt4HSM --so-pin 654321 --pin 123456
+
+# exibindo slot utilizado
+#
+$ sudo ls /var/lib/softhsm/tokens/                          
+6990cc97-2b7a-46d5-e8bb-9667f20434a7
+
+$ sudo softhsm2-util --show-slots                           
+Available slots:
+Slot 1912878247
+    Slot info:
+        Description:      SoftHSM slot ID 0x720434a7                                      
+        Manufacturer ID:  SoftHSM project                 
+        Hardware version: 2.6
+        Firmware version: 2.6
+        Token present:    yes
+    Token info:
+        Manufacturer ID:  SoftHSM project                 
+        Model:            SoftHSM v2      
+        Hardware version: 2.6
+        Firmware version: 2.6
+        Serial number:    e8bb9667f20434a7
+        Initialized:      yes
+        User PIN init.:   yes
+        Label:            softHSM                         
+Slot 1
+    Slot info:
+        Description:      SoftHSM slot ID 0x1                                             
+        Manufacturer ID:  SoftHSM project                 
+        Hardware version: 2.6
+        Firmware version: 2.6
+        Token present:    yes
+    Token info:
+        Manufacturer ID:  SoftHSM project                 
+        Model:            SoftHSM v2      
+        Hardware version: 2.6
+        Firmware version: 2.6
+        Serial number:                    
+        Initialized:      no
+        User PIN init.:   no
+        Label:                                            
+
+# visualizar o conteudo do slot
+#
+$ sudo pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so -l -O --slot 1912878247
+
+# login no HSM/slot
+#
+$ sudo pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so -l -t --slot 1912878247
+Logging in to "mt4HSM".
+WARNING: user PIN count low
+Please enter User PIN: 
+C_SeedRandom() and C_GenerateRandom():
+  seems to be OK
+Digests:
+  all 4 digest functions seem to work
+  MD5: OK
+  SHA-1: OK
+Signatures: not implemented
+Verify (currently only for RSA)
+  No private key found for testing
+Decryption (currently only for RSA)
+No errors
