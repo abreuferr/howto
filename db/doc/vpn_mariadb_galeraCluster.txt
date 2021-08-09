@@ -222,3 +222,7 @@ $ sudo apt install mariadb-server
 $ systemctl status mariadb
 $ sudo systemctl enable mariadb
 $ sudo mysql_secure_installation
+
+#
+# Galera Cluster
+#
