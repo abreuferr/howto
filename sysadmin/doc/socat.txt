@@ -1,0 +1,111 @@
+#: Title : SoCAT
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : SoCAT
+#: Options : None
+
+#
+# Configuração da Rede
+#
+
+# debian_100
+#
+
+# Interfaces de rede
+#
+$ cat /etc/network/interfaces
+
+allow-hotplug enp7s0
+auto enp7s0
+iface enp7s0 inet static
+address 192.168.122.67/24
+gateway 192.168.122.1
+
+allow-hotplug enp1s0
+auto enp1s0
+iface enp1s0 inet static
+address 192.168.100.10/24
+
+# Firewall
+#
+$ cat firewall.sh
+#!/bin/bash
+
+IPTABLES=/sbin/iptables
+
+# clean all possible old mess
+$IPTABLES -F 
+$IPTABLES -t nat -F 
+$IPTABLES -t mangle -F
+
+# masquerading
+$IPTABLES -t nat -A POSTROUTING -o enp7s0 -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# opening all 
+$IPTABLES -P INPUT ACCEPT
+$IPTABLES -P OUTPUT ACCEPT
+$IPTABLES -P FORWARD ACCEPT
+
+$IPTABLES -t nat -P POSTROUTING ACCEPT
+$IPTABLES -t nat -P PREROUTING ACCEPT
+$IPTABLES -t filter -P FORWARD ACCEPT
+
+$ chmod +x firewall.sh
+
+# debian_200
+#
+
+# Interfaces de rede
+#
+$ cat /etc/network/interfaces
+
+allow-hotplug enp1s0
+auto enp1s0
+iface enp1s0 inet static
+address 192.168.100.20/24
+gateway 192.168.100.10
+
+allow-hotplug enp7s0
+auto enp7s0
+iface enp7s0 inet static
+address 192.168.200.10/24
+
+# Firewall
+#
+$ cat firewall.sh
+#!/bin/bash
+
+IPTABLES=/sbin/iptables
+
+# clean all possible old mess
+$IPTABLES -F 
+$IPTABLES -t nat -F 
+$IPTABLES -t mangle -F
+
+# masquerading
+$IPTABLES -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+# opening all 
+$IPTABLES -P INPUT ACCEPT
+$IPTABLES -P OUTPUT ACCEPT
+$IPTABLES -P FORWARD ACCEPT
+
+$IPTABLES -t nat -P POSTROUTING ACCEPT
+$IPTABLES -t nat -P PREROUTING ACCEPT
+$IPTABLES -t filter -P FORWARD ACCEPT
+
+$ chmod +x firewall.sh
+
+# workstation
+#
+
+# Interfaces de rede
+#
+$ cat /etc/network/interfaces
+
+allow-hotplug enp1s0
+auto enp1s0
+iface enp1s0 inet static
+address 192.168.200.42/24
+gateway 192.168.200.10
