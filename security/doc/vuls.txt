@@ -1,0 +1,13 @@
+#: Title : Vuls
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Agentless Vulnerability Scanner for Linux/FreeBSD
+#: Options : https://giters.com/elfgoh/vuls
+
+#
+# Instalação
+#
+
+$ sudo apt install sqlite3 git gcc make golang go-cve-dictionary debian-goodies wget -y
+
+$ mkdir go
+$ export GOPATH=$HOME/go
