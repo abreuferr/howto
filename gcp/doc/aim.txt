@@ -1,0 +1,31 @@
+#: Title : aim
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : google cloud platform - ima
+#: Options :
+
+
+# listar projetos
+$ gcloud projects list                                 
+
+PROJECT_ID              NAME                  PROJECT_NUMBER
+gcp-lab-329615          gcp-lab               1050344928803
+storied-imprint-178418  Meu primeiro projeto  288441945597
+
+# obter informações sobre o projeto
+$ gcloud projects get-iam-policy gcp-lab-329615
+bindings:
+- members:
+  - serviceAccount:service-1050344928803@compute-system.iam.gserviceaccount.com
+  role: roles/compute.serviceAgent
+- members:
+  - serviceAccount:1050344928803-compute@developer.gserviceaccount.com
+  - serviceAccount:1050344928803@cloudservices.gserviceaccount.com
+  role: roles/editor
+- members:
+  - user:abreuferrgcp@gmail.com
+  role: roles/logging.viewer
+- members:
+  - user:abreuferr@gmail.com
+  role: roles/owner
+etag: BwXPwHmiCoU=
+version: 1
