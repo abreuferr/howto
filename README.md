@@ -5,6 +5,9 @@
 - openbsd_firewall.txt - configuracao basica de uma frewall no OpenBSD
 - openbsd_proxy.txt - configuracao basica de um proxy/Squid no OpenBSD
 
+# db
+vpn_mariadb_galeraCluster.txt - galera cluster
+
 # openstack
 - 0_intro.txt - definicao dos componentes do Openstack
 - 1_install_host.txt - instalacao do Openstack
