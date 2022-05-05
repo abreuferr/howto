@@ -1,4 +1,0 @@
-Esse arquivo contem as referencias utilizadas no livro
-
-Titulo - autor - editora - ano da obra
-Tudo sobre Git - John Doe - Vai e Volta - 1984
