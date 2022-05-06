@@ -1,3 +1,8 @@
+#: Title : senhasegura e certificado digital
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : estudo sobre o software senhasegura e certificado digital
+#: Options : None
+
 $ sudo su
 
 $ openssl genrsa -aes256 -out senhasegura_password.key 2048
