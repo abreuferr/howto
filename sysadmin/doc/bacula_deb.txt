@@ -1,0 +1,65 @@
+#: Title : bacula
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : estudo sobre o software de backup Bacula
+#: Options : None
+
+#
+# Teoria
+#
+
+# ambiente de teste
+srv - 192.168.122.26
+clt - 192.168.122.27
+
+#
+# Bacula 01
+#
+
+# Bacula instalado via pacote DEB para testes
+# dos arquivos de configuração e backup.
+
+# Servidor
+
+$ sudo apt update
+$ sudo apt upgrade
+
+$ sudo apt install apt-transport-https
+
+$ cd /tmp
+$ sudo wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+$ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
+$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+
+$ cat /etc/apt/sources.list.d/Bacula-Community.list
+    # Bacula Community
+    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+
+$ sudo apt install bacula-mysql -y -d
+    Configure database for bacula-mysql with dbconfig-common? [YES]
+    MySQL application password for bacula-mysql: [AAaa00--==]
+
+$ sudo /opt/bacula/scripts/create_mysql_database
+$ sudo /opt/bacula/scripts/make_mysql_tables
+$ sudo /opt/bacula/scripts/grant_mysql_privileges
+
+$ systemctl start bacula-fd.service
+$ systemctl start bacula-sd.service
+$ systemctl start bacula-dir.service
+
+$ systemctl status bacula-fd.service
+$ systemctl status bacula-sd.service
+$ systemctl status bacula-dir.service
+
+$ systemctl enable bacula-fd.service
+$ systemctl enable bacula-sd.service
+$ systemctl enable bacula-dir.service
+
+$ sudo /opt/bacula/scripts/bacula start
+
+$ sudo -u bacula /opt/bacula/bin/bconsole
+    *help
+    *messages
+    *status dir
+    *run
+    *quit
+
