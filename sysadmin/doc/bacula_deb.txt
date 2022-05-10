@@ -16,12 +16,31 @@
 
 # Componentes do Bacula
 #
-# Bacula Director: serviço que controla todos os serviços do Bacula, backup, restaura, verifica e armazena.
-# Bacula Console: aplicativo utilizado para se comunicar com o Bacula Director.
-# Bacula File: programa Bacula Client. Este componente é instalado no computador que será feito o backup.
-# Bacula Storage: programa responsável pelo armazenamento e restauração dos dados.
-# Bacula Catalog: programa responsável pelo índice dos dos dados que foram feitos os backups.
-# Bacula Monitor: Monitorar os serviços.
+# Bacula Director
+    - serviço que controla todos os serviços de operação de backup, restauração, verificação e armazenamento.
+    - gerencia tarefas de backup e restauração e coordena a verificação de arquivos;
+
+# Bacula Console
+    - aplicativo utilizado para se comunicar com o Bacula Director.
+    - permite que você gerencie o componente Director, execute jobs, visualize estatísticas
+
+# Bacula File
+    - também conhecido como Bacula Client. Este componente é instalado no computador que será feito o backup.
+    - responsável pelas requisições de dados junto ao Bacula Director.
+    - funciona em todos os sistemas que necessitem de backup, interage com o Director e envia arquivos a seu pedido;
+
+# Bacula Storage
+    - programa responsável pelo armazenamento e restauração dos dados.
+    - gerencia os armazenamentos físicos e grava os backups neles;
+
+# Bacula Catalog
+    - programa responsável pelo índice dos dados que foram feitos os backups.
+    - permitindo localização de forma rápida e permite a restauração de arquivos que foram arquivados. 
+    - o Catálogo suporta três tipo de de bancos de dados, sendo eles o MySQL, PostgreSQL e SQLite.
+    - banco de dados de serviço para organizar backup, recuperação e verificação de arquivos.
+
+# Bacula Monitor
+    - Monitorar os serviços Director, File and Storage.
 
 #
 # Instalação
