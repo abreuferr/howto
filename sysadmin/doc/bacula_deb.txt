@@ -4,44 +4,66 @@
 #: Options : None
 
 #
-# Teoria
+# Introdução
 #
+
+# neste tutoria, o software Bacula será instalado via pacote DEB
+# para testes de configuração do backup e restore.
 
 # ambiente de teste
-srv - 192.168.122.26
-clt - 192.168.122.27
+# srv - 192.168.122.26
+# clt - 192.168.122.27
+
+# Componentes do Bacula
+#
+# Bacula Director: serviço que controla todos os serviços do Bacula, backup, restaura, verifica e armazena.
+# Bacula Console: aplicativo utilizado para se comunicar com o Bacula Director.
+# Bacula File: programa Bacula Client. Este componente é instalado no computador que será feito o backup.
+# Bacula Storage: programa responsável pelo armazenamento e restauração dos dados.
+# Bacula Catalog: programa responsável pelo índice dos dos dados que foram feitos os backups.
+# Bacula Monitor: Monitorar os serviços.
 
 #
-# Bacula 01
+# Instalação
 #
 
-# Bacula instalado via pacote DEB para testes
-# dos arquivos de configuração e backup.
-
-# Servidor
-
+# Atualização do GNU/Linux Debian
+#
 $ sudo apt update
 $ sudo apt upgrade
 
+# Instalação de pacotes necessários para poder adicionar o repositório
+# do Bacula
+#
 $ sudo apt install apt-transport-https
 
+# Importando chave de criptografia do repositório.
+#
 $ cd /tmp
 $ sudo wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
 $ sudo rm Bacula-4096-Distribution-Verification-key.asc
 
+# Adicionando o repositório do Bacula no Apt
+#
 $ cat /etc/apt/sources.list.d/Bacula-Community.list
     # Bacula Community
     deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
 
+# Instalando o Bacula para MySQL/MariaDB
+#
 $ sudo apt install bacula-mysql -y -d
     Configure database for bacula-mysql with dbconfig-common? [YES]
     MySQL application password for bacula-mysql: [AAaa00--==]
 
+# Criação da base de dados e tabelas utilizadas pelo Bacula
+#
 $ sudo /opt/bacula/scripts/create_mysql_database
 $ sudo /opt/bacula/scripts/make_mysql_tables
 $ sudo /opt/bacula/scripts/grant_mysql_privileges
 
+# Script de inicialização
+#
 $ systemctl start bacula-fd.service
 $ systemctl start bacula-sd.service
 $ systemctl start bacula-dir.service
@@ -54,6 +76,8 @@ $ systemctl enable bacula-fd.service
 $ systemctl enable bacula-sd.service
 $ systemctl enable bacula-dir.service
 
+# Inicalizar o Daemon
+#
 $ sudo /opt/bacula/scripts/bacula start
 
 $ sudo -u bacula /opt/bacula/bin/bconsole
@@ -62,4 +86,8 @@ $ sudo -u bacula /opt/bacula/bin/bconsole
     *status dir
     *run
     *quit
+
+#
+# Configuração
+#
 
