@@ -17,7 +17,7 @@
 
 # Componentes do Bacula
 #
-# Bacula Director
+# Bacula Director - DIR
     - serviço que controla todos os serviços de operação de backup, restauração, verificação e armazenamento.
     - gerencia tarefas de backup e restauração e coordena a verificação de arquivos;
     - Este serviço é responsável pela administração de todos os processos de backup, restaure, verificação e 
@@ -32,7 +32,7 @@
       Manager: em texto puro (TTy), em interface gráfica usando bibliotecas do Gnome e uma usando bibliotecas wxWidgets 
       (tanto em formato Unix quanto em Windows).
 
-# Bacula File
+# Bacula File Daemon - FD
     - também conhecido como Bacula Client. Este componente é instalado no computador da origem dos dados.
     - responsável pelas requisições de dados junto ao Bacula Director.
     - funciona em todos os sistemas que necessitem de backup, interage com o Director e envia arquivos a seu pedido.
@@ -42,14 +42,14 @@
       versões do File Daemon para diferentes sistemas operacionais: Linux, *BSD, Unix, Windows (9x,NT,2000,XP,2003) e
       Macintosh(OSX).
 
-# Bacula Storage
+# Bacula Storage Daemon - SD
     - programa responsável pelo armazenamento e restauração dos dados.
     - gerencia os armazenamentos físicos e grava os backups neles.
     - Este serviço consiste em administrar a gravação e restauração dos dados e atributos dos backups fisicamente em 
       mídias apropriadas, essas podem ser volume de dados gravados diretamente no disco rígido ou alguma mídia removível 
       (Fita DAT, DVD, CD, etc…)
 
-# Bacula Catalog
+# Bacula Catalog - Database
     - programa responsável pelo índice dos dados que foram feitos os backups.
     - permitindo localização de forma rápida e permite a restauração de arquivos que foram arquivados. 
     - o Catálogo suporta três tipo de de bancos de dados, sendo eles o MySQL, PostgreSQL e SQLite.
@@ -59,13 +59,19 @@
       no backup na hora que o administrador de sistema necessita efetuar uma restauração, como ele mantém uma base de indexação 
       dos arquivos gravados, a busca por um arquivo no meio dos volumes é mais rápida.
 
-
-
 # Bacula Monitor
     - Monitorar os serviços Director, File and Storage.
 
+# Pool
+    - Grupo de volumes que devem ter as mesmas propriedades.
+    - Todo job de backup é submetido para uma pool e só pode ser gravado em volumes que pertencem a um determinado pool.
+
+# FileSet
+    - Lista de arquivos ou diretórios que serão copiados pelos jobs que a utilizarem.
+    - É possível incluir ou excluir diretórios do FileSet.
+
 #
-# Instalação
+# Instalação - Bacula
 #
 ##########################################
 
