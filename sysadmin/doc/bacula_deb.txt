@@ -76,7 +76,7 @@ $ sudo apt upgrade
 
 # Instalação do MariaDB
 #
-$ sudo apt-get install mariadb-server mariadb-client -y -d
+$ sudo apt-get install mariadb-server mariadb-client -y
 
 # Inicializando o MariaDB
 #
@@ -115,7 +115,7 @@ $ cat /etc/apt/sources.list.d/Bacula-Community.list
 # Instalação o Bacula para MySQL/MariaDB
 #
 $ sudo apt update
-$ sudo apt install bacula-mysql -y -d
+$ sudo apt install bacula-mysql -y
     Configure database for bacula-mysql with dbconfig-common? [YES]
     MySQL application password for bacula-mysql: [AAaa00--==]
 
@@ -129,31 +129,86 @@ $ sudo systemctl enable bacula-sd.service
 $ sudo systemctl enable bacula-fd.service
 $ sudo systemctl enable bacula-dir.service
 
-$ sudo -u bacula /opt/bacula/bin/bconsole
-    *help
-    *messages
-    *status dir
-    *run
-    *quit
+# Backup dos arquivos de configuração
+#
+$ sudo su
+# cd /opt/bacula/etc/
+# cp bacula-dir.conf bacula-dir.conf.BKP && cp bacula-fd.conf bacula-fd.conf.BKP && cp bacula-sd.conf bacula-sd.conf.BKP && cp bconsole.conf bconsole.conf.BKP
+
+cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
+
+# chown bacula:bacula bacula-dir.conf.BKP bacula-sd.conf.BKP bconsole.conf.BKP && chown bacula:root bacula-fd.conf.BKP
+# ls -l
+    -rw-r----- 1 bacula bacula 9353 May 19 18:46 bacula-dir.conf
+    -rw-r----- 1 bacula bacula 9353 May 19 18:47 bacula-dir.conf.BKP
+    -rw-r----- 1 bacula root   1118 May 19 18:46 bacula-fd.conf
+    -rw-r----- 1 bacula root   1118 May 19 18:47 bacula-fd.conf.BKP
+    -rw-r----- 1 bacula bacula 9901 May 19 18:46 bacula-sd.conf
+    -rw-r----- 1 bacula bacula 9901 May 19 18:47 bacula-sd.conf.BKP
+    -rw-r----- 1 bacula bacula  263 May 19 18:46 bconsole.conf
+    -rw-r----- 1 bacula bacula  263 May 19 18:47 bconsole.conf.BKP
+# exit
 
 #
 # Configuração dos componentes do Bacula
 #
 ##########################################
 
+$ sudo mkdir -p /bacula/backup /bacula/restore
+$ sudo chown -R bacula:bacula /bacula
+$ sudo chmod -R 700 /bacula
+
 # Configurando o Bacula Director
 #
-$ sudo vi /etc/bacula/bacula-dir.conf
+$ sudo vi /opt/bacula/etc/bacula-dir.conf
+
+Storage {
+    Name = server-sd
+    Address = 127.0.0.1
+    Password = "Xbc3HtwJNVZFoX92mg6SZaP29ALmsdp5b" # Password must match the password in the /etc/bacula/bacula-sd.conf
+    Device = Local-device
+    Media Type = File
+}
+
+# Verificando o arquivo de configuração
+#
+$ sudo /opt/bacula/bin/bacula-dir -tc /opt/bacula/etc/bacula-dir.conf
+
+# Configurando o Bacula Storage
+#
+$ sudo vi /opt/bacula/etc/bacula-sd.conf
+
+Director {
+  Name = server-dir
+  Password = "Xbc3HtwJNVZFoX92mg6SZaP29ALmsdp5b"
+}
+
+Device {
+    Name = Local-device
+    Media Type = File51
+    Archive Device = /backup
+    LabelMedia = yes;
+    Random Access = yes;
+    AutomaticMount = yes;
+    RemovableMedia = no;
+    AlwaysOpen = no;
+    Maximum Concurrent Jobs = 5
+}
+
+# Verificando o arquivo de configuração
+#
+$ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
+
+# reinicializando o serviço
+#
+$ sudo systemctl restart bacula-dir
+$ sudo systemctl restart bacula-sd
 
 # Configurando o Bacula Console
 #
 $ sudo vi /etc/bacula/bconsole.conf
 
-# Configurando o Bacula Storage
-#
-$ vi /etc/bacula/bacula-sd.conf
 
 # Configurando o Bacula File
 #
 $ sudo vi /etc/bacula/bacula-fd.conf
-
