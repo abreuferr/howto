@@ -3,6 +3,7 @@
 #: Description : estudo sobre o software de backup Bacula
 #: Options : GNU/Linux Debian 11
 
+##########################################
 #
 # Introdução
 #
@@ -70,8 +71,9 @@
     - Lista de arquivos ou diretórios que serão copiados pelos jobs que a utilizarem.
     - É possível incluir ou excluir diretórios do FileSet.
 
+##########################################
 #
-# Instalação - Bacula
+# Bacula Server - Instalação - MariaDB
 #
 ##########################################
 
@@ -90,6 +92,12 @@ $ sudo systemctl start mariadb
 $ sudo systemctl status mariadb
 $ sudo systemctl enable mariadb
 
+##########################################
+#
+# Bacula Server - Configuração - MariaDB
+#
+##########################################
+
 # Secure MariaDB
 #
 $ sudo mysql_secure_installation
@@ -101,6 +109,25 @@ $ sudo mysql_secure_installation
     Remove test database and access to it? [Y/n] [YES]
     Reload privilege tables now? [Y/n] [YES]
 
+# Permitir o acesso remoto a base de dados do Bacula no MariaDB
+#
+$ sudo vi /etc/mysql/mariadb.conf.d/50-server.cnf
+    DE: bind-address = 127.0.0.1
+    PARA: bind-address = 0.0.0.0
+
+$ sudo systemctl restart mariadb
+
+$ mysql -u root -p 
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON bacula.* to 'bacula'@'%' IDENTIFIED BY 'AAaa00--==' WITH GRANT OPTION;
+MariaDB [(none)]> FLUSH PRIVILEGES;
+MariaDB [(none)]> EXIT;
+
+##########################################
+#
+# Bacula Server - Instalação - Bacula
+#
+##########################################
+
 # Instalação de pacotes necessários para poder adicionar o repositório
 # do Bacula no sources.list
 #
@@ -108,7 +135,7 @@ $ sudo apt install apt-transport-https
 
 # Importar chave de criptografia do repositório.
 #
-$ sudo wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+$ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
 $ sudo rm Bacula-4096-Distribution-Verification-key.asc
 
@@ -130,65 +157,46 @@ $ sudo apt install bacula-mysql -y
 $ sudo /opt/bacula/scripts/bacula start
 $ sudo /opt/bacula/scripts/bacula status
 
-$ sudo systemctl enable bacula-sd.service
-$ sudo systemctl enable bacula-fd.service
-$ sudo systemctl enable bacula-dir.service
-
 # Backup dos arquivos de configuração
 #
 $ sudo su
 # cd /opt/bacula/etc/
 # cp bacula-dir.conf bacula-dir.conf.BKP && cp bacula-fd.conf bacula-fd.conf.BKP && cp bacula-sd.conf bacula-sd.conf.BKP && cp bconsole.conf bconsole.conf.BKP
-
-cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
-
 # chown bacula:bacula bacula-dir.conf.BKP bacula-sd.conf.BKP bconsole.conf.BKP && chown bacula:root bacula-fd.conf.BKP
-# ls -l
-    -rw-r----- 1 bacula bacula 9353 May 19 18:46 bacula-dir.conf
-    -rw-r----- 1 bacula bacula 9353 May 19 18:47 bacula-dir.conf.BKP
-    -rw-r----- 1 bacula root   1118 May 19 18:46 bacula-fd.conf
-    -rw-r----- 1 bacula root   1118 May 19 18:47 bacula-fd.conf.BKP
-    -rw-r----- 1 bacula bacula 9901 May 19 18:46 bacula-sd.conf
-    -rw-r----- 1 bacula bacula 9901 May 19 18:47 bacula-sd.conf.BKP
-    -rw-r----- 1 bacula bacula  263 May 19 18:46 bconsole.conf
-    -rw-r----- 1 bacula bacula  263 May 19 18:47 bconsole.conf.BKP
 # exit
 
+# Restaurar os arquivos de configuração
 #
-# Configuração - MariaDB
-#
+$ sudo su
+# cd /opt/bacula/etc/
+# cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
+# exit
+
 ##########################################
-
-# Permitir o acesso remoto a base de dados do Bacula no MariaDB
 #
-$ sudo vi /etc/mysql/mariadb.conf.d/50-server.cnf
-    DE: bind-address = 127.0.0.1
-    PARA: bind-address = 0.0.0.0
-
-$ sudo systemctl restart mariadb
-
-$ mysql -u root -p 
-MariaDB [(none)]> GRANT ALL PRIVILEGES ON bacula.* to 'bacula'@'%' IDENTIFIED BY 'AAaa00--==' WITH GRANT OPTION;
-MariaDB [(none)]> FLUSH PRIVILEGES;
-MariaDB [(none)]> EXIT;
-
-#
-# Instalação - Baculum
+# Bacula Server - Instalação - Baculum
 #
 # https://www.youtube.com/watch?v=54gXnwqUfU4
 #
 ##########################################
 
-
+# Adicionando a chave de criptografia do repositório
+#
 $ wget -qO - https://www.bacula.org/downloads/baculum/baculum.pub | apt-key add -
 
+# Adicionando o repositório no source.list do aplicativo Apt
+#
 $ echo "
 deb [ arch=amd64 ] https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
 deb-src https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
 " > /etc/apt/sources.list.d/baculum.list
 
+# Instalando o Baculum
+#
 $ apt-get update && apt-get install php-bcmath php*-mbstring baculum-api baculum-api-apache2 baculum-common bacula-console baculum-web baculum-web-apache2
 
+# Definindo permissões de acesso.
+#
 $ echo "Defaults:apache "'!'"requiretty
 www-data ALL=NOPASSWD: /opt/bacula/bin/bconsole
 www-data ALL=NOPASSWD: /opt/bacula/bin/bdirjson
@@ -207,6 +215,8 @@ www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-fd
 www-data ALL=(root) NOPASSWD: /opt/bacula/bin/mtx-changer
 " > /etc/sudoers.d/baculum
 
+# Configuração do Baculum
+#
 $ usermod -aG bacula www-data 
 $ chown -R www-data:bacula /opt/bacula/working /opt/bacula/etc
 $ chmod -R g+rwx /opt/bacula/working /opt/bacula/etc
@@ -214,8 +224,9 @@ $ a2enmod rewrite
 $ a2ensite baculum-web baculum-api
 $ service apache2 restart
 
+##########################################
 #
-# Configuração dos componentes do Bacula
+# Bacula Server - Configuração dos componentes do Bacula
 #
 ##########################################
 
@@ -227,14 +238,6 @@ $ sudo chmod -R 700 /bacula
 #
 $ sudo vi /opt/bacula/etc/bacula-dir.conf
 
-Storage {
-    Name = server-sd
-    Address = 127.0.0.1
-    Password = "Xbc3HtwJNVZFoX92mg6SZaP29ALmsdp5b" # Password must match the password in the /etc/bacula/bacula-sd.conf
-    Device = Local-device
-    Media Type = File
-}
-
 # Verificando o arquivo de configuração
 #
 $ sudo /opt/bacula/bin/bacula-dir -tc /opt/bacula/etc/bacula-dir.conf
@@ -243,37 +246,55 @@ $ sudo /opt/bacula/bin/bacula-dir -tc /opt/bacula/etc/bacula-dir.conf
 #
 $ sudo vi /opt/bacula/etc/bacula-sd.conf
 
-Director {
-  Name = server-dir
-  Password = "Xbc3HtwJNVZFoX92mg6SZaP29ALmsdp5b"
-}
-
-Device {
-    Name = Local-device
-    Media Type = File51
-    Archive Device = /backup
-    LabelMedia = yes;
-    Random Access = yes;
-    AutomaticMount = yes;
-    RemovableMedia = no;
-    AlwaysOpen = no;
-    Maximum Concurrent Jobs = 5
-}
-
 # Verificando o arquivo de configuração
 #
 $ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
-
-# reinicializando o serviço
-#
-$ sudo systemctl restart bacula-dir
-$ sudo systemctl restart bacula-sd
 
 # Configurando o Bacula Console
 #
 $ sudo vi /etc/bacula/bconsole.conf
 
+# Configurando o Bacula File
+#
+$ sudo vi /etc/bacula/bacula-fd.conf
+
+# reinicializando o serviço
+#
+$ sudo /opt/bacula/scripts/bacula restart
+
+##########################################
+#
+# Bacula Client - Instalação
+#
+##########################################
+
+# Importar chave de criptografia do repositório.
+#
+$ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+$ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
+$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+
+# Adicionar o repositório do Bacula no Apt
+#
+$ cat /etc/apt/sources.list.d/Bacula-Community.list
+    # Bacula Community
+    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+
+# Instalação o Bacula Client
+#
+$ sudo apt update
+$ sudo apt install bacula-client -y
+
+##########################################
+#
+# Bacula Client - Configuração
+#
+##########################################
 
 # Configurando o Bacula File
 #
 $ sudo vi /etc/bacula/bacula-fd.conf
+
+# reinicializando o serviço
+#
+$ sudo /opt/bacula/scripts/bacula restart
