@@ -298,3 +298,39 @@ $ sudo vi /etc/bacula/bacula-fd.conf
 # reinicializando o serviço
 #
 $ sudo /opt/bacula/scripts/bacula restart
+
+# Testando Conexão
+#
+$ sudo bconsole
+*status client
+The defined Client resources are:
+     1: server-fd
+     2: client-fd
+Select Client (File daemon) resource (1-2): 2
+Connecting to Client client-fd at 192.168.122.27:9102
+(...)
+*
+
+##########################################
+#
+# Bacula Server - Simulação
+#
+##########################################
+
+#
+# Backup
+#
+
+
+#
+# Restore
+#
+
+$ sudo bconsole
+restore
+5 # Selects the most recent backup
+1 # For our BaculaConfigs-Home-Root job
+mark * # Selects all files for backup
+done
+yes
+messages
