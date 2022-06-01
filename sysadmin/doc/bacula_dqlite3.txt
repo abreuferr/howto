@@ -1,0 +1,336 @@
+#: Title : bacula
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : estudo sobre o software de backup Bacula
+#: Options : GNU/Linux Debian 11
+
+##########################################
+#
+# Introdução
+#
+##########################################
+
+# neste tutoria, o software Bacula será instalado via pacote DEB
+# para testes de configuração do backup e restore.
+
+# ambiente de teste
+# srv - 192.168.122.26
+# clt - 192.168.122.27
+
+# Componentes do Bacula
+#
+# Bacula Director - DIR
+    - serviço que controla todos os serviços de operação de backup, restauração, verificação e armazenamento.
+    - gerencia tarefas de backup e restauração e coordena a verificação de arquivos;
+    - Este serviço é responsável pela administração de todos os processos de backup, restaure, verificação e 
+      arquivamento. O Administrador de Sistema usa o Director Daemon para efetuar agendamentos de backup e para 
+      recuperar arquivos.
+
+# Bacula Console
+    - aplicativo utilizado para se comunicar com o Bacula Director.
+    - permite que você gerencie o componente Director, execute jobs, visualize estatísticas
+    - Este programa ajuda o administrador ou o usuário a se comunicar com o Director Daemon, pode ser executado 
+      em qualquer computador da rede e em sistemas operacionais diferentes, atualmente existem 3 versões do Console 
+      Manager: em texto puro (TTy), em interface gráfica usando bibliotecas do Gnome e uma usando bibliotecas wxWidgets 
+      (tanto em formato Unix quanto em Windows).
+
+# Bacula File Daemon - FD
+    - também conhecido como Bacula Client. Este componente é instalado no computador da origem dos dados.
+    - responsável pelas requisições de dados junto ao Bacula Director.
+    - funciona em todos os sistemas que necessitem de backup, interage com o Director e envia arquivos a seu pedido.
+    - Este serviço (ou programa cliente) é o software que é instalado na máquina que vai ser protegida pelo backup, 
+      ou seja, ele vai ser responsável por enviar os arquivos solicitados pelo Director Daemon pela rede. Ele também 
+      é responsável em administrar a gravação dos arquivos de restauração comandados pelo Director Daemon. Existem 
+      versões do File Daemon para diferentes sistemas operacionais: Linux, *BSD, Unix, Windows (9x,NT,2000,XP,2003) e
+      Macintosh(OSX).
+
+# Bacula Storage Daemon - SD
+    - programa responsável pelo armazenamento e restauração dos dados.
+    - gerencia os armazenamentos físicos e grava os backups neles.
+    - Este serviço consiste em administrar a gravação e restauração dos dados e atributos dos backups fisicamente em 
+      mídias apropriadas, essas podem ser volume de dados gravados diretamente no disco rígido ou alguma mídia removível 
+      (Fita DAT, DVD, CD, etc…)
+
+# Bacula Catalog - Database
+    - programa responsável pelo índice dos dados que foram feitos os backups.
+    - permitindo localização de forma rápida e permite a restauração de arquivos que foram arquivados. 
+    - o Catálogo suporta três tipo de de bancos de dados, sendo eles o MySQL, PostgreSQL e SQLite.
+    - banco de dados de serviço para organizar backup, recuperação e verificação de arquivos.
+    - O serviço de catalogo é o programa responsável por manter uma indexação de todos os arquivos que são armazenados no
+      backup e gerar uma base de dados dos volumes gerenciados pelo Director Daemon. O Catalog agiliza a busca de um arquivo 
+      no backup na hora que o administrador de sistema necessita efetuar uma restauração, como ele mantém uma base de indexação 
+      dos arquivos gravados, a busca por um arquivo no meio dos volumes é mais rápida.
+
+# Bacula Monitor
+    - Monitorar os serviços Director, File and Storage.
+
+# Pool
+    - Grupo de volumes que devem ter as mesmas propriedades.
+    - Todo job de backup é submetido para uma pool e só pode ser gravado em volumes que pertencem a um determinado pool.
+
+# FileSet
+    - Lista de arquivos ou diretórios que serão copiados pelos jobs que a utilizarem.
+    - É possível incluir ou excluir diretórios do FileSet.
+
+##########################################
+#
+# Bacula Server - Instalação - MariaDB
+#
+##########################################
+
+# Atualização do GNU/Linux Debian
+#
+$ sudo apt update
+$ sudo apt upgrade
+
+# Instalação do MariaDB
+#
+$ sudo apt-get install mariadb-server mariadb-client -y
+
+# Inicializando o MariaDB
+#
+$ sudo systemctl start mariadb
+$ sudo systemctl status mariadb
+$ sudo systemctl enable mariadb
+
+##########################################
+#
+# Bacula Server - Configuração - MariaDB
+#
+##########################################
+
+# Secure MariaDB
+#
+$ sudo mysql_secure_installation
+    Enter current password for root (enter for none): [ENTER]
+    Switch to unix_socket authentication [Y/n] [NO]
+    Change the root password? [Y/n] [YES] -> [AAaa00--==]
+    Remove anonymous users? [Y/n] [YES]
+    Disallow root login remotely? [Y/n] [YES]
+    Remove test database and access to it? [Y/n] [YES]
+    Reload privilege tables now? [Y/n] [YES]
+
+# Permitir o acesso remoto a base de dados do Bacula no MariaDB
+#
+$ sudo vi /etc/mysql/mariadb.conf.d/50-server.cnf
+    DE: bind-address = 127.0.0.1
+    PARA: bind-address = 0.0.0.0
+
+$ sudo systemctl restart mariadb
+
+$ mysql -u root -p 
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON bacula.* to 'bacula'@'%' IDENTIFIED BY 'AAaa00--==' WITH GRANT OPTION;
+MariaDB [(none)]> FLUSH PRIVILEGES;
+MariaDB [(none)]> EXIT;
+
+##########################################
+#
+# Bacula Server - Instalação - Bacula
+#
+##########################################
+
+# Instalação de pacotes necessários para poder adicionar o repositório
+# do Bacula no sources.list
+#
+$ sudo apt install apt-transport-https
+
+# Importar chave de criptografia do repositório.
+#
+$ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+$ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
+$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+
+# Adicionar o repositório do Bacula no Apt
+#
+$ cat /etc/apt/sources.list.d/Bacula-Community.list
+    # Bacula Community
+    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+
+# Instalação o Bacula para MySQL/MariaDB
+#
+$ sudo apt update
+$ sudo apt install bacula-mysql -y
+    Configure database for bacula-mysql with dbconfig-common? [YES]
+    MySQL application password for bacula-mysql: [AAaa00--==]
+
+# Script de inicialização
+#
+$ sudo /opt/bacula/scripts/bacula start
+$ sudo /opt/bacula/scripts/bacula status
+
+# Backup dos arquivos de configuração
+#
+$ sudo su
+# cd /opt/bacula/etc/
+# cp bacula-dir.conf bacula-dir.conf.BKP && cp bacula-fd.conf bacula-fd.conf.BKP && cp bacula-sd.conf bacula-sd.conf.BKP && cp bconsole.conf bconsole.conf.BKP
+# chown bacula:bacula bacula-dir.conf.BKP bacula-sd.conf.BKP bconsole.conf.BKP && chown bacula:root bacula-fd.conf.BKP
+# exit
+
+# Restaurar os arquivos de configuração
+#
+$ sudo su
+# cd /opt/bacula/etc/
+# cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
+# exit
+
+##########################################
+#
+# Bacula Server - Instalação - Baculum
+#
+# https://www.youtube.com/watch?v=54gXnwqUfU4
+#
+##########################################
+
+# Adicionando a chave de criptografia do repositório
+#
+$ wget -qO - https://www.bacula.org/downloads/baculum/baculum.pub | apt-key add -
+
+# Adicionando o repositório no source.list do aplicativo Apt
+#
+$ echo "
+deb [ arch=amd64 ] https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
+deb-src https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
+" > /etc/apt/sources.list.d/baculum.list
+
+# Instalando o Baculum
+#
+$ apt-get update && apt-get install php-bcmath php*-mbstring baculum-api baculum-api-apache2 baculum-common bacula-console baculum-web baculum-web-apache2
+
+# Definindo permissões de acesso.
+#
+$ echo "Defaults:apache "'!'"requiretty
+www-data ALL=NOPASSWD: /opt/bacula/bin/bconsole
+www-data ALL=NOPASSWD: /opt/bacula/bin/bdirjson
+www-data ALL=NOPASSWD: /opt/bacula/bin/bsdjson
+www-data ALL=NOPASSWD: /opt/bacula/bin/bfdjson
+www-data ALL=NOPASSWD: /opt/bacula/bin/bbconsjson
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-dir
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-dir
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-dir
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-sd
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-sd
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-sd
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-fd
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-fd
+www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-fd
+www-data ALL=(root) NOPASSWD: /opt/bacula/bin/mtx-changer
+" > /etc/sudoers.d/baculum
+
+# Configuração do Baculum
+#
+$ usermod -aG bacula www-data 
+$ chown -R www-data:bacula /opt/bacula/working /opt/bacula/etc
+$ chmod -R g+rwx /opt/bacula/working /opt/bacula/etc
+$ a2enmod rewrite
+$ a2ensite baculum-web baculum-api
+$ service apache2 restart
+
+##########################################
+#
+# Bacula Server - Configuração dos componentes do Bacula
+#
+##########################################
+
+$ sudo mkdir -p /bacula/backup /bacula/restore
+$ sudo chown -R bacula:bacula /bacula
+$ sudo chmod -R 700 /bacula
+
+# Configurando o Bacula Director
+#
+$ sudo vi /opt/bacula/etc/bacula-dir.conf
+
+# Verificando o arquivo de configuração
+#
+$ sudo /opt/bacula/bin/bacula-dir -tc /opt/bacula/etc/bacula-dir.conf
+
+# Configurando o Bacula Storage
+#
+$ sudo vi /opt/bacula/etc/bacula-sd.conf
+
+# Verificando o arquivo de configuração
+#
+$ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
+
+# Configurando o Bacula Console
+#
+$ sudo vi /etc/bacula/bconsole.conf
+
+# Configurando o Bacula File
+#
+$ sudo vi /etc/bacula/bacula-fd.conf
+
+# reinicializando o serviço
+#
+$ sudo /opt/bacula/scripts/bacula restart
+
+##########################################
+#
+# Bacula Client - Instalação
+#
+##########################################
+
+# Importar chave de criptografia do repositório.
+#
+$ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
+$ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
+$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+
+# Adicionar o repositório do Bacula no Apt
+#
+$ cat /etc/apt/sources.list.d/Bacula-Community.list
+    # Bacula Community
+    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+
+# Instalação o Bacula Client
+#
+$ sudo apt update
+$ sudo apt install bacula-client -y
+
+##########################################
+#
+# Bacula Client - Configuração
+#
+##########################################
+
+# Configurando o Bacula File
+#
+$ sudo vi /etc/bacula/bacula-fd.conf
+
+# reinicializando o serviço
+#
+$ sudo /opt/bacula/scripts/bacula restart
+
+# Testando Conexão
+#
+$ sudo bconsole
+*status client
+The defined Client resources are:
+     1: server-fd
+     2: client-fd
+Select Client (File daemon) resource (1-2): 2
+Connecting to Client client-fd at 192.168.122.27:9102
+(...)
+*
+
+##########################################
+#
+# Bacula Server - Simulação
+#
+##########################################
+
+#
+# Backup
+#
+
+
+#
+# Restore
+#
+
+$ sudo bconsole
+restore
+5 # Selects the most recent backup
+1 # For our BaculaConfigs-Home-Root job
+mark * # Selects all files for backup
+done
+yes
+messages
