@@ -73,7 +73,7 @@
 
 ##########################################
 #
-# Bacula Server - Instalação - MariaDB
+# Bacula Server - Instalação - SQLite3
 #
 ##########################################
 
@@ -84,43 +84,7 @@ $ sudo apt upgrade
 
 # Instalação do MariaDB
 #
-$ sudo apt-get install mariadb-server mariadb-client -y
-
-# Inicializando o MariaDB
-#
-$ sudo systemctl start mariadb
-$ sudo systemctl status mariadb
-$ sudo systemctl enable mariadb
-
-##########################################
-#
-# Bacula Server - Configuração - MariaDB
-#
-##########################################
-
-# Secure MariaDB
-#
-$ sudo mysql_secure_installation
-    Enter current password for root (enter for none): [ENTER]
-    Switch to unix_socket authentication [Y/n] [NO]
-    Change the root password? [Y/n] [YES] -> [AAaa00--==]
-    Remove anonymous users? [Y/n] [YES]
-    Disallow root login remotely? [Y/n] [YES]
-    Remove test database and access to it? [Y/n] [YES]
-    Reload privilege tables now? [Y/n] [YES]
-
-# Permitir o acesso remoto a base de dados do Bacula no MariaDB
-#
-$ sudo vi /etc/mysql/mariadb.conf.d/50-server.cnf
-    DE: bind-address = 127.0.0.1
-    PARA: bind-address = 0.0.0.0
-
-$ sudo systemctl restart mariadb
-
-$ mysql -u root -p 
-MariaDB [(none)]> GRANT ALL PRIVILEGES ON bacula.* to 'bacula'@'%' IDENTIFIED BY 'AAaa00--==' WITH GRANT OPTION;
-MariaDB [(none)]> FLUSH PRIVILEGES;
-MariaDB [(none)]> EXIT;
+$ sudo apt-get install sqlite3 -y
 
 ##########################################
 #
@@ -137,92 +101,24 @@ $ sudo apt install apt-transport-https
 #
 $ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
-$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+$ rm Bacula-4096-Distribution-Verification-key.asc
 
 # Adicionar o repositório do Bacula no Apt
 #
-$ cat /etc/apt/sources.list.d/Bacula-Community.list
+$ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
     # Bacula Community
     deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula para MySQL/MariaDB
 #
 $ sudo apt update
-$ sudo apt install bacula-mysql -y
-    Configure database for bacula-mysql with dbconfig-common? [YES]
-    MySQL application password for bacula-mysql: [AAaa00--==]
-
+$ sudo apt install bacula-sqlite3 bacula-client -y
+    Configure database for bacula-sqlite3 with dbconfig-common? [YES]
+    
 # Script de inicialização
 #
-$ sudo /opt/bacula/scripts/bacula start
+$ sudo /opt/bacula/scripts/bacula restart
 $ sudo /opt/bacula/scripts/bacula status
-
-# Backup dos arquivos de configuração
-#
-$ sudo su
-# cd /opt/bacula/etc/
-# cp bacula-dir.conf bacula-dir.conf.BKP && cp bacula-fd.conf bacula-fd.conf.BKP && cp bacula-sd.conf bacula-sd.conf.BKP && cp bconsole.conf bconsole.conf.BKP
-# chown bacula:bacula bacula-dir.conf.BKP bacula-sd.conf.BKP bconsole.conf.BKP && chown bacula:root bacula-fd.conf.BKP
-# exit
-
-# Restaurar os arquivos de configuração
-#
-$ sudo su
-# cd /opt/bacula/etc/
-# cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
-# exit
-
-##########################################
-#
-# Bacula Server - Instalação - Baculum
-#
-# https://www.youtube.com/watch?v=54gXnwqUfU4
-#
-##########################################
-
-# Adicionando a chave de criptografia do repositório
-#
-$ wget -qO - https://www.bacula.org/downloads/baculum/baculum.pub | apt-key add -
-
-# Adicionando o repositório no source.list do aplicativo Apt
-#
-$ echo "
-deb [ arch=amd64 ] https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
-deb-src https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
-" > /etc/apt/sources.list.d/baculum.list
-
-# Instalando o Baculum
-#
-$ apt-get update && apt-get install php-bcmath php*-mbstring baculum-api baculum-api-apache2 baculum-common bacula-console baculum-web baculum-web-apache2
-
-# Definindo permissões de acesso.
-#
-$ echo "Defaults:apache "'!'"requiretty
-www-data ALL=NOPASSWD: /opt/bacula/bin/bconsole
-www-data ALL=NOPASSWD: /opt/bacula/bin/bdirjson
-www-data ALL=NOPASSWD: /opt/bacula/bin/bsdjson
-www-data ALL=NOPASSWD: /opt/bacula/bin/bfdjson
-www-data ALL=NOPASSWD: /opt/bacula/bin/bbconsjson
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-dir
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-dir
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-dir
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-sd
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-sd
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-sd
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl start bacula-fd
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl stop bacula-fd
-www-data ALL=(root) NOPASSWD: /usr/bin/systemctl restart bacula-fd
-www-data ALL=(root) NOPASSWD: /opt/bacula/bin/mtx-changer
-" > /etc/sudoers.d/baculum
-
-# Configuração do Baculum
-#
-$ usermod -aG bacula www-data 
-$ chown -R www-data:bacula /opt/bacula/working /opt/bacula/etc
-$ chmod -R g+rwx /opt/bacula/working /opt/bacula/etc
-$ a2enmod rewrite
-$ a2ensite baculum-web baculum-api
-$ service apache2 restart
 
 ##########################################
 #
@@ -252,11 +148,11 @@ $ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
 
 # Configurando o Bacula Console
 #
-$ sudo vi /etc/bacula/bconsole.conf
+$ sudo vi /opt/bacula/etc/bconsole.conf
 
 # Configurando o Bacula File
 #
-$ sudo vi /etc/bacula/bacula-fd.conf
+$ sudo vi /opt/bacula/etc/bacula-fd.conf
 
 # reinicializando o serviço
 #
@@ -272,11 +168,11 @@ $ sudo /opt/bacula/scripts/bacula restart
 #
 $ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
-$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+$ rm Bacula-4096-Distribution-Verification-key.asc
 
 # Adicionar o repositório do Bacula no Apt
 #
-$ cat /etc/apt/sources.list.d/Bacula-Community.list
+$ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
     # Bacula Community
     deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
 
@@ -293,7 +189,7 @@ $ sudo apt install bacula-client -y
 
 # Configurando o Bacula File
 #
-$ sudo vi /etc/bacula/bacula-fd.conf
+$ sudo vi /opt/bacula/etc/bacula-fd.conf
 
 # reinicializando o serviço
 #
