@@ -137,11 +137,11 @@ $ sudo apt install apt-transport-https
 #
 $ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
-$ sudo rm Bacula-4096-Distribution-Verification-key.asc
+$ rm Bacula-4096-Distribution-Verification-key.asc
 
 # Adicionar o repositório do Bacula no Apt
 #
-$ cat /etc/apt/sources.list.d/Bacula-Community.list
+$ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
     # Bacula Community
     deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
 
@@ -156,21 +156,6 @@ $ sudo apt install bacula-mysql -y
 #
 $ sudo /opt/bacula/scripts/bacula start
 $ sudo /opt/bacula/scripts/bacula status
-
-# Backup dos arquivos de configuração
-#
-$ sudo su
-# cd /opt/bacula/etc/
-# cp bacula-dir.conf bacula-dir.conf.BKP && cp bacula-fd.conf bacula-fd.conf.BKP && cp bacula-sd.conf bacula-sd.conf.BKP && cp bconsole.conf bconsole.conf.BKP
-# chown bacula:bacula bacula-dir.conf.BKP bacula-sd.conf.BKP bconsole.conf.BKP && chown bacula:root bacula-fd.conf.BKP
-# exit
-
-# Restaurar os arquivos de configuração
-#
-$ sudo su
-# cd /opt/bacula/etc/
-# cp bacula-dir.conf.BKP bacula-dir.conf && cp bacula-fd.conf.BKP bacula-fd.conf && cp bacula-sd.conf.BKP bacula-sd.conf && cp bconsole.conf.BKP bconsole.conf
-# exit
 
 ##########################################
 #
