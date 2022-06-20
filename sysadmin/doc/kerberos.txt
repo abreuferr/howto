@@ -1,0 +1,6 @@
+Kerberos é um protocolo desenvolvido para fornecer poderosa autenticação em aplicações usuário/servidor, onde ele funciona como a terceira 
+parte neste processo, oferendo autenticação ao usuário.
+
+Ele é tipicamente usado quando um usuário em uma rede tenta fazer uso de um determinado serviço da rede e o serviço quer se assegurar de que 
+o usuário é realmente quem ele diz que é. Para isto, o usuário apresenta um ticket, fornecido pelo Kerberos authenticator server (AS). O serviço 
+então examina o ticket para verificar a identidade do usuário. Se tudo estiver ok o usuário é aceito.
