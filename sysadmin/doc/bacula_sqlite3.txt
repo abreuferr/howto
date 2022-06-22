@@ -13,8 +13,8 @@
 # para testes de configuração do backup e restore.
 
 # ambiente de teste
-# srv - 192.168.122.26
-# clt - 192.168.122.27
+# srv - 192.168.122.20
+# clt - 192.168.122.21
 
 # Componentes do Bacula
 #
@@ -95,7 +95,7 @@ $ sudo apt-get install sqlite3 -y
 # Instalação de pacotes necessários para poder adicionar o repositório
 # do Bacula no sources.list
 #
-$ sudo apt install apt-transport-https
+$ sudo apt install apt-transport-https wget gnupg
 
 # Importar chave de criptografia do repositório.
 #
@@ -106,8 +106,8 @@ $ rm Bacula-4096-Distribution-Verification-key.asc
 # Adicionar o repositório do Bacula no Apt
 #
 $ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
-    # Bacula Community
-    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+# Bacula Community
+deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula para MySQL/MariaDB
 #
