@@ -113,7 +113,7 @@ deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bu
 #
 $ sudo apt update
 $ sudo apt install bacula-sqlite3 bacula-client -y
-    Configure database for bacula-sqlite3 with dbconfig-common? [YES]
+    Configure database for bacula-sqlite3 with dbconfig-common? [YES] 
     
 # Script de inicialização
 #
