@@ -1,7 +1,8 @@
 #: Title : bacula
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : estudo sobre o software de backup Bacula
-#: Options : GNU/Linux Debian 11
+#: Options : Neste caso, não estamos utilizando um pacote externo, 
+#: esta sendo utilizado os pacotes presentes na distribuição.
 
 ##########################################
 #
@@ -92,33 +93,16 @@ $ sudo apt-get install sqlite3 -y
 #
 ##########################################
 
-# Instalação de pacotes necessários para poder adicionar o repositório
-# do Bacula no sources.list
-#
-$ sudo apt install apt-transport-https wget gnupg
-
-# Importar chave de criptografia do repositório.
-#
-$ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
-$ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
-$ rm Bacula-4096-Distribution-Verification-key.asc
-
-# Adicionar o repositório do Bacula no Apt
-#
-$ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
-# Bacula Community
-deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
-
-# Instalação o Bacula para MySQL/MariaDB
+# Instalação o Bacula para SQLite3
 #
 $ sudo apt update
-$ sudo apt install bacula-sqlite3 bacula-client -y
+$ sudo apt install bacula-common-sqlite3 bacula-director-sqlite3 bacula-fd bacula-sd bacula-console bacula-director -y
     Configure database for bacula-sqlite3 with dbconfig-common? [YES] 
     
 # Script de inicialização
 #
-$ sudo /opt/bacula/scripts/bacula restart
-$ sudo /opt/bacula/scripts/bacula status
+$ sudo systemctl restart bacula-sd bacula-fd bacula-director
+$ sudo systemctl status bacula-sd bacula-fd bacula-director
 
 ##########################################
 #
@@ -132,31 +116,26 @@ $ sudo chmod -R 700 /bacula
 
 # Configurando o Bacula Director
 #
-$ sudo vi /opt/bacula/etc/bacula-dir.conf
-
-# Verificando o arquivo de configuração
-#
-$ sudo /opt/bacula/bin/bacula-dir -tc /opt/bacula/etc/bacula-dir.conf
+$ sudo vi /etc/bacula/bacula-dir.conf
+$ sudo bacula-dir -tc /etc/bacula/bacula-dir.conf
 
 # Configurando o Bacula Storage
 #
 $ sudo vi /opt/bacula/etc/bacula-sd.conf
+$ sudo bacula-sd -tc /etc/bacula/bacula-sd.conf
 
-# Verificando o arquivo de configuração
+# Configurando o Bacula File
 #
-$ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
+$ sudo vi /opt/bacula/etc/bacula-fd.conf
+$ sudo bacula-fd -tc /etc/bacula/bacula-fd.conf
 
 # Configurando o Bacula Console
 #
 $ sudo vi /opt/bacula/etc/bconsole.conf
 
-# Configurando o Bacula File
-#
-$ sudo vi /opt/bacula/etc/bacula-fd.conf
-
 # reinicializando o serviço
 #
-$ sudo /opt/bacula/scripts/bacula restart
+$ sudo systemctl restart bacula-sd bacula-fd bacula-director
 
 ##########################################
 #
