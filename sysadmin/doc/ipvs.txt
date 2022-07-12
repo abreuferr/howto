@@ -2,3 +2,13 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : IPVS e keepalive
 #: Options : GNU/Linux Debian 11
+
+Keepalived provides frameworks for both load balancing and high availability.
+
+High availability is achieved by the Virtual Redundancy Routing Protocol (VRRP)
+
+Keepalived provides two main functions:
+- Health checking for LVS systems
+- Implementation of the VRRPv2 stack to handle load balancer failover
+
+Keepalived implements the VRRP protocol for director failover. 
