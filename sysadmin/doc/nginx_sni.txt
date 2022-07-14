@@ -1,0 +1,217 @@
+#: Title : nginx e sni
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : configuração do ngix para o protocolo sni
+#: Options : GNU/Linux Debian 11
+
+#
+# Diagrama de rede
+#
+
+ mt4.senhasegura.local ─┬─► nginx at 192.168.122.10 ─┬─► mt4  at 192.168.122.11
+xpto.senhasegura.local ─┘                            └─► xpto at 192.168.122.12
+
+#
+# nginx
+#
+
+$ sudo nginx -V
+(...)
+TLS SNI support enabled
+(...)
+
+############################################
+#
+# workstation
+#
+############################################
+
+$ cat /etc/hosts
+192.168.122.10  mt4.senhasegura.local   mt4
+192.168.122.10  xpto.senhasegura.local  xpto
+
+############################################
+#
+# mt4.senhasegura.local
+#
+############################################
+
+$ sudo mkdir /etc/nginx/certificate
+$ cd /etc/nginx/certificate
+$ sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out nginx-certificate-mt4.crt -keyout nginx-key-mt4.key
+
+Country Name (2 letter code) [AU]:br
+State or Province Name (full name) [Some-State]:sao paulo
+Locality Name (eg, city) []:sao paulo
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:senhasegura
+Organizational Unit Name (eg, section) []:       
+Common Name (e.g. server FQDN or YOUR name) []:mt4.senhasegura.local
+Email Address []:
+
+$ cat /etc/nginx/sites-available/mt4.senhasegura 
+server {
+        listen 80;
+        server_name mt4.senhasegura.local;
+        return 301 https://$host$request_uri;
+}
+
+server {
+        listen 443 ssl default_server;
+        root /var/www/mt4.senhasegura/html;
+        index index.html index.htm index.nginx-debian.html;
+        server_name mt4.senhasegura.local;
+        ssl_certificate /etc/nginx/certificate/nginx-certificate-mt4.crt;
+        ssl_certificate_key /etc/nginx/certificate/nginx-key-mt4.key;
+        ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers         HIGH:!aNULL:!MD5;
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
+
+$ sudo ln -s /etc/nginx/sites-available/mt4.senhasegura /etc/nginx/sites-enabled/
+
+$ sudo nginx -t
+
+$ sudo systemctl restart nginx
+
+$ cat /var/www/mt4.senhasegura/html/index.html 
+<html>
+    <head>
+        <title>Welcome to MT4 !</title>
+    </head>
+    <body>
+        <h1>Success! The MT4 server block is working!</h1>
+    </body>
+</html>
+
+$ w3m http://mt4.senhasegura.local
+Success! The MT4 server block is working!
+
+$ w3m https://mt4.senhasegura.local
+Success! The MT4 server block is working!
+
+############################################
+#
+# xpto.senhasegura.local
+#
+############################################
+
+$ sudo mkdir /etc/nginx/certificate
+$ cd /etc/nginx/certificate
+$ sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out nginx-certificate-xpto.crt -keyout nginx-key-xpto.key
+
+Country Name (2 letter code) [AU]:br
+State or Province Name (full name) [Some-State]:sao paulo
+Locality Name (eg, city) []:sao paulo
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:senhasegura
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:xpto.senhasegura.local
+Email Address []:
+
+$ cat /etc/nginx/sites-available/xpto.senhasegura
+server {
+        listen 80;
+        server_name xpto.senhasegura.local;
+        return 301 https://$host$request_uri;
+}
+
+server {
+        listen 443 ssl default_server;
+        root /var/www/xpto.senhasegura/html;
+        index index.html index.htm index.nginx-debian.html;
+        server_name xpto.senhasegura.local;
+        ssl_certificate /etc/nginx/certificate/nginx-certificate-xpto.crt;
+        ssl_certificate_key /etc/nginx/certificate/nginx-key-xpto.key;
+        ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers         HIGH:!aNULL:!MD5;
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
+
+$ sudo ln -s /etc/nginx/sites-available/xpto.senhasegura /etc/nginx/sites-enabled/
+
+$ sudo nginx -t
+
+$ sudo systemctl restart nginx
+
+$ cat /var/www/xpto.senhasegura/html/index.html
+<html>
+    <head>
+        <title>Welcome to XPTO !</title>
+    </head>
+    <body>
+        <h1>Success! The XPTO server block is working!</h1>
+    </body>
+</html>
+
+$ w3m http://xpto.senhasegura.local
+Success! The XPTO server block is working!
+
+$ w3m https://xpto.senhasegura.local
+Success! The XPTO server block is working!
+
+############################################
+#
+# nginx.senhasegura.local
+#
+############################################
+
+$ cat /etc/hosts       
+192.168.122.11  mt4.senhasegura.local   mt4
+192.168.122.12  xpto.senhasegura.local  xpto
+
+$ sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.BKP
+
+$ sudo vi /etc/nginx/nginx.conf
+(...)
+stream {
+    upstream mt4_backend {
+        server 192.168.122.11:443;
+    }
+
+    upstream xpto_backend {
+        server 192.168.122.12:443;
+    }
+
+    upstream https_default_backend {
+        server 127.0.0.1:443;
+    }
+
+    map $ssl_preread_server_name $name {
+        hostnames;
+        default http_default_backend;
+        mt4.senhasegura.local mt4_backend;
+        xpto.senhasegura.local xpto_backend;
+    }
+
+    server {
+        listen 443;
+        proxy_pass $name;
+        ssl_preread on;
+    }
+}
+
+$ cat /etc/hosts       
+192.168.122.11  mt4.senhasegura.local   mt4
+192.168.122.12  xpto.senhasegura.local  xpto
+
+$ sudo nginx -t
+
+$ sudo systemctl restart nginx
+
+############################################
+#
+# workstation
+#
+############################################
+
+$ cat /etc/hosts
+192.168.122.10  mt4.senhasegura.local   mt4
+192.168.122.10  xpto.senhasegura.local  xpto
+
+$ w3m https://mt4.senhasegura.local
+Success! The MT4 server block is working!
+
+$ w3m https://xpto.senhasegura.local
+Success! The XPTO server block is working!
