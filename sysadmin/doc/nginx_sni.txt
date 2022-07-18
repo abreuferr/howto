@@ -49,7 +49,7 @@ Organizational Unit Name (eg, section) []:
 Common Name (e.g. server FQDN or YOUR name) []:mt4.senhasegura.local
 Email Address []:
 
-$ cat /etc/nginx/sites-available/mt4.senhasegura 
+$ cat /etc/nginx/sites-available/mt4.senhasegura
 server {
         listen 80;
         server_name mt4.senhasegura.local;
@@ -76,7 +76,9 @@ $ sudo nginx -t
 
 $ sudo systemctl restart nginx
 
-$ cat /var/www/mt4.senhasegura/html/index.html 
+$ sudo mkdir -p /var/www/mt4.senhasegura/html/
+
+$ cat /var/www/mt4.senhasegura/html/index.html
 <html>
     <head>
         <title>Welcome to MT4 !</title>
@@ -85,6 +87,8 @@ $ cat /var/www/mt4.senhasegura/html/index.html
         <h1>Success! The MT4 server block is working!</h1>
     </body>
 </html>
+
+$ sudo apt install w3m
 
 $ w3m http://mt4.senhasegura.local
 Success! The MT4 server block is working!
