@@ -1,0 +1,79 @@
+#: Title : nginx e sni
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : configuração do ngix para o protocolo sni
+#: Options : GNU/Linux Debian 11
+
+#
+# Diagrama de rede
+#
+
+ windows.senhasegura.local ───► nginx at 192.168.122.10 ───► windows at 192.168.122.13
+
+############################################
+#
+# windows.senhasegura.local
+#
+############################################
+
+# configuração do MS-Windows
+
+# 1 - run SystemPropertiesRemote.exe
+# 2 - deselect "Allow connections only from computers running Remote Desktop with NLA"
+
+############################################
+#
+# nginx.senhasegura.local
+#
+############################################
+
+$ cat /etc/hosts       
+192.168.122.11  mt4.senhasegura.local   mt4
+192.168.122.12  xpto.senhasegura.local  xpto
+192.168.122.13  windows.senhasegura.local  windows
+
+$ sudo apt install nginx -y
+
+$ sudo nginx -V
+(...)
+TLS SNI support enabled
+(...)
+
+$ sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.BKP
+
+$ sudo vi /etc/nginx/nginx.conf
+(...)
+stream {
+
+    upstream rdp {
+        server windows.senhasegura.local:3389;
+    }
+
+    map $ssl_preread_protocol $upstream {
+        default rdp;
+    }
+
+    server {
+        listen 443;
+        proxy_pass $upstream;
+        ssl_preread on;
+    }
+}
+
+$ sudo nginx -t
+
+$ sudo systemctl restart nginx
+
+############################################
+#
+# workstation.senhasegura.local
+#
+############################################
+
+$ cat /etc/hosts
+192.168.122.10  mt4.senhasegura.local   mt4
+192.168.122.10  xpto.senhasegura.local  xpto
+192.168.122.10  windows.senhasegura.local  windows
+
+$ sudo apt install rdesktop
+
+$ rdesktop -u administrator windows.senhasegura.local:443
