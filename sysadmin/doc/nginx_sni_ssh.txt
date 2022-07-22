@@ -1,35 +1,28 @@
-#: Title : nginx e sni
+#: Title : nginx/sni and ssh
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
-#: Description : configuração do ngix para o protocolo sni
+#: Description : nginx/sni and ssh
 #: Options : GNU/Linux Debian 11
 
 #
-# Diagrama de rede
+# Network diagram de rede
 #
 
- windows.senhasegura.local ───► nginx at 192.168.122.10 ───► windows at 192.168.122.13
+ mt4.senhasegura.local ─┬─► nginx at 192.168.122.10 ─┬─► mt4  at 192.168.122.11
+xpto.senhasegura.local ─┘                            └─► xpto at 192.168.122.12
 
 ############################################
 #
-# windows.senhasegura.local
-#
-############################################
-
-# configuração do MS-Windows
-
-# 1 - run SystemPropertiesRemote.exe
-# 2 - deselect "Allow connections only from computers running Remote Desktop with NLA"
-
-############################################
-#
-# nginx.senhasegura.local
+# nginx.senhasegura.local - 192.168.122.10
 #
 ############################################
 
 $ cat /etc/hosts       
 192.168.122.11  mt4.senhasegura.local   mt4
 192.168.122.12  xpto.senhasegura.local  xpto
-192.168.122.13  windows.senhasegura.local  windows
+
+$ sudo mkdir /etc/nginx/certificate
+$ cd /etc/nginx/certificate
+$ sudo openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out nginx-certificate.crt -keyout nginx-key.key
 
 $ sudo apt install nginx -y
 
@@ -38,24 +31,21 @@ $ sudo nginx -V
 TLS SNI support enabled
 (...)
 
-$ sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.BKP
-
 $ sudo vi /etc/nginx/nginx.conf
 (...)
 stream {
-
-    upstream rdp {
-        server windows.senhasegura.local:3389;
+    tcp_nodelay on;
+    map $ssl_server_name $srv_name {
+        ~(.+)\.ssh $1:22;
+        default unix:/run/nginx.sock;
     }
-
-    map $ssl_preread_protocol $upstream {
-        default rdp;
-    }
-
     server {
-        listen 443;
-        proxy_pass $upstream;
+        listen 443 ssl;
+       	ssl_certificate     /etc/nginx/certificate/nginx-certificate.crt;
+        ssl_certificate_key /etc/nginx/certificate/nginx-key.key;
         ssl_preread on;
+        proxy_ssl off;
+        proxy_pass $srv_name;
     }
 }
 
@@ -70,10 +60,13 @@ $ sudo systemctl restart nginx
 ############################################
 
 $ cat /etc/hosts
+192.168.122.10  nginx.senhasegura.local   nginx
 192.168.122.10  mt4.senhasegura.local   mt4
-192.168.122.10  xpto.senhasegura.local  xpto
-192.168.122.10  windows.senhasegura.local  windows
 
-$ sudo apt install rdesktop
+$ cat .ssh/config
+Host *.ssh
+    ProxyCommand openssl s_client -quiet -servername %h -connect nginx:443
 
-$ rdesktop -u administrator windows.senhasegura.local:443
+$ ssh cferreira@mt4.senhasegura.local -p 443
+kex_exchange_identification: Connection closed by remote host
+Connection closed by 192.168.122.10 port 443
