@@ -142,8 +142,8 @@ $ rm Bacula-4096-Distribution-Verification-key.asc
 # Adicionar o repositório do Bacula no Apt
 #
 $ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
-    # Bacula Community
-    deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
+# Bacula Community
+deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula para MySQL/MariaDB
 #
