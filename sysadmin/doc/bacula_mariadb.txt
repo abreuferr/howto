@@ -143,7 +143,7 @@ $ rm Bacula-4096-Distribution-Verification-key.asc
 #
 $ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
 # Bacula Community
-deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
+deb https://www.bacula.org/packages/62dfe9e928d63/debs/13.0.0/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula para MySQL/MariaDB
 #
@@ -265,7 +265,7 @@ $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
 #
 $ cat /etc/apt/sources.list.d/Bacula-Community.list
 # Bacula Community
-deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
+deb https://www.bacula.org/packages/62dfe9e928d63/debs/13.0.0/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula Client
 #
@@ -288,7 +288,7 @@ $ sudo invoke-rc.d bacula-fd restart
 
 ##########################################
 #
-# Bacula Server - Teste de Conexão
+# Bacula Server - BCONSOLE
 #
 ##########################################
 
@@ -303,6 +303,12 @@ Select Client (File daemon) resource (1-2): 2
 Connecting to Client client-fd at 192.168.122.27:9102
 (...)
 *
+
+# Jobs
+#
+*list jobs ; listar os jobs que foram executados
+*list files jobid=2 ; listar os arquivos que foram copiados no jobid 2
+*show fileset ; exibe os fileset que estão sendo copiados
 
 ##########################################
 #
