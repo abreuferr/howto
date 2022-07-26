@@ -131,7 +131,7 @@ MariaDB [(none)]> EXIT;
 # Instalação de pacotes necessários para poder adicionar o repositório
 # do Bacula no sources.list
 #
-$ sudo apt install apt-transport-https
+$ sudo apt install apt-transport-https wget pgp
 
 # Importar chave de criptografia do repositório.
 #
@@ -143,7 +143,7 @@ $ rm Bacula-4096-Distribution-Verification-key.asc
 #
 $ sudo vi /etc/apt/sources.list.d/Bacula-Community.list
     # Bacula Community
-    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+    deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula para MySQL/MariaDB
 #
@@ -167,18 +167,15 @@ $ sudo /opt/bacula/scripts/bacula status
 
 # Adicionando a chave de criptografia do repositório
 #
-$ wget -qO - https://www.bacula.org/downloads/baculum/baculum.pub | apt-key add -
+$ wget -qO - https://www.bacula.org/downloads/baculum/baculum.pub | sudo apt-key add -
 
 # Adicionando o repositório no source.list do aplicativo Apt
 #
-$ echo "
-deb [ arch=amd64 ] https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
-deb-src https://www.bacula.org/downloads/baculum/stable-11/debian bullseye main
-" > /etc/apt/sources.list.d/baculum.list
+$ echo "deb http://www.bacula.org/downloads/baculum/stable-11/debian bullseye main" > /etc/apt/sources.list.d/baculum.list
 
 # Instalando o Baculum
 #
-$ apt-get update && apt-get install php-bcmath php*-mbstring baculum-api baculum-api-apache2 baculum-common bacula-console baculum-web baculum-web-apache2
+$ sudo apt-get update && sudo apt-get install baculum-common baculum-web baculum-web-apache2
 
 # Definindo permissões de acesso.
 #
@@ -237,15 +234,16 @@ $ sudo /opt/bacula/bin/bacula-sd -tc /opt/bacula/etc/bacula-sd.conf
 
 # Configurando o Bacula Console
 #
-$ sudo vi /etc/bacula/bconsole.conf
+$ sudo vi /opt/bacula/etc/bconsole.conf
 
 # Configurando o Bacula File
 #
-$ sudo vi /etc/bacula/bacula-fd.conf
+$ sudo vi /opt/bacula/etc/bacula-fd.conf
 
 # reinicializando o serviço
 #
 $ sudo /opt/bacula/scripts/bacula restart
+$ sudo /opt/bacula/scripts/bacula status
 
 ##########################################
 #
