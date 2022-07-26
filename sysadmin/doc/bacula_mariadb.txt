@@ -251,17 +251,21 @@ $ sudo /opt/bacula/scripts/bacula status
 #
 ##########################################
 
+# Instalação de pacotes necessários para poder adicionar o repositório
+# do Bacula no sources.list
+#
+$ sudo apt install apt-transport-https wget pgp
+
 # Importar chave de criptografia do repositório.
 #
 $ wget https://www.bacula.org/downloads/Bacula-4096-Distribution-Verification-key.asc
 $ sudo apt-key add Bacula-4096-Distribution-Verification-key.asc
-$ sudo rm Bacula-4096-Distribution-Verification-key.asc
 
 # Adicionar o repositório do Bacula no Apt
 #
 $ cat /etc/apt/sources.list.d/Bacula-Community.list
-    # Bacula Community
-    deb https://www.bacula.org/packages/6272c6c4cdebb/debs/11.0.6/bullseye/amd64/ bullseye main
+# Bacula Community
+deb https://www.bacula.org/packages/62dea5bca62c7/debs/13.0.0/bullseye/amd64/ bullseye main
 
 # Instalação o Bacula Client
 #
@@ -276,11 +280,17 @@ $ sudo apt install bacula-client -y
 
 # Configurando o Bacula File
 #
-$ sudo vi /etc/bacula/bacula-fd.conf
+$ sudo vi /opt/bacula/etc/bacula-fd.conf
 
 # reinicializando o serviço
 #
-$ sudo /opt/bacula/scripts/bacula restart
+$ sudo invoke-rc.d bacula-fd restart
+
+##########################################
+#
+# Bacula Server - Teste de Conexão
+#
+##########################################
 
 # Testando Conexão
 #
