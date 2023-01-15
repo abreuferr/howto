@@ -37,11 +37,9 @@ services:
       - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
     restart: unless-stopped
 
-
 # Ativando o Pihole
 $ docker compose up -d
 
 # Alterando senha de login no Pi-Hole
 $ docker exec -it pihole /bin/bash
 $ pihole -a -p somepasswordhere
-
