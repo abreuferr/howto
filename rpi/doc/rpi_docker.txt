@@ -1,0 +1,18 @@
+#: Title : Raspberry Pi e Docker
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Raspberry Pi e Docker
+#: Options : None
+
+$ curl -fsSL https://get.docker.com -o get-docker.sh
+
+$ sudo sh get-docker.sh
+
+$ sudo usermod -aG docker cferreira
+
+$ wget https://github.com/docker/compose/releases/download/v2.15.0/docker-compose-linux-armv6
+
+$ sudo mv docker-compose-linux-armv6 /usr/local/bin
+
+$ sudo ln -s /usr/local/bin/docker-compose-linux-armv6 /usr/bin/docker-compose
+
+$ sudo chmod +x /usr/local/bin/docker-compose-linux-armv6
