@@ -1,0 +1,48 @@
+#: Title : galera cluister e ssl
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : configuração do galera cluster e ssl
+#: Options : None
+#: Reference :
+#:  https://galeracluster.com/library/documentation/ssl-cert.html
+
+# NODE03/NODE02/NODE01
+
+$ sudo systemctl stop mariadb
+
+# NODE01
+
+Criar uma CA:
+
+$ openssl req -nodes -x509 -days 3650 -newkey rsa:4096  -keyout ca-senhasegura.key -out ca-senhasegura.crt -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.ca.senhasegura.com/emailAddress=segi9@senhasegura.com"
+
+# Server Certificate
+
+$ openssl req -newkey rsa:4096 -nodes -keyout galera.key -out galera.csr -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.server.senhasegura.com/emailAddress=segi9@senhasegura.com"
+$ openssl x509 -req -in galera.csr -days 3650 -CA ca-senhasegura.crt -CAkey ca-senhasegura.key -set_serial 01 -out galera.crt
+$ openssl verify -CAfile ca-senhasegura.crt galera.crt
+  galera.crt: OK
+
+# Compartilhando os certificados
+
+$ scp * cferreira@192.168.122.52:/home/$USER
+$ scp * cferreira@192.168.122.53:/home/$USER
+
+# NODE01/NODE02/NODE03
+
+ $ sudo mkdir -p /etc/ssl/mariadb/
+ $ sudo mv * /etc/ssl/mariadb/
+ $ sudo chmod -R 644 /etc/ssl/mariadb/*
+ $ sudo chmod 755 /etc/ssl/mariadb       
+
+# NODE01/NODE02/NODE03
+
+# vim /etc/my.cnf
+    (...)
+    wsrep_provider_options="socket.ssl_key=/etc/ssl/mariadb/galera.key;socket.ssl_cert=/etc/ssl/mariadb/galera.crt;socket.ssl_ca=/etc/ssl/mariadb/ca-senhasegura.crt"
+
+# NODE01
+$ sudo galera_new_cluster
+
+# NODE02/NODE03
+
+$ sudo systemctl start mariadb
