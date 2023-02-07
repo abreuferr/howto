@@ -1,4 +1,4 @@
-www.uol.com.br
-www.folha.com.br
-www.estadao.com.br
-www.globo.com
+0.0.0.0 uol.com.br
+0.0.0.0 folha.com.br
+0.0.0.0 estadao.com.br
+0.0.0.0 globo.com
