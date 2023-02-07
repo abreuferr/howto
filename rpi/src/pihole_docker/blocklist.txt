@@ -1,5 +1,4 @@
-# news
-uol.com.br
-folha.com.br
-estadao.com.br
-globo.com
+www.uol.com.br
+www.folha.com.br
+www.estadao.com.br
+www.globo.com
