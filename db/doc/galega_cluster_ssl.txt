@@ -5,6 +5,12 @@
 #: Reference :
 #:  https://galeracluster.com/library/documentation/ssl-cert.html
 
+#################################################
+#
+# Certificado Digital
+#
+#################################################
+
 # NODE03/NODE02/NODE01
 
 $ sudo systemctl stop mariadb
@@ -23,10 +29,10 @@ $ openssl verify -CAfile ca-senhasegura.crt galera.crt
   galera.crt: OK
 
 # CERTIFICADO AUTO-ASSINADO
-#
+
 $ openssl req -nodes -x509 -days 365 -newkey rsa:4096 -keyout galera-self.key -out galera-self.crt -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.server.senhasegura.com/emailAddress=segi9@senhasegura.com"
 
-# Compartilhando os certificados
+# Compartilhando os certificados para os outros dois nós do cluster
 
 $ scp * cferreira@192.168.122.52:/home/$USER
 $ scp * cferreira@192.168.122.53:/home/$USER
