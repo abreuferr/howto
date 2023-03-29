@@ -5,6 +5,15 @@
 
 1. Rede
 
+# os nodes dbnode1, dbnode2 e dbnode3 estão em modo cluster
+# utilizando a tecnologia Galera cluster
+
+proxysql - 192.168.122.50
+
+dbnode1 - 192.168.122.51
+dbnode2 - 192.168.122.52
+dbnode3 - 192.168.122.53
+
 2. Instalação
 
 $ apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg
