@@ -1,0 +1,16 @@
+#: Title : proxysql
+#: Author : "Caio Abreu Ferreira" <cferreira@senhasegura.com>
+#: Description : estudo sobre a tecnologia proxysql
+#: Options : GNU Linux Debian 11
+
+1. Rede
+
+2. Instalação
+
+$ apt-get install -y --no-install-recommends lsb-release wget apt-transport-https ca-certificates gnupg
+$ wget -O - 'https://repo.proxysql.com/ProxySQL/proxysql-2.5.x/repo_pub_key' | apt-key add - 
+$ echo deb https://repo.proxysql.com/ProxySQL/proxysql-2.5.x/$(lsb_release -sc)/ ./ | tee /etc/apt/sources.list.d/proxysql.list
+$ apt-get update
+$ apt-get install proxysql
+
+
