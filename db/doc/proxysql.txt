@@ -22,4 +22,24 @@ $ echo deb https://repo.proxysql.com/ProxySQL/proxysql-2.5.x/$(lsb_release -sc)/
 $ apt-get update
 $ apt-get install proxysql
 
+3. Configuração
 
+3.1. Systemctl
+
+$ sudo systemctl status proxysql
+$ sudo systemctl start proxysql
+$ sudo systemctl enable proxysql
+
+3.2. MariaDB Client
+
+# Instalação
+$ sudo apt install mariadb-client-10.5
+
+# Acesso local (admin/admin)
+$ mysql -u admin -p -h 127.0.0.1 -P 6032 --prompt='ProxySQLAdmin> '
+
+3.3. Mudando a senha padrão do usuário admin
+
+ProxySQLAdmin> UPDATE global_variables SET variable_value='admin:password' WHERE variable_name='admin-admin_credentials';
+ProxySQLAdmin> LOAD ADMIN VARIABLES TO RUNTIME;
+ProxySQLAdmin> SAVE ADMIN VARIABLES TO DISK;
