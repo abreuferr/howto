@@ -13,8 +13,7 @@ services:
     dns:
       - 192.168.1.10
     ports:
-      - "53:53/tcp"
-      - "53:53/udp"
+      - "192.168.1.12:53:53/udp"
       - "8080:80/tcp"
     environment:
       TZ: 'America/Sao_Paulo'
