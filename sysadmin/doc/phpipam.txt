@@ -1,0 +1,76 @@
+#: Title : phpipam
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : phpipam Zabbix and Debian Stable
+#: Options : None
+#: Reference :	
+
+#
+#
+# SERVER
+#
+#
+
+# GNU/LINUX DEBIAN (ATUALIZACAO)
+#
+# atualizacao do gnu/linux debian
+#
+$ sudo apt-get update && sudo apt-get upgrade
+
+# MYSQL (INSTALACAO)
+#
+$ sudo apt install mariadb-server mariadb-client -y
+$ sudo mysql_secure_installation
+$ sudo systemctl enable mariadb
+$ sudo systemctl start mariadb
+
+# phpipam (PRE-INSTALACAO)
+#
+$ sudo apt update 
+$ sudo apt -y install php php-{mysql,curl,gd,intl,pear,imap,memcache,pspell,tidy,xmlrpc,mbstring,gmp,json,xml,fpm}
+
+# phpipam (INSTALACAO)
+#
+$ sudo git clone --recursive https://github.com/phpipam/phpipam.git /var/www/html/phpipam
+
+# phpipam (CONFIGURACAO)
+#
+$ cd /var/www/html/phpipam
+$ sudo cp config.dist.php config.php
+$ sudo vim config.php
+
+# nginx (INSTALACAO)
+#
+sudo apt -y install nginx
+
+# nginx (CONFIGURACAO)
+#
+$ sudo vi /etc/nginx/sites-available/phpipam.conf
+
+server {
+    listen       80;
+    server_name phpipam.particula.local  www.phpipam.particula.local;
+    index        index.php;
+    root   /var/www/html/phpipam;
+
+    location / {
+            try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+            try_files $uri =404;
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass   unix:/run/php/php-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_index index.php;
+            include fastcgi_params;
+    }
+}
+
+$ sudo ln -sf /etc/nginx/sites-available/phpipam.conf /etc/nginx/sites-enabled
+
+$ sudo chown -R www-data:www-data /var/www/html
+$ sudo systemctl restart nginx
+
+CONFIGURACAO WEB
+#
+http://phpipam.particula.local
