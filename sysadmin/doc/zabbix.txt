@@ -67,14 +67,24 @@ $ sudo vi /etc/zabbix/zabbix_server.conf
 	DBPassword=zabbix    		## senha de acesso a base de dados
 
 # editar o arquivo "/etc/zabbix/nginx.conf" e descomentar as linhas abaixo.
-$ sudo vi /etc/zabbix/nginx.conf
-	listen 8080;
-	server_name senhasegura.local;
 
-# inicializando os sericos
+$ sudo cp /etc/zabbix/nginx.conf /etc/nginx/sites-available/zabbix.conf
+$ sudo vi /etc/nginx/sites-available/zabbix.conf
+
+server {
+        listen          80;
+        server_name     zabbix.particula.local;
+
+        root    /usr/share/zabbix;
+
+		(....)
+}
+
+$ sudo ln -sf /etc/nginx/sites-available/zabbix.conf /etc/nginx/sites-enabled
+
+# inicializando os servicos
 #
 $ sudo systemctl restart zabbix-server zabbix-agent nginx php7.4-fpm
-$ sudo systemctl enable zabbix-server zabbix-agent nginx php7.4-fpm
 
 PHP
 #
@@ -87,7 +97,7 @@ $ sudo vi /etc/zabbix/apache.conf
 
 CONFIGURACAO WEB
 #
-http://<IP_ADDRESS>:8080
+http://zabbix.particula.local
 	Admin/zabbix
 
 #
