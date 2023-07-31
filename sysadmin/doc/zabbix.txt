@@ -1,4 +1,4 @@
-#: Title : Zabbiudo
+#: Title : Zabbix
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : Zabbix and Debian Stable
 #: Options : None
