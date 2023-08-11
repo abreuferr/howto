@@ -3,7 +3,6 @@
 #: Description : configuração do galera cluster
 #: Options : None
 #: Reference :
-#:  https://galeracluster.com/library/documentation/ssl-cert.html
 
 #################################################
 #
