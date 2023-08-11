@@ -56,7 +56,6 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 [galera]
 # Mandatory settings
 wsrep_on                 = ON
-wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
 wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
@@ -85,7 +84,6 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 [galera]
 # Mandatory settings
 wsrep_on                 = ON
-wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
 wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
@@ -114,9 +112,8 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 $ [galera]
 # Mandatory settings
 wsrep_on                 = ON
-wsrep_provider           = /usr/lib/galera/libgalera_smm.so
-wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
 binlog_format            = row
 default_storage_engine   = InnoDB
