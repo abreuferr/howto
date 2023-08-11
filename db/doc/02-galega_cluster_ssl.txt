@@ -3,13 +3,19 @@
 #: Description : configuração do galera cluster e ssl
 #: Options : None
 #: Reference :
-#:  https://galeracluster.com/library/documentation/ssl-cert.html
+#:            https://galeracluster.com/library/documentation/ssl-cert.html
 
 #################################################
 #
 # Certificado Digital
 #
 #################################################
+
+#
+# extremamente importante a ordem em que os nós do cluster foram finalizados.
+# No exemplo abaixo, será finalizado primeiro o NODE03, depois o NODE02 e por
+# último o NODE01
+#
 
 # NODE03/NODE02/NODE01
 
@@ -42,7 +48,13 @@ $ scp * cferreira@192.168.122.53:/home/$USER
  $ sudo mkdir -p /etc/ssl/mariadb/
  $ sudo mv * /etc/ssl/mariadb/
  $ sudo chmod -R 644 /etc/ssl/mariadb/*
- $ sudo chmod 755 /etc/ssl/mariadb       
+ $ sudo chmod 755 /etc/ssl/mariadb
+
+#################################################
+#
+# Configuração
+#
+#################################################
 
 # NODE01/NODE02/NODE03
 
@@ -56,3 +68,19 @@ $ sudo galera_new_cluster
 # NODE02/NODE03
 
 $ sudo systemctl start mariadb
+
+#################################################
+#
+# Troubleshooting
+#
+#################################################
+
+#
+# em caso de problema para inicializar o cluster,
+# executar os passos abaixo no NODE do cluster 
+# que esta apresentando problema.
+
+$ sudo vi /var/lib/mysql/grastate.dat
+  safe_to_bootstrap = 1
+
+$ sudo galera_new_cluster
