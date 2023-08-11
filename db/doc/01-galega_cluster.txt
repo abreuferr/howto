@@ -27,12 +27,15 @@ NODE03 - 192.168.122.zz
 
 # NODE01 / NODE02 / NODE03
 
-$ sudo apt-get install apt-transport-https curl
+$ sudo apt-get install apt-transport-https curl -y
 $ sudo curl -o /etc/apt/trusted.gpg.d/mariadb_release_signing_key.asc 'https://mariadb.org/mariadb_release_signing_key.asc'
-$ sudo sh -c "echo 'deb https://mirrors.gigenet.com/mariadb/repo/10.10/debian bullseye main' >>/etc/apt/sources.list"
+$ sudo sh -c "echo 'deb https://mirrors.gigenet.com/mariadb/repo/10.11/debian bullseye main' >>/etc/apt/sources.list"
 
 $ sudo apt-get update
-$ sudo apt-get install mariadb-server
+$ sudo apt-get install mariadb-server -y
+
+# script de seguranca
+$ sudo mysql_secure_installation
 
 #################################################
 #
@@ -56,6 +59,7 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 wsrep_on                 = ON
 wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
 binlog_format            = row
 default_storage_engine   = InnoDB
@@ -84,6 +88,7 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 wsrep_on                 = ON
 wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
 binlog_format            = row
 default_storage_engine   = InnoDB
@@ -110,6 +115,7 @@ $ sudo vi /etc/mysql/mariadb.conf.d/60-galera.cnf
 $ [galera]
 # Mandatory settings
 wsrep_on                 = ON
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_provider           = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name       = "MariaDB Galera Cluster"
 wsrep_cluster_address    = gcomm://192.168.122.51,192.168.122.52,192.168.122.53
@@ -140,13 +146,13 @@ $ mysql -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
 
 # NODE02
 
-$ sudo systemctl start mariadb
+$ sudo systemctl restart mariadb
 
 $ mysql -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
 
 # NODE03
 
-$ sudo systemctl start mariadb
+$ sudo systemctl restart mariadb
 
 $ mysql -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size'"
 
