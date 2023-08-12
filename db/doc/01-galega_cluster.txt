@@ -2,7 +2,7 @@
 #: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
 #: Description : configuração do galera cluster
 #: Options : None
-#: Reference :
+#: Reference : https://www.linuxbabe.com/mariadb/galera-cluster-ubuntu
 
 #################################################
 #
