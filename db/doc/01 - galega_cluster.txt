@@ -185,3 +185,19 @@ $ mysql -u root -p -e 'SELECT * FROM playground.equipment;'
 |  2 | swing  |    10 | yellow |
 |  3 | seesaw |     3 | green  |
 +----+--------+-------+--------+
+
+#################################################
+#
+# Troubleshooting
+#
+#################################################
+
+#
+# em caso de problema para inicializar o cluster,
+# executar os passos abaixo no NODE do cluster 
+# que esta apresentando problema.
+
+$ sudo vi /var/lib/mysql/grastate.dat
+  safe_to_bootstrap = 1
+
+$ sudo galera_new_cluster
