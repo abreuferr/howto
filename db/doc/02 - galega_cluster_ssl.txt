@@ -21,20 +21,32 @@
 
 $ sudo systemctl stop mariadb
 
+#
+# CERTIFICADO ASSINADO POR UMA CA
+#
+
 # NODE01
 
 # Criar uma CA
-
+#
 $ openssl req -nodes -x509 -days 3650 -newkey rsa:4096  -keyout ca-senhasegura.key -out ca-senhasegura.crt -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.ca.senhasegura.com/emailAddress=segi9@senhasegura.com"
 
-# Server Certificate
-
+# Criação de um certificado
+#
 $ openssl req -newkey rsa:4096 -nodes -keyout galera.key -out galera.csr -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.server.senhasegura.com/emailAddress=segi9@senhasegura.com"
+
+# CA assinando o certificado criado no comando anterior
+#
 $ openssl x509 -req -in galera.csr -days 365 -CA ca-senhasegura.crt -CAkey ca-senhasegura.key -set_serial 01 -out galera.crt
+
+# Verificando a assinatura do certificado
+#
 $ openssl verify -CAfile ca-senhasegura.crt galera.crt
   galera.crt: OK
 
+#
 # CERTIFICADO AUTO-ASSINADO
+#
 
 $ openssl req -nodes -x509 -days 365 -newkey rsa:4096 -keyout galera-self.key -out galera-self.crt -subj "/C=BR/ST=Sao Paulo/L=Sao Paulo/O=MT4 Networks/OU=MT4 Networks/CN=www.server.senhasegura.com/emailAddress=segi9@senhasegura.com"
 
