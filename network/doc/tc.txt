@@ -1,0 +1,24 @@
+#: Title : tc
+#: Author : Caio Abreu Ferreira
+#: Description : Linux Traffic Control
+#: Options : None
+#: Reference : 
+
+# instalação
+#
+$ sudo apt-get install iproute2
+$ sudo apt-get install ethtool
+
+# apagar regras
+#
+$ sudo tc qdisc del root dev enp1s0
+
+
+https://wiki.debian.org/TrafficControl
+
+https://www.thegeekdiary.com/tc-command-examples-in-linux/
+
+https://netbeez.net/blog/how-to-use-the-linux-traffic-control/
+
+https://wiki.archlinux.org/title/Advanced_traffic_control
+
