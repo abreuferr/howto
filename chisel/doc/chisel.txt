@@ -1,0 +1,479 @@
+#: Title : chisel
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : chisel
+#: Options :
+
+#
+# Teoria
+#
+
+# Chisel Server (192.168.122.47)
+# chisel server [OPTIONS]
+
+# Chisel Client (192.168.122.24)
+# chisel client [OPTIONS] <CHISEL_SERVER> <REMOTE>
+    <CHISEL_SERVER_IP>:<CHISEL_SERVER_PORT> <LOCAL_IP>:<LOCAL_PORT>:<REMOTE_IP>:<REMOTE_PORT>
+    <CHISEL_SERVER_IP>:<CHISEL_SERVER_PORT> R:<LOCAL_IP>:<LOCAL_PORT>:<REMOTE_IP>:<REMOTE_PORT> ; Proxy reverso
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 127.0.0.1:5201:192.168.122.47:5201
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 192.168.122.24:5201:192.168.122.47:5201
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 127.0.0.1:8000:192.168.122.47:80
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 192.168.122.24:8000:192.168.122.47:80
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 127.0.0.1:2222:192.168.122.47:22
+
+$ chisel server -p 9000
+$ chisel client 192.168.122.47:9000 192.168.122.24:2222:192.168.122.47:22
+
+#
+# Instalação
+#
+
+$ sudo apt install curl
+$ sudo su
+$ curl https://i.jpillora.com/chisel! | bash
+
+##########################################################################################################
+
+#
+# Remote Port Forward:
+#
+
+#
+# Topologia
+#
+
+Internet
+www.exploit-db.com
+	|
+    |
+Chisel Server
+(192.168.122.181)
+	|
+    |
+Chisel Client
+(192.168.122.116)
+
+#
+# Comandos
+#
+
+# Internet
+htp://www.exploit-db.com
+
+# Chisel Server
+#
+# o servidos chisel esta trabalhando na porta 8000;
+$ chisel server -p 8000
+
+# Chisel Client
+#
+# 192.168.122.181:8000 = > IP do servidor chisel : porta do servidor chisel
+#
+# <LOCAL_HOST_IP>:<LOCAL_PORT>:<REMOTE_HOST_IP>:<REMOTE_HOST_PORT>
+# 9001:www.exploit-db.com:443 => porta local : ip do alvo : porta do alvo
+#
+$ chisel client 192.168.122.181:8000 127.0.0.1:9001:www.exploit-db.com:443
+$ w3m https://127.0.0.1:9001
+
+##########################################################################################################
+
+#
+# Topologia
+#
+
+Chisel Server
+(192.168.122.181)
+    |
+    |
+Chisel Client
+(192.168.122.116)
+    |
+    |
+Webserver
+(192.168.122.47)
+
+#
+# Comandos
+#
+
+# Chisel Server
+#
+# chisel server -p <LISTEN_PORT>
+$ chisel server -p 8000 --reverse -v
+
+# Chisel Client
+#
+# <CHISEL_SERVER_IP>:<CHISEL_SERVER_PORT> R:<LOCAL_IP>:<LOCAL_PORT>:<REMOTE_HOST_IP>:<REMOTE_HOST_PORT>
+$ chisel client 192.168.122.181:8000 R:8001:192.168.122.47:80
+
+# Chisel Server
+$ curl http://127.0.0.1:8001
+
+##########################################################################################################
+
+#
+# Local Port Forward
+#
+
+#
+# Topologia
+#
+
+Chisel Server
+Webserver
+(192.168.122.181)
+    |
+    |
+Chisel Client
+(192.168.122.116)
+
+#
+# Comandos
+#
+
+# server
+#
+# chisel server -p <LISTEN_PORT>
+$ chisel server -p 8000
+
+# client
+#
+# chisel client <CHISEL_SERVER_IP>:<CHISEL_SERVER_PORT> <LOCAL_HOST_IP>:<LOCAL_PORT>:<REMOTE_HOST_IP>:<REMOTE_HOST_PORT>
+$ chisel client 192.168.122.181:8000 9001:127.0.0.1:80
+
+# client - 192.168.122.116
+$ curl http://127.0.0.1:9001
+
+##########################################################################################################
+
+#
+# Double pivoting with Chisel
+#
+# https://wikihak.com/double-pivoting-with-chisel/
+
+#
+# Topologia
+#
+
+workstation
+(192.168.0.101 - enp1s0)
+	|
+	|
+	|
+(192.168.0.102 -enp7s0)
+	|
+DEBIAN_100
+	|
+(192.168.100.101 - enp1s0)
+	|
+	|
+    |
+(192.168.100.102 - enp7s0)
+	|
+DEBIAN_200
+	|
+(192.168.200.101 - enp1s0)
+	|
+	|
+    |
+(192.168.200.102 - enp1s0)
+webserver
+
+#
+# Comandos
+#
+
+# (01) - DEBIAN_100
+#
+# chisel server [options]
+#
+# --port, -p, Defines the HTTP listening port.
+# --reverse, Allow clients to specify reverse port forwarding remotes in addition to normal remotes.
+#
+$ chisel server -p 8888 -reverse
+    (01)
+    2021/10/18 12:09:33 server: Reverse tunnelling enabled
+    2021/10/18 12:09:33 server: Fingerprint JzdSdxTH57eccv4aAb5JmXimNbSYnLZN7ZTBI++Xs9o=
+    2021/10/18 12:09:33 server: Listening on http://0.0.0.0:8888
+
+    (02)
+    2021/10/18 12:10:05 server: session#1: tun: proxy#R:9001=>192.168.200.102:80: Listening
+
+# (02) - DEBIAN_200
+#
+# chisel client [options] <server> <remote> [remote] [remote] ...
+#
+# <server> is the URL to the chisel server.
+# R:<local-interface>:<local-port>:<remote-host>:<remote-port>
+#
+$ chisel client 192.168.100.101:8888 R:9001:192.168.200.102:80
+    (02)
+    2021/10/18 12:10:05 client: Connecting to ws://192.168.100.101:8888
+    2021/10/18 12:10:05 client: Connected (Latency 1.135629ms)
+
+# (03) - DEBIAN_100
+#
+$ curl http://127.0.0.1:9001
+
+# (04) - workstation
+#
+$ chisel server -p 8888 -reverse
+    (04)
+    2021/10/18 12:11:13 server: Reverse tunnelling enabled
+    2021/10/18 12:11:13 server: Fingerprint 66snHGXmEgtq5GTOfsFp0J7nKGcmPkm+yhGA7H35NWI=
+    2021/10/18 12:11:13 server: Listening on http://0.0.0.0:8000
+
+    (05)
+    2021/10/18 12:11:47 server: session#1: tun: proxy#R:8001=>9001: Listening
+
+# (05) - DEBIAN_100
+#
+# chisel client [options] <server> <remote> [remote] [remote] ...
+#
+# <server> is the URL to the chisel server.
+# R:<local-interface>:<local-port>:<remote-host>:<remote-port>
+#
+$ chisel client 192.168.0.101:8000 R:8001:127.0.0.1:9001
+    (05)
+    2021/10/18 12:11:47 client: Connecting to ws://192.168.0.101:8000
+    2021/10/18 12:11:47 client: Connected (Latency 587.379µs)
+
+# (06) - workstation
+#
+$ curl http://127.0.0.1:8001
+
+##########################################################################################################
+
+#
+# Double pivoting with Chisel - proxychains
+#
+# https://wikihak.com/double-pivoting-with-chisel/
+
+#
+# Topologia
+#
+
+workstation
+(192.168.0.101 - enp1s0)
+	|
+	|
+(192.168.0.102 -enp7s0)
+debian_100
+(192.168.100.101 - enp1s0)
+	|
+	|
+(192.168.100.102 - enp7s0)
+debian_200
+(192.168.200.101 - enp1s0)
+	|
+	|
+(192.168.200.102 - enp1s0)
+webserver
+
+#
+# Comandos
+#
+
+# workstation
+$ chisel server -p 9001 --reverse --socks5
+
+# debian_100
+$ chisel client 192.168.0.101:9001 R:9999:socks
+
+# debian_100
+$ chisel server --socks5 -p 9002 --reverse
+
+# debian_200
+$ chisel client  192.168.100.101:9002 R:8888:socks
+
+# workstation
+$ sudo apt install proxychains nmap
+$ sudo vi /etc/proxychains.conf
+    [ProxyList]
+    socks5  127.0.0.1 9999
+    socks5  127.0.0.1 8888
+
+# workstation
+$ proxychains nmap -p21,22,23,80,445,135 -sTV -Pn 192.168.200.102 
+
+##########################################################################################################
+
+# Local port forwarding
+#
+# https://blog.raw.pm/en/state-of-the-art-of-network-pivoting-in-2019/
+
+#
+# Topologia
+#
+
+Internet
+    |
+    |
+(192.168.122.42 - enp7s0)
+Workstation
+(192.168.0.100 - enp1s0)
+	|
+	|
+(192.168.0.101 -enp7s0)
+Gateway
+(192.168.100.100 - enp1s0)
+	|
+	|
+(192.168.100.101 - enp1s0)
+Server
+
+#
+# Comandos
+#
+
+# Gateway
+$ chisel server -p 8080 --host 192.168.0.101 -v
+
+# Workstation
+$ chisel client -v http://192.168.0.101:8080 127.0.0.1:33333:192.168.100.101:80
+
+# Workstation
+$ curl --head http://127.0.0.1:33333
+HTTP/1.1 200 OK
+Server: nginx/1.18.0
+Date: Fri, 15 Oct 2021 16:18:55 GMT
+Content-Type: text/html
+Content-Length: 612
+Last-Modified: Fri, 15 Oct 2021 13:25:59 GMT
+Connection: keep-alive
+ETag: "61698167-264"
+Accept-Ranges: bytes
+
+##########################################################################################################
+
+# Local port forwarding + SOCKS proxy
+#
+# https://blog.raw.pm/en/state-of-the-art-of-network-pivoting-in-2019/
+
+#
+# Topologia
+#
+
+Workstation
+(192.168.0.100 - enp1s0)
+	|
+	|
+(192.168.0.101 -enp7s0)
+Gateway
+(192.168.100.100 - enp1s0)
+	|
+	|
+(192.168.100.101 - enp1s0)
+Server
+
+#
+# Comandos
+#
+
+# Gateway
+$ chisel server -p 8080 --host 192.168.0.101 --socks5 -v
+
+# Workstation
+$ chisel client -v http://192.168.0.101:8080 127.0.0.1:33333:socks
+
+# Workstation
+$ curl --head http://192.168.100.101 --proxy socks5://127.0.0.1:33333 
+    HTTP/1.1 200 OK
+    Server: nginx/1.18.0
+    Date: Fri, 15 Oct 2021 16:28:24 GMT
+    Content-Type: text/html
+    Content-Length: 612
+    Last-Modified: Fri, 15 Oct 2021 13:25:59 GMT
+    Connection: keep-alive
+    ETag: "61698167-264"
+    Accept-Ranges: bytes
+
+##########################################################################################################
+
+# Reverse remote port forwarding
+#
+# https://blog.raw.pm/en/state-of-the-art-of-network-pivoting-in-2019/
+
+#
+# Topologia
+#
+
+Workstation
+(192.168.0.100 - enp1s0)
+	|
+	|
+(192.168.0.101 -enp7s0)
+Gateway
+(192.168.100.100 - enp1s0)
+	|
+	|
+(192.168.100.101 - enp1s0)
+Server
+
+#
+# Comandos
+#
+
+# Workstation
+$ chisel server -p 8888 --host 192.168.0.100 --reverse -v
+
+# Gateway
+$ chisel client -v http://192.168.0.100:8888 R:127.0.0.1:44444:192.168.100.101:80
+
+# Workstation
+$ curl --head http://127.0.0.1:44444
+    HTTP/1.1 200 OK
+    Server: nginx/1.18.0
+    Date: Fri, 15 Oct 2021 16:33:14 GMT
+    Content-Type: text/html
+    Content-Length: 612
+    Last-Modified: Fri, 15 Oct 2021 13:25:59 GMT
+    Connection: keep-alive
+    ETag: "61698167-264"
+    Accept-Ranges: bytes
+
+##########################################################################################################
+
+# Reverse remote port forwarding + SOCKS proxy (auto local port forwarding internal socks proxy)
+#
+# https://blog.raw.pm/en/state-of-the-art-of-network-pivoting-in-2019/
+
+#
+# Topologia
+#
+
+Workstation
+(192.168.0.100 - enp1s0)
+	|
+	|
+(192.168.0.101 -enp7s0)
+Gateway
+(192.168.100.100 - enp1s0)
+	|
+	|
+(192.168.100.101 - enp1s0)
+Server
+
+#
+# Comandos
+#
+
+# Workstation
+$ chisel server -p 8888 --host 192.168.0.100 --reverse -v
+
+# Gateway
+$ chisel client -v http://192.168.0.100:8888 R:127.0.0.1:44444:127.0.0.1:55555
+$ chisel server -p 62000 --host 127.0.0.1 --socks5 -v
+$ chisel client -v http://127.0.0.1:62000 127.0.0.1:55555:socks
+
+# Workstation
+$ curl --head http://192.168.100.101 --proxy socks5://127.0.0.1:44444

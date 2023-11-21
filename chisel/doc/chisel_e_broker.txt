@@ -1,0 +1,152 @@
+#: Title : chisel e broker
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : chisel e broker
+#: Options :
+
+#
+# Configuração
+#
+
+br-001-senhasegura  192.168.10.2
+japan-002-linux     192.168.20.2
+
+#
+# br-001-senhasegura/japan-002-linux
+#
+
+# Limpeza
+#
+$ docker rm -f senhasegura-network-connector ; br-001-senhasegura
+$ docker rm -f senhasegura-network-broker ; br-001-senhasegura
+$ docker rm -f senhasegura-network-connector-client ; japan-002-linux
+
+# login no servidor de containers da mt4
+#
+$ docker login registry.mt4.dev ; br-001-senhasegura/japan-002-linux
+
+#
+# br-001-senhasegura - Network Connector
+#
+
+# ativando o componente chisel server em forma de container
+#
+$ docker run --name senhasegura-network-connector --net=host -d registry.mt4.dev/senhasegura-network-connector/connector:v1.0.1 \
+  server \
+  --host 0.0.0.0 \
+  --port 9312 \
+  --key ThaiVahWeiteil4OXiej6Laizeesh3ohr2aeghiopoop8 \
+  --keepalive 10s \
+  --socks5 \
+  --reverse
+
+# listando os containers que estão em execução
+#
+$ docker container ls
+
+CONTAINER ID   IMAGE                                                             COMMAND                  CREATED         STATUS         PORTS     NAMES
+e450d3eb6532   registry.mt4.dev/senhasegura-network-connector/connector:v1.0.1   "/app/chisel server …"   7 seconds ago   Up 5 seconds             senhasegura-network-connector
+
+# Obter o finger print
+#
+$ docker logs e450d3eb6532
+
+2021/11/04 23:11:19 server: Reverse tunnelling enabled
+2021/11/04 23:11:19 server: Fingerprint 5U3+TGkxSKejqm6ItRithcfmCMMtLzKQU6aI+UnsKQM=
+2021/11/04 23:11:19 server: Listening on http://0.0.0.0:9312
+
+#
+# br-001-senhasegura - Network Connector (192.168.10.2)
+#
+
+# ativando o componente BROKER em forma de container
+#
+$ docker run --name senhasegura-network-broker --net=host -d registry.mt4.dev/senhasegura-network-connector/broker:v1.0.1
+
+# listando os containers que estão em execução
+#
+$ docker container ls                                                                                                    
+CONTAINER ID   IMAGE                                                             COMMAND                  CREATED          STATUS          PORTS     NAMES
+69f81562a0f3   registry.mt4.dev/senhasegura-network-connector/broker:v1.0.1      "/home/microservice/…"   2 seconds ago    Up 1 second               senhasegura-network-broker
+e450d3eb6532   registry.mt4.dev/senhasegura-network-connector/connector:v1.0.1   "/app/chisel server …"   33 seconds ago   Up 32 seconds             senhasegura-network-connector
+
+#
+# japan-002-linux - Network Agent (192.168.20.2)
+#
+
+# Exportando variaveis de ambiente
+#
+$ export SNB_SERVER_ENDPOINT=192.168.10.2:9312 ; IP e porta do br-001-senhasegura
+$ export SNB_SERVER_FINGERPRINT=5U3+TGkxSKejqm6ItRithcfmCMMtLzKQU6aI+UnsKQM= ; Finger Print do servidor Chisel/Broker
+$ export SNB_PROXY_PORT=30000
+
+# ativando o componente chisel client em forma de container
+#
+$ docker run --name senhasegura-network-connector-client --net=host -d registry.mt4.dev/senhasegura-network-connector/connector:v1.0.1 \
+  client \
+  --fingerprint "${SNB_SERVER_FINGERPRINT}" \
+  --keepalive 10s \
+  ${SNB_SERVER_ENDPOINT} \
+  R:127.0.0.1:${SNB_PROXY_PORT}:socks
+
+# listando os containers que estão em execução
+#
+$ docker container ls
+
+CONTAINER ID   IMAGE                                                             COMMAND                  CREATED          STATUS          PORTS     NAMES
+3be009b08c39   registry.mt4.dev/senhasegura-network-connector/connector:v1.0.1   "/app/chisel client …"   17 seconds ago   Up 16 seconds             senhasegura-network-connector-client
+
+#
+# br-001-senhasegura - Network Connector (192.168.10.2)
+#
+
+# Criação de uma conexão pelo broker
+#
+# Servidor remoto SSH que será acessado, REMOTE_ADDRESS = 192.168.20.2
+# Esta sendo feito uma conexão via SSH, REMOTE_PORT = 22, no chiselcom a porta 22, SSH
+#
+$ curl -k --location --request POST 'https://127.0.0.1:8443/snb/connection/' \
+--header 'Content-Type: application/json' \
+--data-raw "{
+    \"remote_address\": \"192.168.20.2\",
+    \"remote_port\": 22,
+    \"protocol\": \"tcp\",
+    \"socks5_proxy\": {
+        \"address\": \"127.0.0.1\",
+        \"port\": 30000
+    }
+}" | jq
+
+
+# Exibindo o status da conexão do Broker
+$ curl -k --location --request GET 'https://127.0.0.1:8443/snb/status/' | jq
+
+{
+  "broker_connection": {
+    "hash": "f0b360c4eea60cdddf7c08dc61f06ec1dd6eba706402cf553c304d08875201a3",
+    "creation_timestamp": 1636038734,
+    "consumer_connections_timestamp": {
+      "latest": 1636038734
+    },
+    "port": 31000,
+    "remote_connection": {
+      "remote_address": "192.168.20.2",
+      "remote_port": 22,
+      "protocol": "tcp",
+      "socks5_proxy": {
+        "address": "127.0.0.1",
+        "port": 30000
+      }
+    }
+  }
+}
+
+# Apagando uma conexão do Broker
+$ curl -k --location --request DELETE 'https://127.0.0.1:8443/snb/connection/f0b360c4eea60cdddf7c08dc61f06ec1dd6eba706402cf553c304d08875201a3' | jq
+
+#
+# br-001-senhasegura - Network Connector (192.168.10.2)
+#
+
+# Testando a conexão
+#
+$ ssh cferreira@127.0.0.1 -p 31000
