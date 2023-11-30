@@ -3,16 +3,20 @@
 #: Description : Raspberry Pi e Docker
 #: Options : None
 
+#
+# Docker
+#
+
 $ curl -fsSL https://get.docker.com -o get-docker.sh
 
 $ sudo sh get-docker.sh
 
 $ sudo usermod -aG docker cferreira
 
-$ wget https://github.com/docker/compose/releases/download/v2.15.0/docker-compose-linux-armv6
+#
+# Docker Compose
+#
 
-$ sudo mv docker-compose-linux-armv6 /usr/local/bin
+$ curl -s https://api.github.com/repos/docker/compose/releases/latest | grep browser_download_url  | grep docker-compose-linux-armv7 | cut -d '"' -f 4 | wget -qi -
 
-$ sudo ln -s /usr/local/bin/docker-compose-linux-armv6 /usr/bin/docker-compose
-
-$ sudo chmod +x /usr/local/bin/docker-compose-linux-armv6
+$ chmod +x docker-compose-linux-armv7 && sudo mv docker-compose-linux-armv7 /usr/local/bin/docker-compose && docker-compose version
