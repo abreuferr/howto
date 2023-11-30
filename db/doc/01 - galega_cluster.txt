@@ -28,7 +28,7 @@ NODE03 - 192.168.122.zz
 
 $ sudo apt-get install apt-transport-https curl -y
 $ sudo curl -o /etc/apt/trusted.gpg.d/mariadb_release_signing_key.asc 'https://mariadb.org/mariadb_release_signing_key.asc'
-$ sudo sh -c "echo 'deb https://mirrors.gigenet.com/mariadb/repo/10.11/debian bullseye main' >>/etc/apt/sources.list"
+$ sudo sh -c "echo 'deb https://mirrors.gigenet.com/mariadb/repo/10.5/debian bullseye main' >>/etc/apt/sources.list"
 
 $ sudo apt-get update
 $ sudo apt-get install mariadb-server -y
