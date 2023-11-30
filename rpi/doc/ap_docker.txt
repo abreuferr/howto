@@ -1,0 +1,8 @@
+#: Title : Raspberry Pi Squid
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Transformar um raspberry pi em um access point e gateway
+#: Options : None
+
+# URL do projeto
+
+https://fwhibbit.es/automatic-access-point-with-docker-and-raspberry-pi-zero-w
