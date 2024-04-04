@@ -4,8 +4,8 @@
 #: Options : None
 
 # controle de memoria e cpu
-$ sudo vi /boot/cmdline.txt
-(...) rootwait cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+$ sudo vi /boot/firmware/cmdline.txt
+(...) cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
 $ reboot
 
 # Docker Compose
