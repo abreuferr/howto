@@ -10,8 +10,6 @@ $ reboot
 
 # Docker Compose
 $ vi docker-compose.yml
-version: "3"
-
 services:
   pihole:
     container_name: pihole
