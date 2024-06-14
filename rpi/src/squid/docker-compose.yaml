@@ -1,0 +1,15 @@
+services:
+  proxy:
+    image: matrixanger/rpi-squid
+    container_name: squid-lab
+    ports:
+      - "3128:3128"
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf
+      - /srv/docker/squid/cache:/var/cache/squid
+    restart: always
+    networks:
+      - squid
+networks:
+  squid:
+    driver: bridge
