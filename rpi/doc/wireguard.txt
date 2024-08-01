@@ -1,0 +1,33 @@
+#: Title : Raspberry Pi and Wireguard
+#: Author : "Caio Abreu Ferreira" <abreuferr_gmail.com>
+#: Description : Como configurar o RPi para ser um servidor Wireguard
+#: Options : None
+
+# ativando o wireguard via docker(docker compose)
+$ docker compose up -d
+
+# instalação pacotes
+$ sudo apt install qrencode wireguard-tools
+
+# gerando chaves de criptografia
+$ wg genkey | tee privatekey | wg pubkey > publickey
+
+# gerando a chave Preshared Key
+$ wg genpsk
+
+# arquivo de configuração
+$ cat /opt/wireguard-server/config/peer1/peer1.conf
+[Interface]
+Address = 192.168.1.2
+PrivateKey = CHAVE_PRIVADA
+ListenPort = 51820
+DNS = 192.168.1.12
+
+[Peer]
+PublicKey = CHAVE_PUBLICA
+PresharedKey = CHAVE_PRESHARED
+Endpoint = cferreirarpi.ddns.net:51820
+AllowedIPs = 0.0.0.0/0, ::/0
+
+# gerando qr-code
+$ qrencode -t ansiutf8 < /opt/wireguard-server/config/peer1/peer1.conf
