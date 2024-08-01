@@ -8,16 +8,17 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/London
-      - SERVERURL=<IP_EXTERNO>
+      - TZ=America/Sao_Paulo
+      - SERVERURL=cferreirarpi.ddns.net
       - SERVERPORT=51820
       - PEERS=1
-      - PEERDNS=auto
+      - PEERDNS=192.168.1.12
       - INTERNAL_SUBNET=192.168.1.0
     volumes:
       - /opt/wireguard-server/config:/config
       - /lib/modules:/lib/modules
     ports:
+      # Port of the WireGuard VPN server
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
