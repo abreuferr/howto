@@ -11,7 +11,7 @@ services:
       - TZ=America/Sao_Paulo
       - SERVERURL=cferreirarpi.ddns.net
       - SERVERPORT=51820
-      - PEERS=1
+      - PEERS=10
       - PEERDNS=192.168.1.12
       - INTERNAL_SUBNET=192.168.1.0
     volumes:
