@@ -10,10 +10,10 @@ $ docker compose up -d
 $ sudo apt install qrencode wireguard-tools
 
 # gerando chaves de criptografia
-$ wg genkey | tee privatekey | wg pubkey > publickey
+$ wg genkey | tee privatekey-peer1 | wg pubkey > publickey-peer1
 
 # gerando a chave Preshared Key
-$ wg genpsk
+$ wg genpsk > presharedkey-peer1
 
 # arquivo de configuração
 $ cat /opt/wireguard-server/config/peer1/peer1.conf
@@ -26,8 +26,11 @@ DNS = 192.168.1.12
 [Peer]
 PublicKey = CHAVE_PUBLICA
 PresharedKey = CHAVE_PRESHARED
-Endpoint = cferreirarpi.ddns.net:51820
+Endpoint = <DDNS>:51820
 AllowedIPs = 0.0.0.0/0, ::/0
 
 # gerando qr-code
 $ qrencode -t ansiutf8 < /opt/wireguard-server/config/peer1/peer1.conf
+
+# gerando qr-code em arquivo
+$ qrencode -o peer1.png < /opt/wireguard-server/config/peer1/peer1.conf
