@@ -34,3 +34,14 @@ $ qrencode -t ansiutf8 < /opt/wireguard-server/config/peer1/peer1.conf
 
 # gerando qr-code em arquivo
 $ qrencode -o peer1.png < /opt/wireguard-server/config/peer1/peer1.conf
+
+#
+# docker
+#
+
+# visualizar o containder id do wireguard
+$ docker ps
+
+# como acessar o container do wireguard
+$ docker exec -it <container_id_or_name> bash
+$ wg show
