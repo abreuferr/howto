@@ -14,6 +14,7 @@ services:
   pihole:
     container_name: pihole
     image: pihole/pihole:latest
+    hostname: pihole
     deploy:
       resources:
         limits:
@@ -45,4 +46,4 @@ $ docker exec -it pihole /bin/bash
 $ pihole -a -p somepasswordhere
 
 # atualização do pihole
-$ docker pull pihole/pihole && docker rm -f pihole && docker-compose -f pihole/docker-compose.yml up -d && docker system prune --all
+$ docker pull pihole/pihole && docker rm -f pihole && docker-compose -f pihole/docker-compose.yml up -d && docker system prune --all --force
