@@ -3,45 +3,10 @@
 #: Description : Como configurar o RPi para ser um servidor Wireguard
 #: Options : None
 
-# ativando o wireguard via docker(docker compose)
+$ mkdir ~/wireguard
+
+$ cd wireguard
+
+$ cat docker-compose.yml
+
 $ docker compose up -d
-
-# instalação pacotes
-$ sudo apt install qrencode wireguard-tools
-
-# gerando chaves de criptografia
-$ wg genkey | tee privatekey-peer1 | wg pubkey > publickey-peer1
-
-# gerando a chave Preshared Key
-$ wg genpsk > presharedkey-peer1
-
-# arquivo de configuração
-$ cat /opt/wireguard-server/config/peer1/peer1.conf
-[Interface]
-Address = 192.168.1.2
-PrivateKey = CHAVE_PRIVADA
-ListenPort = 51820
-DNS = 192.168.1.12
-
-[Peer]
-PublicKey = CHAVE_PUBLICA
-PresharedKey = CHAVE_PRESHARED
-Endpoint = <DDNS>:51820
-AllowedIPs = 0.0.0.0/0, ::/0
-
-# gerando qr-code
-$ qrencode -t ansiutf8 < /opt/wireguard-server/config/peer1/peer1.conf
-
-# gerando qr-code em arquivo
-$ qrencode -o peer1.png < /opt/wireguard-server/config/peer1/peer1.conf
-
-#
-# docker
-#
-
-# visualizar o containder id do wireguard
-$ docker ps
-
-# como acessar o container do wireguard
-$ docker exec -it <container_id_or_name> bash
-$ wg show

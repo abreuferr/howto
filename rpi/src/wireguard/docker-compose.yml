@@ -1,24 +1,27 @@
+---
 services:
   wireguard:
-    image: linuxserver/wireguard
+    image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
+      - SYS_MODULE #optional
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=America/Sao_Paulo
-      - SERVERURL=cferreirarpi.ddns.net
-      - SERVERPORT=51820
-      - PEERS=10
+      - TZ=Etc/UTC
+      - SERVERURL=ACRESCENTAR_SUBDOMINIO.duckdns.org #optional
+      - SERVERPORT=51820 #optional
+      - PEERS=1 #optional
       - PEERDNS=192.168.1.12
-      - INTERNAL_SUBNET=192.168.1.0
+      - INTERNAL_SUBNET=192.168.1.0 #optional
+      - ALLOWEDIPS=0.0.0.0/0 #optional
+      - PERSISTENTKEEPALIVE_PEERS= #optional
+      - LOG_CONFS=true #optional
     volumes:
-      - /opt/wireguard-server/config:/config
-      - /lib/modules:/lib/modules
+      - /home/cferreira/wireguard/config:/config
+      - /home/cferreira/wireguard/modules:/lib/modules #optional
     ports:
-      # Port of the WireGuard VPN server
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
