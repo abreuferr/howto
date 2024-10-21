@@ -19,8 +19,8 @@ services:
       DNSMASQ_LISTENING: 'all'
       TEMPERATUREUNIT: 'c'
     volumes:
-      - './etc-pihole:/etc/pihole'
-      - './etc-dnsmasq.d:/etc/dnsmasq.d'
+      - ${HOME}/pihole/etc-pihole:/etc/pihole
+      - ${HOME}/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
     cap_add:
       - NET_ADMIN
     restart: unless-stopped

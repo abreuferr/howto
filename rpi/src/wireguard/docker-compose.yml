@@ -19,8 +19,8 @@ services:
       - PERSISTENTKEEPALIVE_PEERS= #optional
       - LOG_CONFS=true #optional
     volumes:
-      - /home/cferreira/wireguard/config:/config
-      - /home/cferreira/wireguard/modules:/lib/modules #optional
+      - ${HOME}/wireguard/config:/config
+      - ${HOME}/wireguard/modules:/lib/modules #optional
     ports:
       - 51820:51820/udp
     sysctls:

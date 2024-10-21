@@ -7,11 +7,11 @@ services:
     environment:
       - PUID=1000 #optional
       - PGID=1000 #optional
-      - TZ=Etc/UTC #optional
+      - TZ=America/Sao_Paulo #optional
       - SUBDOMAINS=ACRESCENTAR_SUBDOMINIO
       - TOKEN=ACRESCENTAR_TOKEN
       - UPDATE_IP=ipv4 #optional
       - LOG_FILE=true #optional
     volumes:
-      - /home/cferreira/duckdns/config:/config #optional
+      - ${HOME}/duckdns/config:/config #optional
     restart: unless-stopped
