@@ -2,6 +2,12 @@
 services:
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
+    healthcheck:
+      test: curl -f http://localhost:8080/health || exit 1
+      interval: 30s      # Intervalo entre verificações
+      timeout: 10s       # Tempo limite da verificação
+      retries: 3         # Número de tentativas antes de falhar
+      start_period: 5s   # Período inicial antes de começar as verificações
     container_name: wireguard
     cap_add:
       - NET_ADMIN
@@ -10,7 +16,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - SERVERURL=ACRESCENTAR_SUBDOMINIO.duckdns.org #optional
+      - SERVERURL=cferreirarpi.duckdns.org #optional
       - SERVERPORT=51820 #optional
       - PEERS=1 #optional
       - PEERDNS=192.168.1.12
@@ -19,8 +25,8 @@ services:
       - PERSISTENTKEEPALIVE_PEERS= #optional
       - LOG_CONFS=true #optional
     volumes:
-      - ${HOME}/wireguard/config:/config
-      - ${HOME}/wireguard/modules:/lib/modules #optional
+      - /home/cferreira/wireguard/config:/config
+      - /home/cferreira/wireguard/modules:/lib/modules #optional
     ports:
       - 51820:51820/udp
     sysctls:
